@@ -24,16 +24,22 @@ from constants import *
 app_logger = AppLogger("logger").get_logger()
 
 
-class ManualControl:
+class ManualControlWindow:
     """
-    A class to create the manual control window.
+    A class to create the manual control window. It creates a new Tkinter window with buttons
+    for controlling the GPIO pins on the Arduino. 
+
+    Attributes:
+        root: The Tkinter root window.
+        window: The parent window.
+        usb_dev: The USB device object.
     """
 
-    def __init__(self, parent=None):
-        self.root = tk.Tk()
+    def __init__(self, parent=None, device=None):
+        self.root = tk.Tk() # Create the root window
         self.root.title("Manual Control")
         self.root.call("source", "azure.tcl")
-        self.root.call("set_theme", "dark")
+        self.root.call("set_theme", APPLICATION_THEME)
         self.root.iconbitmap("images\\pcb.ico")
         self.root.protocol("WM_DELETE_WINDOW", func=self.close)
         self.root.geometry("350x550")
@@ -42,18 +48,19 @@ class ManualControl:
         self.create_widgets()
 
         self.window = parent.window
-        self.window.withdraw()
+        self.window.withdraw() # Hide the main window
         self.root.attributes("-topmost", 1)
         self.root.attributes("-topmost", 0)
 
-        self.usb_dev = parent.device
-        print(self.usb_dev)
+        self.usb_dev = device # Get the USB device object
+
+        self.values = [0, 0, 0, 0] # Placeholder for the pin values
 
     def create_widgets(self):
         read_button = tk.Button(
             master=self.root,
             text="battery",
-            command=lambda: self.toggle_io(12),
+            command=self.toggle_battery,
             width=20,
             height=4,
         )
@@ -62,7 +69,7 @@ class ManualControl:
         write_button = tk.Button(
             master=self.root,
             text="low battery",
-            # command=self.write_io,
+            command=self.toggle_low_battery,
             width=20,
             height=4,
         )
@@ -71,7 +78,7 @@ class ManualControl:
         read_button = tk.Button(
             master=self.root,
             text="testing indicator",
-            # command=self.read_io,
+            command=self.toggle_testing_indicator,
             width=20,
             height=4,
         )
@@ -80,21 +87,42 @@ class ManualControl:
         write_button = tk.Button(
             master=self.root,
             text="indicator",
-            command=lambda: self.toggle_io(13),
+            command=self.toggle_indicator,
             width=20,
             height=4,
         )
         write_button.pack(pady=20)
 
-    def toggle_io(self, func):
-        self.usb_dev.toggle_pin(func)
+    def toggle_battery(self):
+        pin = self.usb_dev.get_pin_by_function("battery")
+        value = not self.values[0]
+        self.usb_dev.digital_write(pin, value)
+        self.values[0] = value
 
-        # if self.usb_dev.read_pin(pin_number=func):
-        #     self.usb_dev.write_pin_by_func(pin_function=func, value=0)
-        # else:
-        #     self.usb_dev.write_pin_by_func(pin_function=func, value=1)
+    def toggle_low_battery(self):
+        pin = self.usb_dev.get_pin_by_function("low battery")
+        value = not self.values[1]
+        self.usb_dev.digital_write(pin, value)
+        self.values[1] = value
+
+    def toggle_testing_indicator(self):
+        pin = self.usb_dev.get_pin_by_function("testing indicator")
+        value = not self.values[2]
+        self.usb_dev.digital_write(pin, value)
+        self.values[2] = value
+
+    def toggle_indicator(self):
+        pin = self.usb_dev.get_pin_by_function("indicator")
+        value = not self.values[3]
+        self.usb_dev.digital_write(pin, value)
+        self.values[3] = value
 
     def close(self):
+        # set all pins low
+        for pin in self.usb_dev.pins:
+            self.usb_dev.digital_write(pin["pin_number"], 0)
+        pin = self.usb_dev.get_pin_by_function("indicator")
+        self.usb_dev.digital_write(pin, 1)
         self.window.deiconify()
         self.root.destroy()
 
@@ -104,15 +132,26 @@ class ManualControl:
 
 class MainWindow:
     """
-    A class to create the main GUI. The GUI has a text box for displaying messages, menu bar,
-    a button for testing and programming.
+    A class to create the main GUI. The GUI has a text box for displaying messages, a menu bar,
+    labels for the selected device and USB connections and buttons for testing and programming.
+
+    Attributes:
+        parent: The main application process.
+        window: The main window of the GUI.
+        settings: The settings for the GUI.
+        device_name: The name of the device being used.
+        blocked: A boolean indicating if the GUI is currently blocked.
+        queue: A list of commands to execute in the GUI.
+        blinker_running: A boolean indicating if the blinker thread is running.
+        blink_thread: The thread for the blinker.
+        device: The USB handler for managing the USB connection.
     """
 
     def __init__(self, parent=None, settings=DEFAULT_SETTINGS):
         self.parent = parent
         self.window = tk.Tk()
         self.window.call("source", "azure.tcl")
-        self.window.tk.call("set_theme", "dark")
+        self.window.tk.call("set_theme", APPLICATION_THEME)
         self.window.iconbitmap("images\\pcb.ico")
 
         self.window.attributes("-topmost", 1)
@@ -120,6 +159,7 @@ class MainWindow:
 
         self.settings = settings
         self.device_name = None
+        self.waiting = False
 
         if self.settings.get(KEY_DEBUG):
             app_logger.info("Main window initialized")
@@ -143,7 +183,8 @@ class MainWindow:
 
         # Populate the text area with the testing instructions
         self.load_text_from_file()
-
+        self.testing = False
+        self.button_pressed = False
         self.device = self.parent.usb_handler
 
     def setup_components(self, _font=None):
@@ -302,7 +343,7 @@ class MainWindow:
         self.firmware = None
 
         # Create buttons
-        self.button1 = Button(
+        self.program_button = Button(
             self.bottom_frame,
             text="Program",
             height=2,
@@ -312,7 +353,7 @@ class MainWindow:
             command=self.program,
             padx=(3),
         )
-        self.button1.grid(row=0, column=0, sticky="w")
+        self.program_button.grid(row=0, column=0, sticky="w")
 
         # Create label for selected device
         self.device_label = Label(
@@ -324,7 +365,7 @@ class MainWindow:
         self.usb_label.config(fg="red")
         self.usb_label.grid(row=0, column=2)
 
-        self.button2 = Button(
+        self.test_button = Button(
             self.bottom_frame,
             text="Test",
             height=2,
@@ -333,7 +374,7 @@ class MainWindow:
             command=self.run_test,
             padx=(3),
         )
-        self.button2.grid(row=0, column=3, sticky="e")
+        self.test_button.grid(row=0, column=3, sticky="e")
 
         self.bottom_frame.grid_columnconfigure(0, weight=1)
         self.bottom_frame.grid_columnconfigure(1, weight=1)
@@ -357,7 +398,6 @@ class MainWindow:
                     label_text, version
                 ),
             )
-
 
     def set_firmware_folder(self, folder="."):
         """Set the firmware folder."""
@@ -406,11 +446,10 @@ class MainWindow:
             print(f"Adding user: {user}")
 
     def show_manual_control(self):
-        # manualwindow = ManualWindow(None, self.device)
-        manual = ManualControl(self)
-        manual.run()
-        # self.toggle_state("withdrawn")
-        # self.window.withdraw()
+        """Show the manual control window."""
+        if self.device is not None and self.device.is_connected():
+            manual = ManualControlWindow(self, device=self.device)
+            manual.run()
 
     def device_connected_callback(self, connected, msg=None):
         """
@@ -469,7 +508,7 @@ class MainWindow:
             if device == "EAX500" or device == "EAX300":
                 self.device_label.config(fg="green")
             else:
-                self.device_label.config(fg="red")
+                self.device_label.config(fg="orange")
 
             self.selected_device.set(f"Selected device: {device}")
             self.device_name = device
@@ -588,7 +627,9 @@ class MainWindow:
 
     def run_test(self):
         """Run the test."""
-        if not self.blocked and self.device is not None and self.device.is_connected():
+        if self.testing:
+            self.button_pressed = True
+        elif not self.blocked and self.device is not None and self.device.is_connected():
             self.blinker_running = False
             app_logger.info(f"Testing {self.device_name} started")
             self.clear_text()
@@ -644,6 +685,8 @@ class MainWindow:
 
             self.queue.append((int(5000 * speed), self.add_text, "Testing complete."))
 
+            self.queue.append((1, self.wait_for_button))
+
             self.queue.append(  # turn off battery
                 ((1), self.device.write_pin_by_func, "battery", 0)
             )
@@ -656,6 +699,7 @@ class MainWindow:
                 ((1), self.device.write_pin_by_func, "testing indicator", 0)
             )
 
+            self.testing = True
             self.blocked = True
             # Start processing the queue
             self.process_queue()
@@ -666,6 +710,8 @@ class MainWindow:
 
     def process_queue(self):
         """Process the queue."""
+        if self.waiting:
+            return
         if self.queue:
             delay, task, *args = self.queue.pop(0)  # Get the next task
             print("\nTask started")
@@ -675,6 +721,17 @@ class MainWindow:
             print("Task executed\n")
         else:
             self.blocked = False
+            self.testing = False
+
+    def wait_for_button(self):
+        print(f"Waiting for button {self.button_pressed}")
+        self.waiting = True
+        if not self.button_pressed:
+            self.window.after(100, self.wait_for_button)
+        else:
+            self.button_pressed = False
+            self.waiting = False
+            self.process_queue()
 
     def execute_task(self, task, args):
         """
@@ -799,7 +856,7 @@ class MainWindow:
         while self.blinker_running:
             self.device.write_pin_by_func("indicator", value)
             value = not value
-            time.sleep(0.5)
+            time.sleep(0.25)
         self.device.write_pin_by_func("indicator", 1)
 
     def stop_blink(self):
@@ -812,7 +869,7 @@ class MainWindow:
 
     def reload_window(self):
         """Reload the window."""
-        self.button2 = Button(
+        self.test_button = Button(
             self.bottom_frame,
             text="Test",
             height=2,
@@ -838,6 +895,3 @@ class MainWindow:
 if __name__ == "__main__":
     main = MainWindow()
     main.run()
-    main.show_manual_control()
-    # m = ManualControl()
-    # m.run()
