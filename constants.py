@@ -10,6 +10,8 @@ values can be adjusted here to make the application more modular.
 # Default testing speed in ms. This is adjustable inside the application.
 DEFAULT_TESTING_SPEED = 2000
 
+APPLICATION_THEME = "light"
+
 """
 Pin numbers for the Arduino board.
 """
