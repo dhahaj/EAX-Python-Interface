@@ -35,7 +35,7 @@ class AppLogger:
         self.check_and_move_old_log_file()
         
         # Create file handler
-        file_handler = logging.FileHandler(file_name)
+        file_handler = logging.FileHandler(file_name, mode="a")
         file_handler.setLevel(logging.DEBUG)
 
         # Create console handler
