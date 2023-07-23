@@ -1,7 +1,7 @@
 from tkinter.constants import *
 from constants import *
 from login import Login
-from eax500 import MainWindow
+from windows import MainWindow, ManualControlWindow
 from settings import Settings
 import usbhandler
 
@@ -38,9 +38,10 @@ class Application:
         )
 
         # setup the login window
-        if not self.settings.get(KEY_SKIP_LOGIN):  # no login screen
+        if self.settings.get(KEY_SKIP_LOGIN):  # no login screen
             # self.main_window.window.withdraw()
             # setup the main window
+            self.login_window.root.withdraw()
             self.main_window.run()
         else:  # login screen
             self.main_window.toggle_state("withdrawn")
@@ -97,6 +98,10 @@ class Application:
         # return the current state
         return self.state
 
+    def manual_control(self):
+        # handle manual control
+        pass
+
     def user_login(self, username):
         # handle user login
         self.user = username
@@ -141,12 +146,6 @@ def run_application():
 
     app = Application(login_window=login_window, main_window=main_window)
     app.run()
-
-
-def exit_handler():
-    # handle application exit
-    if app is not None:
-        app.exit()
 
 
 if __name__ == "__main__":
