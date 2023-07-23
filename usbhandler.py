@@ -200,6 +200,18 @@ class USBHandler(Telemetrix):
                     print("Pin number not specified.")
             return None
 
+    def set_all_pins(self, value):
+        """
+        Set all pins to a value.
+
+        :param value: The value to set the pins to.
+        """
+        if self.debug:
+            print(f"Method: {self.set_all_pins.__name__}, Value: {value}")
+
+        for pin in self.pins:
+            self.write_pin(pin[KEY_PIN_NUMBER], value)
+
     def toggle_pin(self, pin_number):
         if self.debug:
             print(f"Method: {self.toggle_pin.__name__}, Pin: {pin_number}")
