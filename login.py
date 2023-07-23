@@ -1,7 +1,6 @@
-# from eax500 import MainWindow
 from settings import Settings
 from user import User
-# from main import MainWindow
+from constants import APPLICATION_THEME
 import tkinter as tk
 from tkinter import StringVar
 
@@ -30,7 +29,7 @@ class Login:
         self.root = tk.Tk()  # Create the root window
         self.root.title("Login")  # Set the title of the window
         self.root.call("source", "azure.tcl")  # Set the theme of the window
-        self.root.call("set_theme", "dark")  # Set the theme of the window
+        self.root.call("set_theme", APPLICATION_THEME)  # Set the theme of the window
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.attributes("-topmost", 1)  # Make the window always on top
         self.root.iconbitmap("images/pcb.ico")  # Set the icon of the window
