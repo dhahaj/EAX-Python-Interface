@@ -6,7 +6,7 @@ from tkfontchooser import askfont
 from tkinter import filedialog
 from applogger import AppLogger
 import usercreationdialog
-
+from user import User
 from tkinter import (
     Menu,
     Button,
@@ -430,18 +430,14 @@ class MainWindow:
 
     def add_user(self):
         """Add a user to the list of users."""
-        # import user
-        # user.
-        # if self.settings.get(KEY_DEBUG):
-        #     print(f'Adding user: {user}')
-        # self.users.append(user)
-        # self.user
 
         # Create a dialog to get the information for the new user
         dialog = usercreationdialog.UserCreationDialog(
             self.window, user_settings=self.parent.settings, dialog_title="Add User"
         )
         user = dialog.user_data
+
+        User.add_user(user.username, user.password, user.admin)  # Add the user to the list of users
         if self.settings.get(KEY_DEBUG):
             print(f"Adding user: {user}")
 
