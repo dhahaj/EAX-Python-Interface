@@ -8,6 +8,10 @@ This is a Python version of the EAX Test Fixture Interface. It is a Python modul
 2. Install the Python packages listed in the `requirements.txt` file using the command `pip install -r requirements.txt`.
 3. Run the command `python setup.py install` to install the EAX Test Fixture Interface, or use pyinstaller to create a standalone executable.
 
+## Firmware
+
+This application uses the telemetrix Arduino library to communicate with the fixture. It can be compilled and uploaded via the Arduino IDE.
+
 ## Usage
 
 The EAX Fixture Interface can be modified by changing the values located in the `pins.json`, `settings.json`, and `users.json` files. 
@@ -30,6 +34,8 @@ The `pins.json` file contains the pin assignments for the application. The pin a
 ```
 
 ### `settings.json`
+
+The `settings.json` file contains the runtime settings for the application. The settings are pretty self-explanatory. The `arduino_instance_id` is a value that is set in the firmware and is used where they may be multiple connected devices.
 
 ```json
 {
@@ -54,6 +60,8 @@ The `pins.json` file contains the pin assignments for the application. The pin a
 ```
 
 ### `users.json`
+
+The `users.json` file contains the user login information for the application. The `admin` field is currently not used.
 
 ```json
 {
