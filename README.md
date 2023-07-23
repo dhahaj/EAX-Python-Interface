@@ -25,6 +25,7 @@ The `pins.json` file contains the pin assignments for the application. The pin a
             "function": "battery",
             "pullup_enabled": false,
         },
+    ]
 }
 ```
 
