@@ -1,17 +1,17 @@
 [
     {
         "username": "dmh",
-        "password": "d853",
+        "password": "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O",
         "admin": true
     },
     {
         "username": "sm",
-        "password": "1234",
-        "admin": false
+        "password": "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG",
+        "admin": true
     },
     {
         "username": "amdin",
-        "password": "password",
-        "admin": false
+        "password": "$2b$12$.pm08gr6xzHCTEQOBDEjWeg6fXAerPm/ucD/yb4sgbn1fmDa6UsW2",
+        "admin": true
     }
 ]
