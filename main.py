@@ -12,12 +12,19 @@ from applogger import AppLogger
 from usbhandler import USBHandler
 import threading
 from settings import Settings
+from user import User
+from rich import print
 
 import resource_rc #You need to manually import the compiled resource file
 
+
 app_logger = AppLogger("logger").get_logger()
 timer = QTimer()
+settings = Settings("settings.json")
+users = User("users.json")
 usb_device = None
+
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self,app):
         super().__init__()
@@ -30,6 +37,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionManual_Control.triggered.connect(self.manual_control)
         self.actionModify_Settings.triggered.connect(self.modify_settings)
         self.actionAdd_User.triggered.connect(self.add_user)
+        self.actionRemove_User.triggered.connect(self.remove_user)
 
         self.actionEAX300.triggered.connect(self.deviceSelect)
         self.actionEAX500.triggered.connect(self.deviceSelect)
@@ -48,9 +56,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionLogout.triggered.connect(self._print)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.run_test)
-        self.button_pressed = True
+        self.button_pressed = False
         self.blinker_running = False
-        self.button_pressed = True
         self.testing = False
         self.waiting = False
         self.blocked = False
@@ -58,14 +65,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_name = None
         self.load_text_from_file()
 
-        self.settings = Settings("settings.json")
+        global settings
+        self.settings = settings
+        self.device = USBHandler(
+            device_connected_callback=self.device_connected_callback, 
+            arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID)
+        )
 
-        global usb_device 
-        usb_device = USBHandler(device_connected_callback=self.device_connected_callback)
-        self.device = usb_device
+        # Auto Connect
+        if settings.get(KEY_AUTO_CONNECT):
+            QTimer.singleShot(2000, self.connect)
+
 
     def _print(self):
         print(self.sender())#.text())
+
     def deviceSelect(self):
         for action in self.menuDevice.actions():
             if action.text() != self.sender().text():
@@ -73,21 +87,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         print(self.sender().text())
         self.statusbar.showMessage(self.sender().text())
         self.device_label.setText("Device: " + self.sender().text())
+        orange = "color: rgb(229, 153, 0);"
+        green = "color: green;"
+
         if (self.sender().text() == "EAX300") or (self.sender().text() == "EAX500"):
-            self.device_label.setStyleSheet("color: rgb(0, 200, 0);")
+            self.device_label.setStyleSheet(green)
         else:
-            self.device_label.setStyleSheet("color: rgb(200, 0, 0);")
+            self.device_label.setStyleSheet(orange)
 
         self.device_name = self.sender().text()
-        self.firmware = "firmware/" + self.device_name + "_591.hex"
+
+        if self.device_name == "EAX300":
+            self.firmware = "firmware/" + self.device_name + "_59.hex"
+        else:
+            self.firmware = "firmware/" + self.device_name + "_591.hex"
 
     def quit(self):
         print("Quit")
         self.app.quit()
 
     def add_user(self):
-        self.add_user_dialog = AddUserDialog()
-        self.add_user_dialog.show()
+        self.add = AddUserDialog()
+        self.add.show()
+
+    def remove_user(self):
+        self.remove = RemoveUserDialog()
+        self.remove.show()
 
     def add_text(self, text):
         """
@@ -116,15 +141,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def aboutQt(self):
         QApplication.aboutQt()
     def connect(self):
-        self.device.connect(self.device_connected_callback)
+        if self.device is not None:
+            if not self.device.is_connected():
+                self.device.connect(self.device_connected_callback)
+                self.usb_label.setStyleSheet("color: rgb(189, 177, 46);")
+                self.usb_label.setText("USB: Connecting...")
+        else:
+            self.device = USBHandler(
+                device_connected_callback=self.device_connected_callback,
+                arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID)
+            )
+            self.device.connect(self.device_connected_callback)
+            global usb_device
+            usb_device = self.device
 
-    def device_connected_callback(self, connected):
+    def device_connected_callback(self, connected, error=None):
         self.usb_label.setText("USB: " + str(connected))
         if connected :
-            self.usb_label.setStyleSheet("color: rgb(0, 200, 0);") 
+            self.usb_label.setStyleSheet("color: green;") 
+            self.usb_label.setText("USB: " + str(self.device.serial_port.port))
         else:
             self.usb_label.setStyleSheet("color: rgb(200, 0, 0);")
-            app_logger.error(f"USB connection failed.")
+            self.usb_label.setText("USB: connection failed")
+            app_logger.error(f"USB: connection failed.")
+            self.device = None
+            global usb_device
+            usb_device = None
     
     def manual_control(self):
         self.manual = ManualWidget(self.device)
@@ -136,7 +178,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         :param command: The command to run.
         """
-        self.settings.__load__()
+        self.settings.load()
         process = subprocess.run(command)
         self.blocked = False
         # self.stop_blink()
@@ -251,7 +293,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.testing = False
 
     def modify_settings(self):
-        self.settings_widget = SettingsWidget(self.settings)
+        self.settings_widget = SettingsWidget()
         self.settings_widget.show()
 
     def wait_for_button(self):
@@ -286,7 +328,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.blink_thread.start()
 
             self.blinker_running = True
-            self.settings.__load__()
+            self.settings.load()
 
             chip = self.settings.get("chip_part")
             serial = self.settings.get("programmer_serial_number")
@@ -311,6 +353,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.add_text("Logs:")
         self.add_text(AppLogger.get_logs())
 
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+
+        if reply == QMessageBox.Yes:
+            if usb_device is not None:
+                if usb_device.is_connected():
+                    usb_device.cleanup()
+            event.accept()
+        else:
+            event.ignore()
 
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     def __init__(self, usb_handler=None):
@@ -359,15 +412,26 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
             value = 0
         self.usb_handler.digital_write(pin, value)
 
+    def closeEvent(self, event):
+        if usb_device is not None:
+            if usb_device.is_connected():
+                usb_device.set_all_pins(0)
+                usb_device.write_pin_by_func("indicator", 1)
+        event.accept()
+
 
 from ui_Settings import Ui_Settings
 class SettingsWidget(QWidget,Ui_Settings):
-    def __init__(self,settings):
+    def __init__(self):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
+        global settings
         self.settings = settings
-        self.settings.__load__()
+        self.settings.load()
+
+        if not self.settings.validate():
+            QMessageBox.warning(self, 'Error', f'Error loading settings. File not found.', QMessageBox.Ok)
 
         CHIP_PARTS = ["PIC16F627","PIC16F627A","PIC16F628","PIC16F628A"]
         for i in range(4):
@@ -378,6 +442,7 @@ class SettingsWidget(QWidget,Ui_Settings):
         self.dial_changed(value)
         self.dial.setValue(value)
         self.dial.connect(self.dial, QtCore.SIGNAL("valueChanged(int)"), self.dial_changed)
+        self.spinBox_arduino_id.setValue(self.settings.get(KEY_ARDUINO_INSTANCE_ID))
         self.lineEdit_port.setText(self.settings.get("serial_port"))
         self.lineEdit_serial.setText(self.settings.get("programmer_serial_number"))
         self.checkBox_test.setChecked(self.settings.get("auto_test"))
@@ -397,19 +462,22 @@ class SettingsWidget(QWidget,Ui_Settings):
         self.settings.set("auto_connect",self.checkBox_connect.isChecked())
         self.settings.set("debug",self.checkBox_debug.isChecked())
         self.settings.set("skip_login",self.checkBox_logon.isChecked())
+        self.settings.set(KEY_ARDUINO_INSTANCE_ID,self.spinBox_arduino_id.value())
         self.settings.set("testing_speed",self.dial.value()/100)
-        self.settings.__save__()
+        self.settings.save()
         self.close()
 
 
 from PySide6.QtWidgets import QDialog
 from ui_AddUserDialog import Ui_AddUserDialog
+from PySide6.QtWidgets import QLineEdit
 from user import (User, SingleUser)
 class AddUserDialog(QDialog,Ui_AddUserDialog):
     def __init__(self):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
+        self.lineEdit_password.setEchoMode(QLineEdit.Password)
         self.buttonBox.accepted.connect(self.save)
         self.buttonBox.rejected.connect(self.close)
 
@@ -422,6 +490,29 @@ class AddUserDialog(QDialog,Ui_AddUserDialog):
         User.add_user(self.lineEdit_username.text(),self.lineEdit_password.text(),admin)
         self.close()
 
+from ui_RemoveUserDialog import Ui_RemoveUserDialog
+class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+        self.setupUi(self)
+
+        self.us = User.load_users()
+        for user in self.us:
+            self.comboBox.addItem(user["username"])
+
+        self.buttonBox.accepted.connect(self.save)
+        self.buttonBox.rejected.connect(self.close)
+
+    def save(self):
+        selected_username = self.comboBox.currentText()
+        removed = User.remove_user_s(selected_username)
+        if removed:
+            self.close()
+        else:
+            QMessageBox.warning(self, 'Error', f'Error removing user: {selected_username}', QMessageBox.Ok)
+
+
 
 if __name__ == "__main__":
     app = QApplication([])
@@ -429,54 +520,4 @@ if __name__ == "__main__":
     window.show()
     app.exec()
 
-
-
-# from login import Login
-# # from eax500 import MainWindow
-# from settings import Settings
-# from applogger import AppLogger
-# from user import User
-# from usbhandler import USBHandler
-
-
-# if __name__ == "__main__":
-#     """
-#     The main function for the EAX500 application. It loads the settings, instantiates the system logger,
-#     loads the users, and starts the login process. If the login is successful, or if the settings indicate
-#     to skip the login, the main window is created and the main loop is started. The USB connection then attempts
-#     to create a connection with the EAX500 fixture.
-#     """
-#     settings = Settings("settings.json")  # Create a settings object
-#     settings.load()  # Load the settings from the settings.json file
-
-#     app_logger = AppLogger("logger").get_logger()  # Create a logger object
-#     app_logger.info(
-#         "Starting the EAX500 application."
-#     )  # Log the start of the application
-
-#     users = User("users.json")  # Create a user object
-#     users.load()  # Load the users from the users.json file
-
-#     # if skip login is false, create a login window
-#     if not settings.get("skip_login"):
-#         login = Login()
-#         while not login.is_logged_in():
-#             login.run()
-#         user = login.get_user()
-#         app_logger.info(f"User {user['username']} logged in.")
-#     else:
-#         user = None
-
-#     main_window = MainWindow()  # Create a main window object
-#     main_window.window.mainloop()  # Start the main loop
-
-#     # Create a USBHandler object
-#     usb_handler = USBHandler(
-#         arduino_instance_id=settings.get("arduino_instance_id"), # Provide the Arduino instance ID for this particular EAX500 fixture
-#         device_connected_callback=main_window.device_connected_callback, # Set a callback function for the device
-#     )
-#     usb_handler.connect()  # Attempt to connect to the EAX500 fixture
-
-#     app_logger.info("Closing the EAX500 application.")
-#     # usb_handler = USBHandler()
 
