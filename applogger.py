@@ -3,6 +3,8 @@ import shutil
 import logging
 import zipfile
 from datetime import datetime
+import time
+from rich import print
 
 
 class AppLogger:
@@ -64,6 +66,16 @@ class AppLogger:
         return self.logger
 
     @staticmethod
+    def info(message):
+        """
+        Log an info message.
+
+        :param level: The level of the message.
+        :param message: The message to log.
+        """
+        logging.getLogger("logger").info(f"{message}")
+
+    @staticmethod
     def get_logs():
         """
         Get the log file contents.
@@ -89,14 +101,7 @@ class AppLogger:
             # Get the date of the log file
             print(f'file name: {self.file_name}')
 
-            # Get the creation time
-            # creation_time = os.path.getctime(self.file_name)
-
-            # Convert the time to a readable format
-            # readable_time = datetime.fromtimestamp(creation_time)
-            # print(f'current file creation time: {readable_time}')
-
-            file_date = datetime.fromtimestamp(os.path.getctime(self.file_name))
+            file_date = datetime.fromtimestamp(os.path.getmtime(self.file_name))
             print(f'current file date: {file_date}')
 
             today = datetime.now()
@@ -113,7 +118,12 @@ class AppLogger:
                 # Create the new file name
                 new_file_name = f"logs/{self.file_name.split('.')[0]}_{file_date.strftime('%Y-%m-%d')}.log"
                 # Move the file
-                shutil.move(self.file_name, new_file_name)
+                shutil.move(self.file_name, new_file_name)  # use shutil.move instead of shutil.copy
+                open(self.file_name, 'a').close() # create a new empty file
+
+        else:   # File does not exist
+            print('file does not exist')
+            open(self.file_name, 'a').close()
 
     @staticmethod
     def archive_logs(archive_name="logs"):
