@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>images/pcb.ico</file>
+        <file>images/autodesk.ico</file>
+        <file>images/logo_detex.png</file>
+    </qresource>
+</RCC>
