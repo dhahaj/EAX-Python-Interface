@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1100, 1050)
+        MainWindow.resize(1100, 944)
         font = QFont()
         font.setPointSize(11)
         MainWindow.setFont(font)
@@ -157,17 +157,27 @@ class Ui_MainWindow(object):
         self.device_label.setObjectName(u"device_label")
         font3 = QFont()
         font3.setPointSize(12)
+        font3.setBold(True)
         self.device_label.setFont(font3)
-        self.device_label.setFrameShape(QFrame.Box)
-        self.device_label.setFrameShadow(QFrame.Plain)
+        self.device_label.setStyleSheet(u"color: rgb(255, 0, 0);\n"
+"font-weight: bold;")
+        self.device_label.setFrameShape(QFrame.WinPanel)
+        self.device_label.setFrameShadow(QFrame.Sunken)
+        self.device_label.setTextFormat(Qt.AutoText)
+        self.device_label.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout.addWidget(self.device_label)
 
         self.usb_label = QLabel(self.centralwidget)
         self.usb_label.setObjectName(u"usb_label")
         self.usb_label.setFont(font3)
-        self.usb_label.setFrameShape(QFrame.Box)
-        self.usb_label.setFrameShadow(QFrame.Plain)
+        self.usb_label.setStyleSheet(u"color: rgb(255, 0, 0);\n"
+"font-weight: bold;")
+        self.usb_label.setFrameShape(QFrame.WinPanel)
+        self.usb_label.setFrameShadow(QFrame.Sunken)
+        self.usb_label.setTextFormat(Qt.AutoText)
+        self.usb_label.setScaledContents(False)
+        self.usb_label.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayout.addWidget(self.usb_label)
 
@@ -227,6 +237,7 @@ class Ui_MainWindow(object):
         self.menuSetting.addSeparator()
         self.menuSetting.addAction(self.actionAdd_User)
         self.menuSetting.addAction(self.actionRemove_User)
+        self.menuSetting.addSeparator()
         self.menuSetting.addAction(self.actionManual_Control)
         self.menuHelp.addAction(self.actionShow_Logs)
         self.menuHelp.addAction(self.actionAbout)
