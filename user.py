@@ -73,18 +73,15 @@ class User:
         return False
 
     @staticmethod
-    def add_user(username, password, admin=False, filename=None):
+    def add_user(username, password, admin=False, filename="users.json"):
         """
-        Add a user to the user list.
+        Add a user to the user list. Saves the user list to a JSON file.
         
         :param username: The username to add.
         :param password: The password to add.
         :param admin: True if the user is an admin, False otherwise.
         :return: True if the user was added, False otherwise.
         """
-        if filename is None:
-            filename = "users.json"
-        
         users = User.load_users(filename)
 
         # Check if the user already exists
@@ -137,6 +134,24 @@ class User:
         
         return users
 
+    @staticmethod
+    def remove_user_s(username, filename="users.json"):
+        """
+        Remove a user from the user list.
+        
+        :param username: The username to remove.
+        :return: True if the user was removed, False otherwise.
+        """
+        users = User.load_users(filename)
+        for user in users:
+            if user['username'] == username:
+                users.remove(user)
+                with open(filename, 'w') as file:
+                    json.dump(users, file, indent=4)
+                return True
+        print(f"User {username} does not exist.")
+        return False
+
     def remove_user(self, username):
         """
         Remove a user from the user list.
@@ -147,8 +162,10 @@ class User:
         if username in self.users:
             del self.users[username]
             self.save_users()
+            return True
         else:
             print(f"User {username} does not exist.")
+            return False
 
     def is_admin(self, username):
         """
@@ -171,7 +188,8 @@ class User:
                 return user
         return None
 
-
+    def get_users(self):
+        return self.users
 class SingleUser:
     """
     This class defines a single user.
