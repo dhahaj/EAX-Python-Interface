@@ -17,7 +17,7 @@ class Settings:
         self.settings = DEFAULT_SETTINGS
 
         # Load settings from file
-        self.__load__()
+        self.load()
 
     def get(self, key):
         """
@@ -36,9 +36,9 @@ class Settings:
         :param value: The value of the setting.
         """
         self.settings[key] = value
-        self.__save__()
+        self.save()
 
-    def __load__(self):
+    def load(self):
         """
         Load the settings from a JSON file.
         """
@@ -52,12 +52,12 @@ class Settings:
         with open(self.filename, "r") as file:
             self.settings.update(json.load(file))
 
-    def __save__(self):
+    def save(self):
         """Save the settings to a JSON file."""
         with open(self.filename, "w") as file:
             json.dump(self.settings, file, indent=4)
         
-        self.__load__() # Reload the settings
+        self.load() # Reload the settings
 
     def get_path(self):
         """
@@ -66,4 +66,8 @@ class Settings:
         :return: The path of the settings file.
         """
         return os.path.abspath(self.filename)
+    
+    def validate(self):
+        """ Check if the settings file exists."""
+        return os.path.exists(self.filename)
     
