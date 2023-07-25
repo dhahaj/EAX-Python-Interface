@@ -4,18 +4,17 @@ from login import Login
 from windows import MainWindow, ManualControlWindow
 from settings import Settings
 import usbhandler
-
+from applogger import AppLogger
 
 class Application:
     """
     This is the main application class.
     """
 
-    def __init__(self, main_window=None, login_window=None):
+    def __init__(self):
         # initialize the application
         self.state = ST_INIT
         self.settings = Settings()
-        global Login, MainWindow
         # setup the USB handler
         self.usb_handler = usbhandler.USBHandler(
             port=self.settings.get(KEY_SERIAL_PORT),
@@ -28,46 +27,26 @@ class Application:
         self.main_window = MainWindow(
             parent=self, settings=self.settings
         )
-        
-        # setup the login window
+         # setup the login window
         self.login_window = Login(
             parent=self,
             window=self.main_window,
             settings=self.settings,
             callback=self.user_login,
         )
-
+        # self.login_window = None
         # setup the login window
-        if self.settings.get(KEY_SKIP_LOGIN):  # no login screen
+        # if self.settings.get(KEY_SKIP_LOGIN):  # no login screen
+            # self.login_window.root.withdraw()
+        # self.main_window.run()
+        # else:  # login screen
             # self.main_window.window.withdraw()
-            # setup the main window
-            self.login_window.root.withdraw()
-            self.main_window.run()
-        else:  # login screen
-            self.main_window.toggle_state("withdrawn")
-            # self.main_window.toggle_connect()
-            self.login_window.run()
+           
+            # self.login_window.run()
      
-            # self.login_window.username_entry.insert(
-            #     self.settings.get(KEY_LAST_USER), END
-            # )
-
-        # # see if we are skipping the login screen
-        # if not self.settings.get(KEY_SKIP_LOGIN):
-        #     self.main_window.window.withdraw()
-        #     self.login_window.username_entry.insert(
-        #         self.settings.get(KEY_LAST_USER), END
-        #     )
-        #     self.login_window.run()
-        # else:
-        #     self.main_window.run()
-        #     self.login_window.root.withdraw()
-
         self.user = None
         self.state = ST_LOGGED_OUT
-
-        if self.settings.get(KEY_LAST_USER):
-            self.transition_to_main()
+        self.main_window.run()
 
     def get_setting(self, key):
         # return a setting from the settings file
@@ -77,45 +56,39 @@ class Application:
         # set a setting in the settings file
         self.settings.set(key, value)
 
-    def transition_to_login(self):
-        # handle transition to login state
-        self.state = ST_LOGGING_IN
-
     def transition_to_main(self):
         # handle transition to main window state
         self.state = ST_LOGGED_IN
         self.main_window.run()
-
-    def transition_to_logout(self):
-        # handle transition to logout state
-        self.state = ST_LOGGED_OUT
-
-    def transition_to_exit(self):
-        # handle transition to exit state
-        self.state = ST_EXITING
-
-    def get_state(self):
-        # return the current state
-        return self.state
 
     def manual_control(self):
         # handle manual control
         pass
 
     def user_login(self, username):
-        # handle user login
+        """handle user login"""
+        
+        if username is None:
+            self.exit()
+            return
+        
         self.user = username
-        self.login_window.root.withdraw()
-        self.main_window.window.deiconify()
+        self.login_window.withdraw()
+        self.main_window.deiconify()
         self.settings.set(KEY_LAST_USER, self.login_window.username_entry.get())
+        AppLogger.info(f"User {self.user} logged in.")
         self.login_window.password_entry.delete(0, END)
-        self.transition_to_main()
+        # self.transition_to_main()
 
     def user_logout(self):
         # handle user logout
         self.user = None
-        self.main_window.window.withdraw()
-        self.login_window.root.deiconify()
+        self.main_window.withdraw()
+        if self.login_window is None:
+            self.login_window = Login(self, self.main_window, self.settings, self.user_login)
+            self.login_window.run()
+        else:
+            self.login_window.deiconify()
 
     def connection_callback(self, connected, msg=None):
         # handle connection callback
@@ -123,28 +96,27 @@ class Application:
 
     def run(self):
         # main application loop
-        self.main_window.window.mainloop()
+        # self.main_window.mainloop()
+
+        if self.settings.get(KEY_SKIP_LOGIN): # no login screen
+            self.login_window.withdraw()
+            self.main_window.run()
+        else:
+            self.login_window.run()
 
     def exit(self):
         # exit the application
-        self.login_window.root.destroy()
-        self.main_window.window.destroy()
-        self.usb_handler.cleanup()
+        if self.login_window is not None:
+            self.login_window.destroy()
+        try:
+            self.main_window.destroy()
+            self.usb_handler.cleanup()
+        except Exception as e:
+            print(f"Exception occurred while exiting application: {e}")
 
 
-app = None
-login_window = None
-main_window = None
-
-def run_application():
-    '''
-    Run the application.
-    '''
-    global app
-    global login_window
-    global main_window
-
-    app = Application(login_window=login_window, main_window=main_window)
+def run_application():  
+    app = Application()
     app.run()
 
 
