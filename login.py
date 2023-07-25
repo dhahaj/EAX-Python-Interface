@@ -3,9 +3,11 @@ from user import User
 from constants import APPLICATION_THEME
 import tkinter as tk
 from tkinter import StringVar
+from applogger import AppLogger
+from rich import print
 
 
-class Login:
+class Login(tk.Toplevel):
     """
     A class to create a login GUI. The GUI has two entry fields for username and password, and a login button.
     The login button calls the login() method, which checks if the username and password are correct.
@@ -16,46 +18,45 @@ class Login:
         """
         Initialize the login GUI Window.
         """
+        super().__init__(window) # Initialize the superclass
+
         self.parent = parent
         self.settings = settings
         self.window = window
         self.callback = callback
-
-        # self.app_logger = AppLogger("logger").get_logger() # Create a logger object
+        print("[bold]Login window initialized[/bold]")
 
         self.users = User()  # Create a user object
         self.users.load()  # Load the users from the users.json file
 
-        self.root = tk.Tk()  # Create the root window
-        self.root.title("Login")  # Set the title of the window
-        self.root.call("source", "azure.tcl")  # Set the theme of the window
-        self.root.call("set_theme", APPLICATION_THEME)  # Set the theme of the window
-        self.root.protocol("WM_DELETE_WINDOW", self.close)
-        self.root.attributes("-topmost", 1)  # Make the window always on top
-        self.root.iconbitmap("images/pcb.ico")  # Set the icon of the window
-        self.root.geometry("300x150+300+250")  # Set the size of the window
+        # self.root = tk.Tk()  # Create the root window
+        self.title("Login")  # Set the title of the window
+        # self.call("source", "azure.tcl")  # Set the theme of the window
+        # self.call("set_theme", APPLICATION_THEME)  # Set the theme of the window
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.attributes("-topmost", 1)  # Make the window always on top
+        self.iconbitmap("images/pcb.ico")  # Set the icon of the window
+        self.geometry("300x150+300+250")  # Set the size of the window
         self.username_label = tk.Label(
-            self.root, text="Username:"
+            self, text="Username:"
         )  # Create a label for the username
         self.password_label = tk.Label(
-            self.root, text="Password:"
+            self, text="Password:"
         )  # Create a label for the password
 
-        self.username = StringVar(value=self.settings.get("last_user"))
-        print(self.username.get())
-
+        self.username = StringVar()
         self.username_entry = tk.Entry(  # Create an entry field for the username
-            self.root, textvariable=StringVar(value="dmh"), takefocus=True
+            self, textvariable=self.username, takefocus=True, 
         )
         self.password_entry = tk.Entry(
-            self.root, show="*",
+            self, show="*",
         )  # Create an entry field for the password
 
         self.login_button = tk.Button(
-            self.root, text="Login", command=self.login
+            self, text="Login", command=self.login
         )  # Create a login button
         self.cancel_button = tk.Button(
-            self.root, text="Cancel", command=self.close
+            self, text="Cancel", command=self.close
         )  # Create a cancel button
 
         # Place the widgets in the window
@@ -67,7 +68,7 @@ class Login:
         self.cancel_button.grid(row=2, column=1, padx=10, pady=10)
 
         # Create a label to display a message if the login fails
-        self.failure_label = tk.Label(self.root, text="")
+        self.failure_label = tk.Label(self, text="")
         self.failure_label.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
         self.login_status = False
@@ -75,21 +76,16 @@ class Login:
         self.admin = None
 
         # Bind the Enter and Escape keys
-        self.root.bind("<Return>", lambda event: self.login())
-        self.root.bind("<Escape>", lambda event: self.close())
-        # Check if the skip_login setting is set to True. If so, skip the login window
-        # and go directly to the main window.
-        # if self.settings.get("skip_login"):
-        #     self.root.destroy()
-        #     self.main_window = MainWindow()
-        #     self.main_window.run()
+        self.bind("<Return>", lambda event: self.login())
+        self.bind("<Escape>", lambda event: self.close())
 
     def close(self):
         """
         Close the login GUI.
         """
-        if self.parent is not None:
-            self.parent.exit()
+        # if self.parent is not None:
+            # self.parent.exit()
+        self.parent.user_login(None)
 
     def login(self):
         """
@@ -103,11 +99,10 @@ class Login:
             self.login_status = True
             self.user = username
             self.settings.set("last_user", self.username_entry.get())
-            # if self.window is not None:
-            #     self.window.deiconify()
-            # self.close()
-            if self.parent is None:
-                self.parent = MainWindow(self, self.settings)
+            # AppLogger("logger").get_logger().info(f"User {self.user} logged in.")
+
+            # if self.parent is None:
+            #     self.parent = MainWindow(self, self.settings)
             self.parent.user_login(username)
         else:
             self.failure_label.config(text="Invalid username or password.", fg="red")
@@ -136,11 +131,15 @@ class Login:
         """
         Run the login GUI.
         """
-        self.root.mainloop()
+        self.username.set(self.settings.get("last_user"))
+        print(self.username.get())
+        self.mainloop()
 
- 
 if __name__ == "__main__":
     settings = Settings()
-    settings.load()
-    login = Login(None, None, settings)
-    login.run()
+    login_window = Login(None, None, settings)
+    login_window.run()
+    if login_window.is_logged_in():
+        print("Logged in")
+    else:
+        print("Not logged in")
