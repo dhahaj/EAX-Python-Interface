@@ -1,4 +1,5 @@
 from constants import *
+
 # from applogger import AppLogger
 import threading
 import json
@@ -10,7 +11,9 @@ from telemetrix.telemetrix import Telemetrix
 
 class USBHandler(Telemetrix):
     """
-    This class handles the USB connection to the Arduino board. It extends the telemetrix class for this specific application.
+    This class handles the USB connection to the Arduino board. It extends the telemetrix class. It modifies how
+    the connection is handled by delaying the connection until the connect() method is called and adding a callback
+    function that is called upon returning, passing a parameter indicating whether the connection was successful.
     """
 
     def __init__(
@@ -38,22 +41,19 @@ class USBHandler(Telemetrix):
 
     def connect(self):
         """Connect to the Arduino board."""
+        if self.debug:
+            print(f"Method: {self.connect.__name__} - Thread started")
         if not self.device_connected and self.board is None:
-            self.check_device_thread = threading.Thread(
-                target=self.check_device_connection,
-                # shutdown_on_exception=False,
-            )
+            self.check_device_thread = threading.Thread(target=self.check_device_connection)
             self.check_device_thread.start()
-            if self.debug:
-                print(f"Method: {self.connect.__name__} - Thread started")
 
     def check_device_connection(self):
         """Check the connection to the Arduino board."""
+        if self.debug:
+            print(
+                f"Method: {self.check_device_connection.__name__}, Connection: {self.device_connected}"
+            )
         try:
-            if self.debug:
-                print(
-                    f"Method: {self.check_device_connection.__name__}, Connection: {self.device_connected}"
-                )
             if not self.device_connected:
                 # Create a new Telemetrix instance
                 super(USBHandler, self).__init__(
@@ -71,7 +71,8 @@ class USBHandler(Telemetrix):
 
         except Exception as e:
             print(f"Exception occurred while connecting to device: {e}")
-            traceback.print_exc()
+            if self.debug:
+                traceback.print_exc()
             if self.device_connected_callback is not None:
                 self.device_connected_callback(False, e.args[0])
             self.device_connected = False
@@ -232,13 +233,13 @@ class USBHandler(Telemetrix):
         if self.debug:
             print(f"Method: {self.cleanup.__name__}")
 
-        if self.is_connected is not None:
+        if self.is_connected():
             for pin in self.pins:
                 self.digital_write(pin["pin_number"], 0)
                 self.set_pin_mode_digital_input(pin["pin_number"])
             # self.board.shutdown()
-        super(USBHandler, self).shutdown()
         self.device_connected = False
+        super(USBHandler, self).shutdown()
 
     def __str__(self) -> str:
         """Return a string representation of the Arduino object."""
