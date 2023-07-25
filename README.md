@@ -10,7 +10,7 @@ This is a Python version of the EAX Test Fixture Interface. It is a Python modul
 
 ## Firmware
 
-This application uses the telemetrix Arduino library to communicate with the fixture. It can be compilled and uploaded via the Arduino IDE.
+This application uses the telemetrix Arduino library to communicate with the fixture. It can be compilled and uploaded via the Arduino IDE. This installation of the firmware can be automated using the `Install.ps1` script. This script will download the `arduino-cli` tool, install the required libraries, compile the firmware, and upload it to the Arduino. It prompts for the COM port of the Arduino before uploading the firmware.
 
 ## Usage
 
