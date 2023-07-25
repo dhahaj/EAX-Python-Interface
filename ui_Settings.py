@@ -17,14 +17,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDial,
     QFormLayout, QLabel, QLineEdit, QPushButton,
-    QSizePolicy, QWidget)
+    QSizePolicy, QSpinBox, QWidget)
 import resource_rc
 
 class Ui_Settings(object):
     def setupUi(self, Settings):
         if not Settings.objectName():
             Settings.setObjectName(u"Settings")
-        Settings.resize(500, 350)
+        Settings.resize(500, 400)
         icon = QIcon()
         icon.addFile(u":/new/prefix1/images/pcb.ico", QSize(), QIcon.Normal, QIcon.Off)
         Settings.setWindowIcon(icon)
@@ -95,23 +95,29 @@ class Ui_Settings(object):
 
         self.formLayout.setWidget(6, QFormLayout.LabelRole, self.checkBox_test)
 
+        self.label_2 = QLabel(Settings)
+        self.label_2.setObjectName(u"label_2")
+        self.label_2.setFont(font)
+
+        self.formLayout.setWidget(7, QFormLayout.LabelRole, self.label_2)
+
+        self.spinBox_arduino_id = QSpinBox(Settings)
+        self.spinBox_arduino_id.setObjectName(u"spinBox_arduino_id")
+        self.spinBox_arduino_id.setFont(font)
+
+        self.formLayout.setWidget(7, QFormLayout.FieldRole, self.spinBox_arduino_id)
+
         self.pushButton_save = QPushButton(Settings)
         self.pushButton_save.setObjectName(u"pushButton_save")
         self.pushButton_save.setFont(font)
 
-        self.formLayout.setWidget(6, QFormLayout.FieldRole, self.pushButton_save)
-
-        self.label = QLabel(Settings)
-        self.label.setObjectName(u"label")
-        self.label.setFont(font)
-
-        self.formLayout.setWidget(7, QFormLayout.LabelRole, self.label)
+        self.formLayout.setWidget(8, QFormLayout.FieldRole, self.pushButton_save)
 
         self.label_speed = QLabel(Settings)
         self.label_speed.setObjectName(u"label_speed")
         self.label_speed.setFont(font)
 
-        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label_speed)
+        self.formLayout.setWidget(9, QFormLayout.LabelRole, self.label_speed)
 
         self.dial = QDial(Settings)
         self.dial.setObjectName(u"dial")
@@ -124,7 +130,13 @@ class Ui_Settings(object):
         self.dial.setInvertedControls(False)
         self.dial.setNotchesVisible(True)
 
-        self.formLayout.setWidget(8, QFormLayout.FieldRole, self.dial)
+        self.formLayout.setWidget(9, QFormLayout.FieldRole, self.dial)
+
+        self.label = QLabel(Settings)
+        self.label.setObjectName(u"label")
+        self.label.setFont(font)
+
+        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label)
 
 
         self.formLayout_2.setLayout(0, QFormLayout.SpanningRole, self.formLayout)
@@ -147,8 +159,9 @@ class Ui_Settings(object):
         self.checkBox_logon.setText(QCoreApplication.translate("Settings", u"Auto Login", None))
         self.checkBox_debug.setText(QCoreApplication.translate("Settings", u"Debug", None))
         self.checkBox_test.setText(QCoreApplication.translate("Settings", u"Auto Test", None))
+        self.label_2.setText(QCoreApplication.translate("Settings", u"Arduino ID", None))
         self.pushButton_save.setText(QCoreApplication.translate("Settings", u"Save", None))
-        self.label.setText(QCoreApplication.translate("Settings", u"Test Speed", None))
         self.label_speed.setText(QCoreApplication.translate("Settings", u"TextLabel", None))
+        self.label.setText(QCoreApplication.translate("Settings", u"Test Speed", None))
     # retranslateUi
 
