@@ -1,16 +1,15 @@
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QApplication, QMainWindow,QMessageBox
-from PySide6.QtWidgets import QWidget
-from PySide6 import QtCore
+from PySide6 import QtCore, QtGui
+from PySide6.QtCore import QTimer, QEvent
+from PySide6.QtWidgets import (QApplication, QMainWindow,QMessageBox, QColorDialog, QWidget, QFontDialog, QPushButton, QVBoxLayout)
+from PySide6.QtGui import (QFont, QFontInfo, QColor, QMouseEvent)
 
 from ui_ManualControlDialog import Ui_ManualControlDialog
 from ui_MainWindow import Ui_MainWindow
-import os
-import subprocess
+
+import os, sys, subprocess, threading
 from constants import *
 from applogger import AppLogger
 from usbhandler import USBHandler
-import threading
 from settings import Settings
 from user import User
 from rich import print
@@ -31,9 +30,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.app = app
 
+        self.inactivityTimer = QTimer()
+        self.inactivityTimer.setSingleShot(True)
+        self.inactivityTimer.timeout.connect(self.onInactivityTimeout)
+        self.installEventFilter(self)
+        for widget in QApplication.instance().allWidgets():
+            widget.installEventFilter(self)
+
+        # Settings
+        global settings 
+        self.settings = settings
+        self.settings_dialog = SettingsDialog()
+        self.settings_dialog.closed.connect(self.on_settings_closed)
+
+        self.text_edit.setFont(
+            QFont(self.settings.get(KEY_FONT_FAMILY), 
+                  self.settings.get(KEY_FONT_SIZE),
+            )
+        )
+        self.text_edit.setStyleSheet(f"color: {self.settings.get(KEY_FOREGROUND_COLOR)}; background-color: {self.settings.get(KEY_BACKGROUND_COLOR)};")
+
         self.actionConnect.triggered.connect(self.connect)
         self.actionAbout.triggered.connect(self.aboutQt)
         self.actionShow_Logs.triggered.connect(self.show_log)
+        self.actionChange_font.triggered.connect(self.choose_font)
         self.actionManual_Control.triggered.connect(self.manual_control)
         self.actionModify_Settings.triggered.connect(self.modify_settings)
         self.actionAdd_User.triggered.connect(self.add_user)
@@ -53,7 +73,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionEAX524.triggered.connect(self.deviceSelect)
         self.actionEAX525.triggered.connect(self.deviceSelect)
 
-        self.actionLogout.triggered.connect(self._print)
+        self.actionLogout.triggered.connect(self.do_login)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.run_test)
         self.button_pressed = False
@@ -63,10 +83,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.blocked = False
         self.firmware = None
         self.device_name = None
+        self.connecting = False
         self.load_text_from_file()
 
-        global settings
-        self.settings = settings
+        # USB
         self.device = USBHandler(
             device_connected_callback=self.device_connected_callback, 
             arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID)
@@ -76,7 +96,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if settings.get(KEY_AUTO_CONNECT):
             QTimer.singleShot(2000, self.connect)
 
-
     def _print(self):
         print(self.sender())#.text())
 
@@ -85,12 +104,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if action.text() != self.sender().text():
                 action.setChecked(False)
         print(self.sender().text())
-        self.statusbar.showMessage(self.sender().text())
         self.device_label.setText("Device: " + self.sender().text())
         orange = "color: rgb(229, 153, 0);"
         green = "color: green;"
+        yellow = "color: rgb(189, 177, 46);"
 
-        if (self.sender().text() == "EAX300") or (self.sender().text() == "EAX500"):
+        if (self.sender().text() == "EAX300"):
+            self.device_label.setStyleSheet(yellow)
+        elif (self.sender().text() == "EAX500"):
             self.device_label.setStyleSheet(green)
         else:
             self.device_label.setStyleSheet(orange)
@@ -102,9 +123,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.firmware = "firmware/" + self.device_name + "_591.hex"
 
+    def choose_font(self):
+        old_font = self.text_edit.font()
+        print(f"Current font: {old_font.toString()}")
+        
+        (ok, font) = QFontDialog.getFont(QFont(old_font.family(),old_font.pointSize()), self)
+        
+        if ok:
+            print(f"User selected font: {font.toString()}")
+            self.text_edit.setFont(font)
+            self.settings.set(KEY_FONT_FAMILY, QFontInfo(font).family())
+            self.settings.set(KEY_FONT_SIZE, font.pointSize())
+
     def quit(self):
         print("Quit")
         self.app.quit()
+
+    def eventFilter(self, watched, event):
+        if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
+            # Reset the inactivity timer if a mouse movement or key press event is detected
+            self.inactivityTimer.start(self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000)  # 60 seconds of inactivity before timeout
+        return super(MainWindow, self).eventFilter(watched, event)
+
+    def onInactivityTimeout(self):
+        print("No user activity detected!")
+        if not self.settings.get(KEY_AUTO_LOGIN):
+            self.do_login()
 
     def add_user(self):
         self.add = AddUserDialog()
@@ -121,7 +165,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :param text: The text to add.
         """
         self.text_edit.append("\n"+text)
-    
+        self.text_edit.moveCursor(QtGui.QTextCursor.End)
+        self.text_edit.ensureCursorVisible()
 
     def load_text_from_file(self, filename="instructions.txt"):
         """
@@ -129,20 +174,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         :param filename: The name of the file to load.
         """
+        
+        self.text_edit.setMarkdown(INSTRUCTIONS)
+        self.text_edit.moveCursor(QtGui.QTextCursor.End)
+        self.text_edit.ensureCursorVisible()
+        return
         if os.path.exists(filename):
             with open(filename, "r") as file:
                 content = file.read()
             self.text_edit.setMarkdown(content)
+            self.text_edit.moveCursor(QtGui.QTextCursor.End)
+            self.text_edit.ensureCursorVisible()
         else:
             self.add_text(f"{filename} not found!")
 
     def about(self):
         QMessageBox.information(self,"Going pro!","QMainWindow,Qt Designer and Resources : Going pro!")
+    
     def aboutQt(self):
         QApplication.aboutQt()
+    
     def connect(self):
+        if self.connecting:
+            return
         if self.device is not None:
             if not self.device.is_connected():
+                self.connecting = True
                 self.device.connect(self.device_connected_callback)
                 self.usb_label.setStyleSheet("color: rgb(189, 177, 46);")
                 self.usb_label.setText("USB: Connecting...")
@@ -152,20 +209,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID)
             )
             self.device.connect(self.device_connected_callback)
-            global usb_device
-            usb_device = self.device
 
     def device_connected_callback(self, connected, error=None):
+        global usb_device
         self.usb_label.setText("USB: " + str(connected))
         if connected :
             self.usb_label.setStyleSheet("color: green;") 
             self.usb_label.setText("USB: " + str(self.device.serial_port.port))
+            self.actionConnect.setText("Disconnect")
+            self.actionConnect.triggered.connect(self.disconnect)
+            self.actionConnect.triggered.disconnect(self.connect)
         else:
+            self.actionConnect.setText("Connect")
             self.usb_label.setStyleSheet("color: rgb(200, 0, 0);")
             self.usb_label.setText("USB: connection failed")
             app_logger.error(f"USB: connection failed.")
             self.device = None
-            global usb_device
+        usb_device = self.device
+        self.connecting = False
+        
+    def disconnect(self):
+        global usb_device
+        if self.device is not None:
+            self.device.set_all_pins(0)
+            self.actionConnect.setText("Connect")
+            self.actionConnect.triggered.connect(self.connect)
+            self.actionConnect.triggered.disconnect(self.disconnect)
+            self.usb_label.setStyleSheet("color: rgb(200, 0, 0);")
+            self.usb_label.setText("USB: disconnected")
+            app_logger.info(f"USB: disconnected.")
+            self.device.cleanup()
+            self.device = None
             usb_device = None
     
     def manual_control(self):
@@ -179,11 +253,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :param command: The command to run.
         """
         self.settings.load()
-        process = subprocess.run(command)
+        process = subprocess.run(" ".join(command))
         self.blocked = False
         # self.stop_blink()
         if process.returncode == 0:
-            if self.settings.get("auto_test"):
+            if self.settings.get(KEY_AUTO_TEST):
                 self.run_test()
             self.add_text("Programming successful.")
             app_logger.info(f"Programming {self.device_name} successful")
@@ -199,24 +273,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.button_pressed = True
         elif not self.blocked:# and self.device is not None and self.device.is_connected():
             self.blinker_running = False
-            app_logger.info(f"Testing {self.device_name} started")
+            app_logger.info(f"# Testing {self.device_name} started")
             # Clear the queue
             self.queue = []
             speed = self.settings.get("testing_speed")
 
+            # self.text_edit.setText("")
+            self.text_edit.setMarkdown(f"# Starting test for {self.device_name}... ")
+
             self.queue.append(  # turn on indicator
                 (1, self.device.write_pin_by_func, "testing indicator", 1)
-            )
-
-            self.queue.append(  # Add tasks to the queue
-                (100, self.add_text, f"Starting test for {self.device_name}...")
             )
 
             self.queue.append(
                 (
                     int(DEFAULT_TESTING_SPEED * speed),
                     self.add_text,
-                    "\nTurning on battery power...",
+                    " - Turning on battery power...",
                 )
             )
 
@@ -228,7 +301,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 (
                     int(DEFAULT_TESTING_SPEED * speed),
                     self.add_text,
-                    "Starting low battery test...",
+                    " - Starting low battery test...",
                 )
             )
 
@@ -236,7 +309,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 ((1), self.device.write_pin_by_func, "low battery", 1)
             )
 
-            self.queue.append((int(2000 * speed), self.add_text, "Low battery off."))
+            self.queue.append((int(2000 * speed), self.add_text, " - Low battery test off."))
 
             self.queue.append(  # turn off low battery
                 ((1), self.device.write_pin_by_func, "low battery", 0)
@@ -246,11 +319,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 (
                     int(1000 * speed),
                     self.add_text,
-                    "Perform the following:\n\t  1. Press the key switch: The siren sounds\n\t  2. Press the cylinder switch: The LEDs turn on",
+                    " - Perform the following:\n\t  1. Press the key switch: The siren sounds\n\t  2. Press the cylinder switch: The LEDs turn on",
                 )
             )
 
-            self.queue.append((int(100 * speed), self.add_text, "\n\nPress the Test button to continue."))
+            self.queue.append((int(100 * speed), self.add_text, "\n\nPress the Continue button to finish testing..."))
 
             self.queue.append((1, self.wait_for_button))
 
@@ -268,7 +341,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.testing = True
             self.blocked = True
-            self.text_edit.setText("")
             # Start processing the queue
             self.process_queue()
 
@@ -282,26 +354,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
         if self.queue:
             delay, task, *args = self.queue.pop(0)  # Get the next task
-            print("\nTask started")
             QTimer.singleShot(delay, lambda: self.execute_task(task, args))  # Execute the task after the delay
-            # self.after(
-            #     delay, lambda: self.execute_task(task, args)
-            # )  # Execute the task after the delay
-            print("Task executed\n")
         else:
             self.blocked = False
             self.testing = False
 
     def modify_settings(self):
-        self.settings_widget = SettingsWidget()
-        self.settings_widget.show()
+        self.settings_dialog.show()
+
+    def on_settings_closed(self, result):
+        print(f"Settings dialog closed. Result: {result}")
+        self.text_edit.setStyleSheet(f"color: {self.settings.get(KEY_FOREGROUND_COLOR)}; background-color: {self.settings.get(KEY_BACKGROUND_COLOR)};")
+        if self.settings.get(KEY_AUTO_LOGIN):
+            self.actionLogout.setEnabled(False)
+        else:
+            self.actionLogout.setEnabled(True)
 
     def wait_for_button(self):
-        print(f"Waiting for button {self.button_pressed}")
         self.waiting = True
         if not self.button_pressed:
             QTimer.singleShot(100, self.wait_for_button)
+            self.test_button.setText("Continue")
         else:
+            self.test_button.setText("Test")
             self.button_pressed = False
             self.waiting = False
             self.process_queue()
@@ -332,7 +407,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             chip = self.settings.get("chip_part")
             serial = self.settings.get("programmer_serial_number")
-            command = ["up.exe", f"/part {chip} /q1 /s {serial} /p {self.firmware}"]
+            command = ["up.exe", f"/part {chip}",f"/s {serial}",f"/p {self.firmware}","/q1"]
 
             if self.settings.get("debug"):
                 print(" ".join(command))
@@ -353,6 +428,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.add_text("Logs:")
         self.add_text(AppLogger.get_logs())
 
+    def do_login(self):
+        loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
+        success, username = False, None
+
+        while not success:
+            if loginDialog.exec() == QDialog.Accepted:
+                success, username = loginDialog.ok()
+                if not success:
+                    QMessageBox.critical(self, "Invalid credentials", "The username or password you entered is incorrect. Please try again.")
+            else:
+                if QMessageBox.question(self, "Confirmation", "Are you sure you want to exit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No) == QMessageBox.Yes:
+                    if self.device is not None:
+                        if self.device.is_connected():
+                            self.device.cleanup()
+                    sys.exit(0)
+
+        # Now 'username' contains the username of the logged-in user
+        print(f"Logged in as: {username}")
+        app_logger.info(f"Logged in as: {username}")
+        self.statusbar.showMessage(f"Logged in as: {username}")
+
+        # Block if the user is not an admin
+        self.actionModify_Settings.setEnabled(users.is_admin(username))
+        self.actionAdd_User.setEnabled(users.is_admin(username))
+        self.actionRemove_User.setEnabled(users.is_admin(username))
+        self.settings.set(KEY_LAST_USER, username)
+
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Window Close', 'Are you sure you want to close the window?',
                                      QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
@@ -365,14 +467,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
+    def show(self):
+        super().show()
+        if not self.settings.get(KEY_AUTO_LOGIN):
+            self.do_login()
+        else:
+            self.actionLogout.setEnabled(False)
+
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     def __init__(self, usb_handler=None):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-        global usb_device 
 
-        self.usb_handler = usb_device
+        self.usb_device = usb_handler
+
+        if self.usb_device is None:
+            QMessageBox.warning(self, 'Error', f'USB device not connected.', QMessageBox.Ok)
 
         self.battery_button.clicked.connect(self.toggle_battery)
         self.low_battery_button.clicked.connect(self.toggle_low_battery)
@@ -381,47 +492,48 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
 
 
     def toggle_battery(self, checked):
-        pin = self.usb_handler.get_pin_by_function("battery")
         if checked:
             value = 1
         else:
             value = 0
-        self.usb_handler.digital_write(pin, value)
+        self.usb_device.write_pin_by_func("battery", value)
+
 
     def toggle_low_battery(self, checked):
-        pin = self.usb_handler.get_pin_by_function("low battery")
         if checked:
             value = 1
         else:
             value = 0
-        self.usb_handler.digital_write(pin, value)
+        self.usb_device.write_pin_by_func("low battery", value)
 
     def toggle_testing_indicator(self, checked):
-        pin = self.usb_handler.get_pin_by_function("testing indicator")
         if checked:
             value = 1
         else:
             value = 0
-        self.usb_handler.digital_write(pin, value)
+        self.usb_device.write_pin_by_func("testing indicator", value)
 
     def toggle_indicator(self, checked):
-        pin = self.usb_handler.get_pin_by_function("indicator")
         if checked:
             value = 1
         else:
             value = 0
-        self.usb_handler.digital_write(pin, value)
+        self.usb_device.write_pin_by_func("indicator", value)
 
     def closeEvent(self, event):
-        if usb_device is not None:
-            if usb_device.is_connected():
-                usb_device.set_all_pins(0)
-                usb_device.write_pin_by_func("indicator", 1)
+        if self.usb_device is not None:
+            if self.usb_device.is_connected():
+                self.usb_device.set_all_pins(0)
+                self.usb_device.write_pin_by_func("indicator", 1)
         event.accept()
 
 
-from ui_Settings import Ui_Settings
-class SettingsWidget(QWidget,Ui_Settings):
+from ui_SettingsDialog import Ui_Settings
+
+class SettingsDialog(QWidget, Ui_Settings):
+    
+    closed = QtCore.Signal(int)
+
     def __init__(self):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
@@ -430,25 +542,28 @@ class SettingsWidget(QWidget,Ui_Settings):
         self.settings = settings
         self.settings.load()
 
+        self.commandLinkButton_select_color.clicked.connect(self.choose_color)
+        self.commandLinkButton_bg_color.clicked.connect(self.choose_background_color)
+
         if not self.settings.validate():
             QMessageBox.warning(self, 'Error', f'Error loading settings. File not found.', QMessageBox.Ok)
 
-        CHIP_PARTS = ["PIC16F627","PIC16F627A","PIC16F628","PIC16F628A"]
-        for i in range(4):
+        for i in range(CHIP_PARTS.__len__()):
             self.comboBox_chip.addItem(CHIP_PARTS[i])
-        self.comboBox_chip.setCurrentIndex(CHIP_PARTS.index(self.settings.get("chip_part")))
-
-        value = self.settings.get("testing_speed") * 100
+        self.comboBox_chip.setCurrentIndex(CHIP_PARTS.index(self.settings.get(KEY_CHIP_PART)))
+        
+        self.spinBox_autologoff_delay.setValue(self.settings.get(KEY_LOGOFF_DELAY))
+        value = self.settings.get(KEY_TESTING_SPEED) * 100
         self.dial_changed(value)
         self.dial.setValue(value)
         self.dial.connect(self.dial, QtCore.SIGNAL("valueChanged(int)"), self.dial_changed)
         self.spinBox_arduino_id.setValue(self.settings.get(KEY_ARDUINO_INSTANCE_ID))
-        self.lineEdit_port.setText(self.settings.get("serial_port"))
-        self.lineEdit_serial.setText(self.settings.get("programmer_serial_number"))
-        self.checkBox_test.setChecked(self.settings.get("auto_test"))
-        self.checkBox_connect.setChecked(self.settings.get("auto_connect"))
-        self.checkBox_debug.setChecked(self.settings.get("debug"))
-        self.checkBox_logon.setChecked(self.settings.get("skip_login"))
+        self.lineEdit_port.setText(self.settings.get(KEY_SERIAL_PORT))
+        self.lineEdit_serial.setText(self.settings.get(KEY_PROGRAMMER_SERIAL_NUMBER))
+        self.checkBox_test.setChecked(self.settings.get(KEY_AUTO_TEST))
+        self.checkBox_connect.setChecked(self.settings.get(KEY_AUTO_CONNECT))
+        self.checkBox_debug.setChecked(self.settings.get(KEY_DEBUG))
+        self.checkBox_logon.setChecked(self.settings.get(KEY_AUTO_LOGIN))
         self.pushButton_save.clicked.connect(self.save)
 
     def dial_changed(self, value):
@@ -464,8 +579,28 @@ class SettingsWidget(QWidget,Ui_Settings):
         self.settings.set("skip_login",self.checkBox_logon.isChecked())
         self.settings.set(KEY_ARDUINO_INSTANCE_ID,self.spinBox_arduino_id.value())
         self.settings.set("testing_speed",self.dial.value()/100)
+        self.settings.set("auto_logoff_delay",self.spinBox_autologoff_delay.value())
         self.settings.save()
         self.close()
+
+    def choose_color(self):
+        old_color = QColor(self.settings.get(KEY_FOREGROUND_COLOR))
+        color = QColorDialog.getColor(old_color, self)
+        if color.isValid():
+            print(f"User selected color: {color.name()}")
+            self.settings.set(KEY_FOREGROUND_COLOR, f"{color.name()};")
+
+    def choose_background_color(self):
+        old_color = QColor(self.settings.get(KEY_BACKGROUND_COLOR))
+        color = QColorDialog.getColor(old_color, self)
+        if color.isValid():
+            print(f"User selected color: {color.name()}")
+            self.settings.set(KEY_BACKGROUND_COLOR, f"{color.name()}")
+
+    def closeEvent(self, event):
+        self.settings.load()
+        self.closed.emit(0)
+        event.accept()
 
 
 from PySide6.QtWidgets import QDialog
@@ -491,6 +626,7 @@ class AddUserDialog(QDialog,Ui_AddUserDialog):
         self.close()
 
 from ui_RemoveUserDialog import Ui_RemoveUserDialog
+
 class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
     def __init__(self):
         super().__init__()
@@ -506,6 +642,10 @@ class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
 
     def save(self):
         selected_username = self.comboBox.currentText()
+        if selected_username == "dmh":
+            QMessageBox.critical(self, 'Error', f'Cannot remove user: {selected_username}', QMessageBox.Ok)
+            self.close()
+            return
         removed = User.remove_user_s(selected_username)
         if removed:
             self.close()
@@ -513,9 +653,48 @@ class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
             QMessageBox.warning(self, 'Error', f'Error removing user: {selected_username}', QMessageBox.Ok)
 
 
+from ui_LoginDialog import Ui_LoginDialog
+
+class LoginDialog(QDialog, Ui_LoginDialog):
+    def __init__(self, last_user=None):
+        super().__init__()
+        self.setupUi(self)
+        self.lineEdit_password.setEchoMode(QLineEdit.Password)
+        print(users.get_users())
+        
+        for user in users.get_users():
+            self.comboBox.addItem(user["username"])
+        self.comboBox.setCurrentText(last_user)
+
+        self.buttonBox.accepted.connect(self.ok)
+        self.buttonBox.rejected.connect(self.cancel)
+        
+    def ok(self):
+        selected_username = self.comboBox.currentText()
+        selected_password = self.lineEdit_password.text()
+        validate = users.validate_credentials(selected_username, selected_password)
+        return (validate, selected_username)
+
+    def cancel(self):
+        return (False, None)
+
+
+def check_requirements():
+    missing = ""
+    for file in FILES:
+        if not os.path.exists(file):
+            missing += file + "\n"
+    if missing != "":
+        print(f"Missing files:\n{missing}")
+        return (False, missing)
+    return (True, None)
 
 if __name__ == "__main__":
     app = QApplication([])
+    (success, missing) = check_requirements()
+    if not success:
+        QMessageBox.critical(None, "Error", f"Missing files:\n{missing}", QMessageBox.Ok)
+        sys.exit(1)
     window = MainWindow(app)
     window.show()
     app.exec()
