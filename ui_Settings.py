@@ -15,16 +15,16 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDial,
-    QFormLayout, QLabel, QLineEdit, QPushButton,
-    QSizePolicy, QSpinBox, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QCommandLinkButton,
+    QDial, QFormLayout, QLabel, QLineEdit,
+    QPushButton, QSizePolicy, QSpinBox, QWidget)
 import resource_rc
 
 class Ui_Settings(object):
     def setupUi(self, Settings):
         if not Settings.objectName():
             Settings.setObjectName(u"Settings")
-        Settings.resize(500, 400)
+        Settings.resize(500, 434)
         icon = QIcon()
         icon.addFile(u":/new/prefix1/images/pcb.ico", QSize(), QIcon.Normal, QIcon.Off)
         Settings.setWindowIcon(icon)
@@ -77,23 +77,26 @@ class Ui_Settings(object):
 
         self.formLayout.setWidget(3, QFormLayout.LabelRole, self.checkBox_connect)
 
+        self.label_3 = QLabel(Settings)
+        self.label_3.setObjectName(u"label_3")
+        self.label_3.setFont(font)
+        self.label_3.setMargin(4)
+
+        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.label_3)
+
         self.checkBox_logon = QCheckBox(Settings)
         self.checkBox_logon.setObjectName(u"checkBox_logon")
         self.checkBox_logon.setFont(font)
 
         self.formLayout.setWidget(4, QFormLayout.LabelRole, self.checkBox_logon)
 
-        self.checkBox_debug = QCheckBox(Settings)
-        self.checkBox_debug.setObjectName(u"checkBox_debug")
-        self.checkBox_debug.setFont(font)
+        self.spinBox_autologoff_delay = QSpinBox(Settings)
+        self.spinBox_autologoff_delay.setObjectName(u"spinBox_autologoff_delay")
+        self.spinBox_autologoff_delay.setFont(font)
+        self.spinBox_autologoff_delay.setProperty("showGroupSeparator", False)
+        self.spinBox_autologoff_delay.setMinimum(1)
 
-        self.formLayout.setWidget(5, QFormLayout.LabelRole, self.checkBox_debug)
-
-        self.checkBox_test = QCheckBox(Settings)
-        self.checkBox_test.setObjectName(u"checkBox_test")
-        self.checkBox_test.setFont(font)
-
-        self.formLayout.setWidget(6, QFormLayout.LabelRole, self.checkBox_test)
+        self.formLayout.setWidget(4, QFormLayout.FieldRole, self.spinBox_autologoff_delay)
 
         self.label_2 = QLabel(Settings)
         self.label_2.setObjectName(u"label_2")
@@ -106,6 +109,12 @@ class Ui_Settings(object):
         self.spinBox_arduino_id.setFont(font)
 
         self.formLayout.setWidget(7, QFormLayout.FieldRole, self.spinBox_arduino_id)
+
+        self.label = QLabel(Settings)
+        self.label.setObjectName(u"label")
+        self.label.setFont(font)
+
+        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label)
 
         self.pushButton_save = QPushButton(Settings)
         self.pushButton_save.setObjectName(u"pushButton_save")
@@ -132,11 +141,31 @@ class Ui_Settings(object):
 
         self.formLayout.setWidget(9, QFormLayout.FieldRole, self.dial)
 
-        self.label = QLabel(Settings)
-        self.label.setObjectName(u"label")
-        self.label.setFont(font)
+        self.checkBox_debug = QCheckBox(Settings)
+        self.checkBox_debug.setObjectName(u"checkBox_debug")
+        self.checkBox_debug.setFont(font)
 
-        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label)
+        self.formLayout.setWidget(5, QFormLayout.LabelRole, self.checkBox_debug)
+
+        self.commandLinkButton_select_color = QCommandLinkButton(Settings)
+        self.commandLinkButton_select_color.setObjectName(u"commandLinkButton_select_color")
+
+        self.formLayout.setWidget(5, QFormLayout.FieldRole, self.commandLinkButton_select_color)
+
+        self.commandLinkButton_bg_color = QCommandLinkButton(Settings)
+        self.commandLinkButton_bg_color.setObjectName(u"commandLinkButton_bg_color")
+        font1 = QFont()
+        font1.setFamilies([u"Segoe UI"])
+        font1.setPointSize(11)
+        self.commandLinkButton_bg_color.setFont(font1)
+
+        self.formLayout.setWidget(6, QFormLayout.FieldRole, self.commandLinkButton_bg_color)
+
+        self.checkBox_test = QCheckBox(Settings)
+        self.checkBox_test.setObjectName(u"checkBox_test")
+        self.checkBox_test.setFont(font)
+
+        self.formLayout.setWidget(6, QFormLayout.LabelRole, self.checkBox_test)
 
 
         self.formLayout_2.setLayout(0, QFormLayout.SpanningRole, self.formLayout)
@@ -156,12 +185,16 @@ class Ui_Settings(object):
         self.label_serial.setText(QCoreApplication.translate("Settings", u"Pgmr Serial", None))
         self.label_chip.setText(QCoreApplication.translate("Settings", u"Chip", None))
         self.checkBox_connect.setText(QCoreApplication.translate("Settings", u"Auto Connect", None))
+        self.label_3.setText(QCoreApplication.translate("Settings", u"Auto Logoff Delay:", None))
         self.checkBox_logon.setText(QCoreApplication.translate("Settings", u"Auto Login", None))
-        self.checkBox_debug.setText(QCoreApplication.translate("Settings", u"Debug", None))
-        self.checkBox_test.setText(QCoreApplication.translate("Settings", u"Auto Test", None))
+        self.spinBox_autologoff_delay.setSpecialValueText("")
         self.label_2.setText(QCoreApplication.translate("Settings", u"Arduino ID", None))
+        self.label.setText(QCoreApplication.translate("Settings", u"Test Speed", None))
         self.pushButton_save.setText(QCoreApplication.translate("Settings", u"Save", None))
         self.label_speed.setText(QCoreApplication.translate("Settings", u"TextLabel", None))
-        self.label.setText(QCoreApplication.translate("Settings", u"Test Speed", None))
+        self.checkBox_debug.setText(QCoreApplication.translate("Settings", u"Debug", None))
+        self.commandLinkButton_select_color.setText(QCoreApplication.translate("Settings", u"Select Text Color", None))
+        self.commandLinkButton_bg_color.setText(QCoreApplication.translate("Settings", u"Select Background Color", None))
+        self.checkBox_test.setText(QCoreApplication.translate("Settings", u"Auto Test", None))
     # retranslateUi
 
