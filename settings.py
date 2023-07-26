@@ -42,21 +42,24 @@ class Settings:
         """
         Load the settings from a JSON file.
         """
-
-        # Check if the settings file exists, and create it if it doesn't
-        if not os.path.exists(self.filename):
-            with open(os.path.join(".", self.filename), "w") as file:
-                json.dump(self.settings, file, indent=4)
-        
-        # Load the settings from the settings file
-        with open(self.filename, "r") as file:
-            self.settings.update(json.load(file))
+        try:
+            # Check if the settings file exists, and create it if it doesn't
+            if not os.path.exists(self.filename):
+                with open(os.path.join(".", self.filename), "w") as file:
+                    json.dump(self.settings, file, indent=4)
+            
+            # Load the settings from the settings file
+            with open(self.filename, "r") as file:
+                self.settings.update(json.load(file))
+        except json.JSONDecodeError:
+            print("Failed to decode JSON from settings file.")
+            # self.settings = DEFAULT_SETTINGS
+            self.save()
 
     def save(self):
         """Save the settings to a JSON file."""
         with open(self.filename, "w") as file:
             json.dump(self.settings, file, indent=4)
-        
         self.load() # Reload the settings
 
     def get_path(self):
