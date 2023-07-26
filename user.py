@@ -16,7 +16,8 @@ class User:
         # Default users
         self.users = DEFAULT_USERS
         self.filename = filename
-        self.users = self.load(self.filename)
+        self.users = None
+        self.load(self.filename)
 
     def load(self, filename=None):
         """
@@ -37,13 +38,13 @@ class User:
                         self.users = data
                     else:
                         print("Invalid format in user file. Expected a list.")
-                        self.users = []
+                        # self.users = []
                 except json.JSONDecodeError:
                     print("Failed to decode JSON from user file.")
-                    self.users = []
+                    # self.users = []
         else: # File does not exist
             print(f"User file {filename} does not exist.")
-            self.users = []
+            # self.users = []
         if self.users is None:
             print("No users loaded. self.users is None.")
         elif isinstance(self.users, list):
@@ -131,7 +132,6 @@ class User:
             print(f"{len(users)} users loaded.")
         else:
             print("Unexpected error in load_users(). self.users is not a list.")
-        
         return users
 
     @staticmethod
@@ -174,7 +174,12 @@ class User:
         :param username: The username to check.
         :return: True if the user is an admin, False otherwise.
         """
-        return self.users[username]['admin']
+        for user in self.users:
+            if user['username'] == username:
+                if user['admin']:
+                    return True
+                else:
+                    return False   
         
     def get_user(self, username):
         """
