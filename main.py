@@ -1,5 +1,5 @@
 from PySide6 import QtCore, QtGui
-from PySide6.QtCore import QTimer, QEvent
+from PySide6.QtCore import QTimer, QEvent, Slot
 from PySide6.QtWidgets import (QApplication, QMainWindow,QMessageBox, QColorDialog, QWidget, QFontDialog, QPushButton, QVBoxLayout)
 from PySide6.QtGui import (QFont, QFontInfo, QColor, QMouseEvent)
 
@@ -88,6 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # USB
         self.device = USBHandler(
+            port=self.settings.get(KEY_COM_PORT),
             device_connected_callback=self.device_connected_callback, 
             arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID)
         )
@@ -96,14 +97,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if settings.get(KEY_AUTO_CONNECT):
             QTimer.singleShot(2000, self.connect)
 
-    def _print(self):
-        print(self.sender())#.text())
-
     def deviceSelect(self):
         for action in self.menuDevice.actions():
             if action.text() != self.sender().text():
                 action.setChecked(False)
-        print(self.sender().text())
         self.device_label.setText("Device: " + self.sender().text())
         orange = "color: rgb(229, 153, 0);"
         green = "color: green;"
@@ -125,12 +122,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def choose_font(self):
         old_font = self.text_edit.font()
-        print(f"Current font: {old_font.toString()}")
         
         (ok, font) = QFontDialog.getFont(QFont(old_font.family(),old_font.pointSize()), self)
         
         if ok:
-            print(f"User selected font: {font.toString()}")
+            if self.settings.get(KEY_DEBUG):
+                print(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
             self.settings.set(KEY_FONT_FAMILY, QFontInfo(font).family())
             self.settings.set(KEY_FONT_SIZE, font.pointSize())
@@ -146,7 +143,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return super(MainWindow, self).eventFilter(watched, event)
 
     def onInactivityTimeout(self):
-        print("No user activity detected!")
+        if self.settings.get(KEY_DEBUG):
+            print("Inactivity timeout.")
+        app_logger.info("Inactivity timeout.")
         if not self.settings.get(KEY_AUTO_LOGIN):
             self.do_login()
 
@@ -168,6 +167,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
 
+    def add_markdown(self, text):
+        # t = self.text_edit.toMarkdown()
+        # t += "\n### "+text
+        self.text_edit.setMarkdown(text)
+        self.text_edit.moveCursor(QtGui.QTextCursor.End)
+        self.text_edit.ensureCursorVisible()
+
     def load_text_from_file(self, filename="instructions.txt"):
         """
         Load text from a file and add it to the text area.
@@ -175,7 +181,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :param filename: The name of the file to load.
         """
         
-        self.text_edit.setMarkdown(INSTRUCTIONS)
+        self.text_edit.setMarkdown(INSTRUCTIONS+"   \r\n")
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
         return
@@ -205,6 +211,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.usb_label.setText("USB: Connecting...")
         else:
             self.device = USBHandler(
+                port=self.settings.get(KEY_COM_PORT),
                 device_connected_callback=self.device_connected_callback,
                 arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID)
             )
@@ -245,27 +252,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def manual_control(self):
         self.manual = ManualWidget(self.device)
         self.manual.show()
-
-    def run_command(self, command):
-        """
-        Run a command in a separate thread.
-
-        :param command: The command to run.
-        """
-        self.settings.load()
-        process = subprocess.run(" ".join(command))
-        self.blocked = False
-        # self.stop_blink()
-        if process.returncode == 0:
-            if self.settings.get(KEY_AUTO_TEST):
-                self.run_test()
-            self.add_text("Programming successful.")
-            app_logger.info(f"Programming {self.device_name} successful")
-        else:
-            self.add_text("Programming failed.")
-            app_logger.error(
-                f"Programming {self.device_name} failed. Error code: {process.returncode}"
-            )
 
     def run_test(self):
         """Run the test."""
@@ -399,10 +385,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.add_text(f"{self.firmware} not found!")
                 return
 
-            # self.blink_thread = threading.Thread(target=self.do_blink)
-            # self.blink_thread.start()
-
-            self.blinker_running = True
             self.settings.load()
 
             chip = self.settings.get("chip_part")
@@ -412,15 +394,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.settings.get("debug"):
                 print(" ".join(command))
 
-            thread = threading.Thread(target=self.run_command, args=(command,))
             self.blocked = True
 
-            # if self.parent.settings.get("debug"):
-            #     self.add_text("Running test...")
-            #     self.run_test()
-
             app_logger.info(f"Programming {self.device_name} args: {command}")
-            thread.start()
+            self.runner = CommandRunner(command)
+            self.runner.resultReady.connect(self.handleResult)  # Connect the signal to the handler
+            self.runner.start()
+
+    def handleResult(self, returncode):
+        # This function gets called when the command finishes.
+        # Do whatever you need to do with the return code here.
+        print(returncode)
+        if returncode == 0:
+            if self.settings.get(KEY_AUTO_TEST):
+                self.run_test()
+            self.add_text("Programming successful.")
+            app_logger.info(f"Programming {self.device_name} successful")
+        else:
+            self.add_text(f"\nProgramming {self.device_name} failed. Error code: {returncode}")
+            app_logger.error(
+                f"Programming {self.device_name} failed. Error code: {returncode}"
+            )
+        self.blocked = False
 
     def show_log(self):
         """Show the logs in the text area."""
@@ -558,7 +553,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.dial.setValue(value)
         self.dial.connect(self.dial, QtCore.SIGNAL("valueChanged(int)"), self.dial_changed)
         self.spinBox_arduino_id.setValue(self.settings.get(KEY_ARDUINO_INSTANCE_ID))
-        self.lineEdit_port.setText(self.settings.get(KEY_SERIAL_PORT))
+        self.lineEdit_port.setText(self.settings.get(KEY_COM_PORT))
         self.lineEdit_serial.setText(self.settings.get(KEY_PROGRAMMER_SERIAL_NUMBER))
         self.checkBox_test.setChecked(self.settings.get(KEY_AUTO_TEST))
         self.checkBox_connect.setChecked(self.settings.get(KEY_AUTO_CONNECT))
@@ -660,8 +655,10 @@ class LoginDialog(QDialog, Ui_LoginDialog):
         super().__init__()
         self.setupUi(self)
         self.lineEdit_password.setEchoMode(QLineEdit.Password)
-        print(users.get_users())
-        
+    
+        if settings.get(KEY_DEBUG):
+            print(users.get_users())
+
         for user in users.get_users():
             self.comboBox.addItem(user["username"])
         self.comboBox.setCurrentText(last_user)
@@ -677,6 +674,19 @@ class LoginDialog(QDialog, Ui_LoginDialog):
 
     def cancel(self):
         return (False, None)
+
+
+from PySide6.QtCore import QThread, Signal
+
+class CommandRunner(QThread):
+    resultReady = Signal(int)  
+    def __init__(self, command):
+        super().__init__()
+        self.command = command
+
+    def run(self):
+        process = subprocess.run(" ".join(self.command))
+        self.resultReady.emit(process.returncode)
 
 
 def check_requirements():
