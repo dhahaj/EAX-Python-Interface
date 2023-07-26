@@ -7,10 +7,16 @@ This file contains many variables that are used throughout the application. Cert
 values can be adjusted here to make the application more modular. 
 """
 
+SETTINGS_FILE = "settings.json"
+USERS_FILE = "users.json"
+PINS_FILE = "pins.json"
+
+FILES = [SETTINGS_FILE, USERS_FILE, PINS_FILE]
+
 # Default testing speed in ms. This is adjustable inside the application.
 DEFAULT_TESTING_SPEED = 2000
 
-APPLICATION_THEME = "light"
+APPLICATION_THEME = "dark"
 
 """
 Pin numbers for the Arduino board.
@@ -19,6 +25,9 @@ PIN_LOW_BATTERY = 2
 PIN_TESTING_INDICATOR = 4
 PIN_BATTERY = 12
 PIN_INDICATOR = 13
+
+CHIP_PARTS = ["PIC16F627","PIC16F627A","PIC16F628","PIC16F628A"]
+
 
 """
 States for the application.
@@ -46,12 +55,17 @@ KEY_TESTING_SPEED = "testing_speed"
 KEY_AUTO_TEST = "auto_test"
 KEY_FONT_FAMILY = "font_family"
 KEY_FONT_SIZE = "font_size"
-KEY_FONT_WEIGHT = "font_style"
+KEY_FONT_WEIGHT = "font_weight"
 KEY_FONT_COLOR = "font_color"
-KEY_SKIP_LOGIN = "skip_login"
+KEY_AUTO_LOGIN = "skip_login"
 KEY_AUTO_CONNECT = "auto_connect"
 KEY_ARDUINO_INSTANCE_ID = "arduino_instance_id"
 KEY_FIRMWARE_FOLDER = "firmware_folder"
+KEY_FIRMWARE_LOCATION = "firmware_location"
+KEY_LOGOFF_DELAY = "auto_logoff_delay"
+KEY_BACKGROUND_COLOR = "bg_color"
+KEY_FOREGROUND_COLOR = "fg_color"
+
 
 """
 Default settings for the application.
@@ -67,11 +81,14 @@ DEFAULT_SETTINGS = {
     KEY_FONT_SIZE: 14,
     KEY_FONT_WEIGHT: "normal",
     KEY_FONT_COLOR: "#000000",
-    KEY_SKIP_LOGIN: False,
+    KEY_AUTO_LOGIN: False,
     KEY_AUTO_CONNECT: False,
     KEY_ARDUINO_INSTANCE_ID: 1,
     KEY_DEBUG: False,
     KEY_FIRMWARE_FOLDER: "firmware",
+    KEY_LOGOFF_DELAY: 10,
+    KEY_BACKGROUND_COLOR: "#000000",
+    KEY_FOREGROUND_COLOR: "#ffffff;"
 }
 
 """
@@ -126,10 +143,10 @@ KEY_ADMIN = "admin"
 Default users for the application.
 """
 DEFAULT_USERS = [
-    {KEY_USERNAME: "dmh", KEY_PASSWORD: "d853", KEY_ADMIN: True},
-    {KEY_USERNAME: "sm", KEY_PASSWORD: "1234", KEY_ADMIN: True},
-    {KEY_USERNAME: "admin", KEY_PASSWORD: "password", KEY_ADMIN: True},
-    {KEY_USERNAME: "user", KEY_PASSWORD: "password", KEY_ADMIN: False},
+    {KEY_USERNAME: "dmh", KEY_PASSWORD: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O", KEY_ADMIN: True},
+    {KEY_USERNAME: "sm", KEY_PASSWORD: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG", KEY_ADMIN: True},
+    {KEY_USERNAME: "admin", KEY_PASSWORD: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW", KEY_ADMIN: True},
+    {KEY_USERNAME: "user", KEY_PASSWORD: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm", KEY_ADMIN: False},
 ]
 
 """
@@ -160,3 +177,29 @@ FIRMWARES = [
     {FIRMWARE_NAME: "EAX525", FIRMWARE_VERSION: "591"},
 ]
 
+INSTRUCTIONS = """# EAX-500 Testing Software
+
+## Equipment Needed:
+
+ - EAX-500 Test Fixture
+ - An assembled 102618 PWA
+ - A magnet for checking the reed switches
+
+## Setup instructions:
+
+- Head unit is connected and secured to the test fixture.
+- Place battery connector in the proper position before clamping down the board.
+- PWA is clamped down on the head unit.
+- Test base is powered and power LED is ON.
+- All USB cables from the tester are connected to the tablet.
+- Flip both slide switches to the OFF position.
+- Press the connect button to establish a connection with the fixture
+
+## Usage instructions:
+
+- Select the appropriate device from the Device drop down menu. *(e.g. EAX500, EAX505, etc.)*
+- Press the *Program* button to program the board. 
+- If auto test is enabled and programming was successful, testing will begin automatically.
+- If auto test is disabled, press the *Test* button to begin testing.
+
+"""
