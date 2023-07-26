@@ -47,7 +47,7 @@ The [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/set
     "auto_test": true,
     "font_family": "Arial",
     "font_size": 14,
-    "font_style": "normal",
+    "font_weight": "normal",
     "font_color": "#000000",
     "skip_login": true,
     "auto_connect": false,
