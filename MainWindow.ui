@@ -34,8 +34,7 @@
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: rgb(255, 255, 255);
-background-color: rgb(0, 85, 255);</string>
+       <string notr="true"/>
       </property>
       <property name="undoRedoEnabled">
        <bool>false</bool>
@@ -129,6 +128,9 @@ font-weight: bold;</string>
           <bold>true</bold>
          </font>
         </property>
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
         <property name="styleSheet">
          <string notr="true">color: rgb(255, 0, 0);
 font-weight: bold;</string>
@@ -183,6 +185,9 @@ font-weight: bold;</string>
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="defaultUp">
+    <bool>false</bool>
+   </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
@@ -215,7 +220,7 @@ font-weight: bold;</string>
     <property name="title">
      <string>Setting</string>
     </property>
-    <addaction name="actionShow_Settings"/>
+    <addaction name="actionChange_font"/>
     <addaction name="actionModify_Settings"/>
     <addaction name="separator"/>
     <addaction name="actionAdd_User"/>
@@ -228,6 +233,7 @@ font-weight: bold;</string>
      <string>Help</string>
     </property>
     <addaction name="actionShow_Logs"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -447,9 +453,9 @@ font-weight: bold;</string>
     </font>
    </property>
   </action>
-  <action name="actionShow_Settings">
+  <action name="actionChange_font">
    <property name="text">
-    <string>Show Settings</string>
+    <string>Change Font</string>
    </property>
    <property name="font">
     <font>
