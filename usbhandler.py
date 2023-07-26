@@ -1,10 +1,11 @@
 from constants import *
 
-# from applogger import AppLogger
 import threading
 import json
 import os
 import traceback
+from rich import print
+
 
 from telemetrix.telemetrix import Telemetrix
 
@@ -39,10 +40,12 @@ class USBHandler(Telemetrix):
         # Default settings
         self.pins = DEF_PIN_SETTINGS
 
-    def connect(self):
+    def connect(self, callback=None):
         """Connect to the Arduino board."""
         if self.debug:
-            print(f"Method: {self.connect.__name__} - Thread started")
+            print(f"[bold red]Method[/bold red]: {self.connect.__name__} - Thread started")
+        if self.device_connected is None:
+            self.device_connected = callback
         if not self.device_connected and self.board is None:
             self.check_device_thread = threading.Thread(target=self.check_device_connection)
             self.check_device_thread.start()
@@ -51,7 +54,7 @@ class USBHandler(Telemetrix):
         """Check the connection to the Arduino board."""
         if self.debug:
             print(
-                f"Method: {self.check_device_connection.__name__}, Connection: {self.device_connected}"
+                f"[bold red]Method[/bold red]: {self.check_device_connection.__name__}, Connection: {self.device_connected}"
             )
         try:
             if not self.device_connected:
@@ -87,7 +90,7 @@ class USBHandler(Telemetrix):
         :return: The integer pin number, or None if not found.
         """
         if self.debug:
-            print(f"Method: {self.get_pin_by_function.__name__}, Function: {function}")
+            print(f"[bold red]Method[/bold red]: {self.get_pin_by_function.__name__}, [bold green]Function[/bold green]: {function}")
 
         # Loop through the pins and find the pin with the specified function
         for pin in self.pins:
@@ -102,7 +105,7 @@ class USBHandler(Telemetrix):
         Configures the pin modes of the Arduino board.
         """
         if self.debug:
-            print(f"Method: {self.set_pin_modes.__name__}")
+            print(f"[bold red]Method[/bold red]: {self.set_pin_modes.__name__}")
 
         # Loop through the pins and set the pin modes
         for pin in self.pins:
@@ -126,7 +129,7 @@ class USBHandler(Telemetrix):
         :param filename: The filename to load the pins from. Defaults to pins.json.
         """
         if self.debug:
-            print(f"Method: {self.load_pins.__name__}")
+            print(f"[bold red]Method[/bold red]: {self.load_pins.__name__}")
 
         # Check if the pins.json file exists, and create it if it doesn't
         if not os.path.exists(filename):
@@ -148,7 +151,7 @@ class USBHandler(Telemetrix):
         """
         if self.debug:
             print(
-                f"Method: {self.write_pin.__name__}, Pin: {pin_number}, Value: {value}"
+                f"[bold red]Method[/bold red]: {self.write_pin.__name__}, [bold green]Pin[/bold green]: {pin_number}, [bold green]Value[/bold green]: {value}"
             )
 
         if pin_number is not None:  # If the pin is found
@@ -165,7 +168,7 @@ class USBHandler(Telemetrix):
         """
         if self.debug:
             print(
-                f"Method: {self.write_pin_by_func.__name__}, Pin: {pin_function}, Value: {value}"
+                f"[bold red]Method[/bold red]: {self.write_pin_by_func.__name__}, [bold green]Pin[/bold green]: {pin_function}, [bold green]Value[/bold green]: {value}"
             )
         if pin_function is not None:  # If the pin function is specified
             pin = self.get_pin_by_function(pin_function)
@@ -185,7 +188,7 @@ class USBHandler(Telemetrix):
         :return: The value of the pin.
         """
         if self.debug:
-            print(f"Method: {self.read_pin.__name__}, Pin: {pin_number}")
+            print(f"[bold red]Method[/bold red]: {self.read_pin.__name__}, [bold green]Pin[/bold green]: {pin_number}")
         if self.is_connected() and pin_number is not None:
             if isinstance(pin_number, str):
                 # pin = int(pin_number)
@@ -208,14 +211,14 @@ class USBHandler(Telemetrix):
         :param value: The value to set the pins to.
         """
         if self.debug:
-            print(f"Method: {self.set_all_pins.__name__}, Value: {value}")
+            print(f"[bold red]Method[/bold red]: {self.set_all_pins.__name__}, [bold green]Value[/bold green]: {value}")
 
         for pin in self.pins:
             self.write_pin(pin[KEY_PIN_NUMBER], value)
 
     def toggle_pin(self, pin_number):
         if self.debug:
-            print(f"Method: {self.toggle_pin.__name__}, Pin: {pin_number}")
+            print(f"Method: {self.toggle_pin.__name__}, [bold green]Pin[/bold green]: {pin_number}")
 
         if isinstance(pin_number, str):
             pin = self.get_pin_by_function(pin_number)
@@ -231,7 +234,7 @@ class USBHandler(Telemetrix):
     def cleanup(self):
         """Cleanup the Arduino board."""
         if self.debug:
-            print(f"Method: {self.cleanup.__name__}")
+            print(f"[bold red]Method[/bold red]: {self.cleanup.__name__}")
 
         if self.is_connected():
             for pin in self.pins:
