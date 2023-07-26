@@ -47,7 +47,7 @@ ST_INIT = "Initializing"
 Keys for the settings file.
 """
 KEY_DEBUG = "debug"
-KEY_SERIAL_PORT = "serial_port"
+KEY_COM_PORT = "serial_port"
 KEY_PROGRAMMER_SERIAL_NUMBER = "programmer_serial_number"
 KEY_CHIP_PART = "chip_part"
 KEY_LAST_USER = "last_user"
@@ -71,7 +71,7 @@ KEY_FOREGROUND_COLOR = "fg_color"
 Default settings for the application.
 """
 DEFAULT_SETTINGS = {
-    KEY_SERIAL_PORT: "COM30",
+    KEY_COM_PORT: "COM30",
     KEY_PROGRAMMER_SERIAL_NUMBER: "1E660",
     KEY_CHIP_PART: "PIC16F627A",
     KEY_LAST_USER: "dmh",
@@ -200,6 +200,9 @@ INSTRUCTIONS = """# EAX-500 Testing Software
 - Select the appropriate device from the Device drop down menu. *(e.g. EAX500, EAX505, etc.)*
 - Press the *Program* button to program the board. 
 - If auto test is enabled and programming was successful, testing will begin automatically.
-- If auto test is disabled, press the *Test* button to begin testing.
+- If auto test is disabled, press the *Test* button to begin testing. 
+  
+```info
 
+```
 """
