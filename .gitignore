@@ -11,3 +11,11 @@ test.py
 dist/
 build/
 logs/
+windows.py
+fontpicker.py
+fontchooser.py
+folder_dialog.py
+conf.py
+azure.tcl
+themes/
+test.json
