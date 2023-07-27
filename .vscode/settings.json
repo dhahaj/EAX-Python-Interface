@@ -1,0 +1,17 @@
+{
+    "editor.codeActionsOnSave": {},
+    "actionButtons": {
+        "defaultColor": "#ff0034",
+        "loadNpmCommands": false,
+        "reloadButton": null,
+        "commands": [
+          {
+            "name": "Run",
+            "singleInstance": true,
+            "color": "#ffe65c",
+            "cwd": "${workspaceFolder}",
+            "command": "py application.py"
+          },
+        ]
+    }
+}

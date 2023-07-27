@@ -3,12 +3,11 @@
     "programmer_serial_number": "1E660",
     "chip_part": "PIC16F628A",
     "last_user": "dmh",
-    "testing_speed": 1.01,
+    "testing_speed": 1.17,
     "auto_test": true,
     "font_family": "Cascadia Code",
-    "font_size": 16,
+    "font_size": 12,
     "font_weight": "normal",
-    "font_color": "#000000",
     "skip_login": false,
     "auto_connect": true,
     "arduino_instance_id": 1,
@@ -16,6 +15,6 @@
     "firmware_folder": "",
     "auto_logoff_delay": 1,
     "bg_color": "#000000",
-    "fg_color": "#ffffff;",
+    "fg_color": "#55ffff",
     "firmware_location": "./firmware"
 }

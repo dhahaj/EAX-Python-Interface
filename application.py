@@ -17,7 +17,7 @@ class Application:
         self.settings = Settings()
         # setup the USB handler
         self.usb_handler = usbhandler.USBHandler(
-            port=self.settings.get(KEY_SERIAL_PORT),
+            port=self.settings.get(KEY_COM_PORT),
             arduino_instance_id=self.settings.get(KEY_ARDUINO_INSTANCE_ID),
             device_connected_callback=self.connection_callback,
             debug=self.settings.get(KEY_DEBUG),
@@ -98,7 +98,7 @@ class Application:
         # main application loop
         # self.main_window.mainloop()
 
-        if self.settings.get(KEY_SKIP_LOGIN): # no login screen
+        if self.settings.get(KEY_AUTO_LOGIN): # no login screen
             self.login_window.withdraw()
             self.main_window.run()
         else:

@@ -1,2 +1,13 @@
 .venv/
 __pycache__/
+Frame.py
+main.spec
+MyFrame.py
+prompt.txt
+pyinstaller.txt
+sqlite.db
+test.db
+test.py
+dist/
+build/
+logs/

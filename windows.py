@@ -20,11 +20,12 @@ from tkinter.font import Font
 from tkinter.ttk import Frame
 import tkinter as tk
 from constants import *
-
+from login import Login
+from rich import print
 app_logger = AppLogger("logger").get_logger()
 
 
-class ManualControlWindow:
+class ManualControlWindow(tk.Toplevel):
     """
     A class to create the manual control window. It creates a new Tkinter window with buttons
     for controlling the GPIO pins on the Arduino. 
@@ -36,21 +37,22 @@ class ManualControlWindow:
     """
 
     def __init__(self, parent=None, device=None):
-        self.root = tk.Tk() # Create the root window
-        self.root.title("Manual Control")
-        self.root.call("source", "azure.tcl")
-        self.root.call("set_theme", APPLICATION_THEME)
-        self.root.iconbitmap("images\\pcb.ico")
-        self.root.protocol("WM_DELETE_WINDOW", func=self.close)
-        self.root.geometry("350x550")
+        super().__init__(parent) # Initialize the superclass
+        # self.root = tk.Tk() # Create the root window
+        self.title("Manual Control")
+        # self.call("source", "azure.tcl")
+        # self.call("set_theme", APPLICATION_THEME)
+        self.iconbitmap("images\\pcb.ico")
+        self.protocol("WM_DELETE_WINDOW", func=self.close)
+        self.geometry("350x550")
 
         # self.pack()
         self.create_widgets()
 
-        self.window = parent.window
-        self.window.withdraw() # Hide the main window
-        self.root.attributes("-topmost", 1)
-        self.root.attributes("-topmost", 0)
+        self.parent = parent
+        parent.withdraw() # Hide the main window
+        self.attributes("-topmost", 1)
+        self.attributes("-topmost", 0)
 
         self.usb_dev = device # Get the USB device object
 
@@ -58,7 +60,7 @@ class ManualControlWindow:
 
     def create_widgets(self):
         read_button = tk.Button(
-            master=self.root,
+            master=self,
             text="battery",
             command=self.toggle_battery,
             width=20,
@@ -67,7 +69,7 @@ class ManualControlWindow:
         read_button.pack(pady=20)
 
         write_button = tk.Button(
-            master=self.root,
+            master=self,
             text="low battery",
             command=self.toggle_low_battery,
             width=20,
@@ -76,7 +78,7 @@ class ManualControlWindow:
         write_button.pack(pady=20)
 
         read_button = tk.Button(
-            master=self.root,
+            master=self,
             text="testing indicator",
             command=self.toggle_testing_indicator,
             width=20,
@@ -85,7 +87,7 @@ class ManualControlWindow:
         read_button.pack(pady=20)
 
         write_button = tk.Button(
-            master=self.root,
+            master=self,
             text="indicator",
             command=self.toggle_indicator,
             width=20,
@@ -123,14 +125,14 @@ class ManualControlWindow:
             self.usb_dev.digital_write(pin["pin_number"], 0)
         pin = self.usb_dev.get_pin_by_function("indicator")
         self.usb_dev.digital_write(pin, 1)
-        self.window.deiconify()
-        self.root.destroy()
+        self.parent.deiconify()
+        self.destroy()
 
     def run(self):
-        self.root.mainloop()
+        self.mainloop()
 
 
-class MainWindow:
+class MainWindow(tk.Tk):
     """
     A class to create the main GUI. The GUI has a text box for displaying messages, a menu bar,
     labels for the selected device and USB connections and buttons for testing and programming.
@@ -148,14 +150,15 @@ class MainWindow:
     """
 
     def __init__(self, parent=None, settings=DEFAULT_SETTINGS):
+        super(MainWindow, self).__init__() # Initialize the superclass
         self.parent = parent
-        self.window = tk.Tk()
-        self.window.call("source", "azure.tcl")
-        self.window.tk.call("set_theme", APPLICATION_THEME)
-        self.window.iconbitmap("images\\pcb.ico")
+        # self.window = tk.Tk()
+        self.call("source", "azure.tcl")
+        self.tk.call("set_theme", APPLICATION_THEME)
+        self.iconbitmap("images\\pcb.ico")
 
-        self.window.attributes("-topmost", 1)
-        self.window.attributes("-topmost", 0)
+        self.attributes("-topmost", 1)
+        self.attributes("-topmost", 0)
 
         self.settings = settings
         self.device_name = None
@@ -164,7 +167,7 @@ class MainWindow:
         if self.settings.get(KEY_DEBUG):
             app_logger.info("Main window initialized")
 
-        font = Font(
+        self.font = Font(
             family=self.settings.get(KEY_FONT_FAMILY),
             size=self.settings.get(KEY_FONT_SIZE),
             weight=self.settings.get(KEY_FONT_WEIGHT),
@@ -179,7 +182,7 @@ class MainWindow:
         self.blink_thread = threading.Thread(target=self.do_blink)
 
         # Setup the GUI components
-        self.setup_components(_font=font)
+        self.setup_components(_font=self.font)
 
         # Populate the text area with the testing instructions
         self.load_text_from_file()
@@ -187,23 +190,35 @@ class MainWindow:
         self.button_pressed = False
         self.device = self.parent.usb_handler
 
+        # If were not skipping the login, show the login window
+        # if not self.settings.get(KEY_SKIP_LOGIN):
+        #     self.login_window = Login(self.parent, None, self.settings, self.parent.user_login)
+        #     self.parent.login_window = self.login_window
+        #     self.login_window.run()
+        #     self.withdraw()
+        # else:
+            # self.toggle_menuitem("Logout") # Disable the logout button
+            # self.file_menu.entryconfig("Logout", state="disabled")
+            # self.menu.entryconfig("Logout", state="disabled")
+            
+
     def setup_components(self, _font=None):
         """
         Setup the GUI components.
         """
-        self.window.geometry("1000x700+350+350")
-        self.window.title("EAX-500 Interface")
+        self.geometry("1000x700+350+350")
+        self.title("EAX-500 Interface")
 
         # Handle window closing
-        self.window.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Create frame for the bottom of the window
-        self.bottom_frame = Frame(self.window)
+        self.bottom_frame = Frame(self)
         self.bottom_frame.pack(side="bottom", fill="x")
 
         # Create menu
-        self.menu = Menu(self.window)  # Top Menu
-        self.window.config(menu=self.menu)  # Add menu to window
+        self.menu = Menu(self)  # Top Menu
+        self.config(menu=self.menu)  # Add menu to window
 
         self.file_menu = Menu(self.menu, tearoff=0, font=_font)  # Top File Menu
         self.menu.add_cascade(label="File", menu=self.file_menu)  # Add File Menu
@@ -234,7 +249,7 @@ class MainWindow:
 
         self.settings_menu.add_command(  # Add User
             label="Add User",
-            command=self.add_user  # lambda: usercreationdialog.UserCreationDialog(self.window, user_settings=self.parent.settings, callback=self.add_user, title="Add User"),
+            command=self.add_user  # lambda: usercreationdialog.UserCreationDialog(self, user_settings=self.parent.settings, callback=self.add_user, title="Add User"),
             # command=lambda: messagebox.showinfo("Add User", "Not implemented yet"),
         )
         self.settings_menu.add_command(  # Remove User
@@ -242,7 +257,7 @@ class MainWindow:
             command=lambda: messagebox.showinfo("Remove User", "Not implemented yet"),
         )
         self.settings_menu.add_command(  # Change Font
-            label="Change Font", command=self.get_font  # FontChooser(self.window)
+            label="Change Font", command=self.get_font  # FontChooser(self)
         ),
         self.settings_menu.add_command(  # Change Test Speed
             label="Test Speed",
@@ -306,7 +321,7 @@ class MainWindow:
             command=lambda: messagebox.showinfo(
                 "About",
                 "EAX-300/500 Testing Interface\n\nVersion 0.0.1\n\nDesigned by: Daniel Hahaj\nhttps://github.com/dhahaj/eax500-tk_interface.git\nVisit the repository for more information.\n\n©2023 Detex Corporation",
-                parent=self.window,
+                parent=self,
             ),
         )
 
@@ -318,7 +333,7 @@ class MainWindow:
         )
 
         # Create text area
-        self.text_area_frame = tk.Frame(self.window)
+        self.text_area_frame = tk.Frame(self)
         self.text_area_frame.pack(fill="both", expand=True)
         self.text_area = tk.Text(
             self.text_area_frame, wrap="word", state="disabled", font=_font
@@ -411,7 +426,7 @@ class MainWindow:
     def set_font(self, family="TkDefaultFont", size=12, style="normal"):
         """Set the font for the application."""
         # self.font = font
-        # self.window.option_add("*Font", self.font)
+        # self.option_add("*Font", self.font)
         self.font = Font(family=family, size=size, weight=style)
         # self.text_area.config(font=self.font)
         # self.device_label.config(font=self.font)
@@ -433,13 +448,13 @@ class MainWindow:
 
         # Create a dialog to get the information for the new user
         dialog = usercreationdialog.UserCreationDialog(
-            self.window, user_settings=self.parent.settings, dialog_title="Add User"
+            self, user_settings=self.parent.settings, dialog_title="Add User"
         )
         user = dialog.user_data
 
         User.add_user(user.username, user.password, user.admin)  # Add the user to the list of users
         if self.settings.get(KEY_DEBUG):
-            print(f"Adding user: {user}")
+            print(f"[bold yellow]Adding user: {user}[/bold yellow]")
 
     def show_manual_control(self):
         """Show the manual control window."""
@@ -454,18 +469,18 @@ class MainWindow:
         :param connected: True if the device is connected, False otherwise.
         """
         if connected:  # Device connected
-            print("Device connected!")
+            print("[bold green]Device connected![/bold green]")
             app_logger.info("Fixture connected.")
             self.device.write_pin_by_func(pin_function="indicator", value=1)
             self.usb_label.config(fg="green")
             self.usb_label.config(text=f"USB Connected: {self.device.serial_port.port}")
             self.add_text("\r\nConnection established.")
-            self.toggle_connect()  # Disable the connect button
+            self.toggle_menuitem("Connect")  # Disable the connect button
 
         else:  # Device not connected
-            print("Device failed to connect!")
+            print("[bold red]Device failed to connect![/bold red]")
             self.add_text("\r\nUnable to connect to device.")
-            self.toggle_connect(_state="normal")
+            self.toggle_menuitem("Connect", _state="normal")
             app_logger.info("Unable to connect to device.")
             self.usb_label.config(fg="red")
             self.usb_label.config(text="USB: Disconnected")
@@ -480,11 +495,11 @@ class MainWindow:
             print("Number of active threads:", threading.active_count())
         if self.device is None:
             self.add_text("\r\nConnecting to fixture...")
-            self.toggle_connect()  # Disable the connect button
+            self.toggle_menuitem("Connect")  # Disable the connect button
             self.device.connect()  # Connect to the device
         elif not self.device.is_connected():
             self.device.connect()
-            self.toggle_connect()  # Disable the connect button
+            self.toggle_menuitem("Connect")  # Disable the connect button
             self.add_text("\r\nConnecting to fixture...")
         else:
             self.add_text("\r\nAlready connected to fixture.")
@@ -497,7 +512,7 @@ class MainWindow:
         """
         if not self.blocked:
             if self.settings.get(KEY_DEBUG):
-                print(f"Device {device} selected")
+                print(f"[bold green]Device {device} selected[/bold green]")
             app_logger.info(f"Device {device} selected")
 
             # Change the color of the device label
@@ -511,27 +526,18 @@ class MainWindow:
             # Set the firmware file for use later
             self.firmware = f"firmware/{device}_{version}.hex"
 
-    def set_user(self, user):
-        """
-        Set the user.
-
-        :param user: The user.
-        """
-        app_logger.info(f"User {user} selected")
-        self.user = user
-
     def add_text(self, text):
         """
         Add text to the text area.
 
         :param text: The text to add.
         """
-        print(
-            f"This function is being run by thread: {threading.current_thread().name}"
-        )
+        if self.settings.get(KEY_DEBUG):
+            print(f"This function is being run by thread: {threading.current_thread().name}")
         # Temporarily make the text widget editable
         self.text_area.config(state=tk.NORMAL)
-        self.text_area.insert(END, text + "\n")
+        self.text_area.tag_configure("normal", font=self.font)
+        self.text_area.insert(END, text + "\n", "normal")
         self.text_area.see(END)
         # Disable the text widget again
         self.text_area.config(state=tk.DISABLED)
@@ -542,7 +548,6 @@ class MainWindow:
         """
         self.text_area.config(state=tk.NORMAL)
         self.text_area.delete(1.0, END)
-        # self.load_text_from_file("instructions.txt")  # Replace with your filename
         self.text_area.config(state=tk.DISABLED)
 
     def load_text_from_file(self, filename="instructions.txt"):
@@ -554,19 +559,18 @@ class MainWindow:
         if os.path.exists(filename):
             with open(filename, "r") as file:
                 content = file.read()
+                if self.device_name is not None:
+                    content = content.replace("<device>", self.device_name)
+                else:
+                    content = content.replace("<device>", "EAX-500")
+            self.clear_text()
             self.add_text(content)
         else:
             self.add_text(f"{filename} not found!")
 
     def logout(self):
         """Logout of the application."""
-        # if not self.blocked and not settings.get("skip_login"):
-        if self.device is not None and self.device.is_connected():
-            self.device.write_pin_by_func(pin_function="indicator", value=0)
-            self.device.cleanup()
-        # self.window.withdraw()
-        # login = Login(window=self.window ,settings=settings, callback=self.set_user)
-        # login.run()
+        app_logger.info(f"User logged out.")
         self.parent.user_logout()
 
     def program(self):
@@ -597,7 +601,7 @@ class MainWindow:
             #     self.add_text("Running test...")
             #     self.run_test()
 
-            app_logger.info(f"Programming {self.device} started")
+            app_logger.info(f"Programming {self.device_name} args: {command}")
             thread.start()
 
     def run_command(self, command):
@@ -614,11 +618,11 @@ class MainWindow:
             if self.settings.get("auto_test"):
                 self.run_test()
             self.add_text("Programming successful.")
-            app_logger.info(f"Programming {self.device} successful")
+            app_logger.info(f"Programming {self.device_name} successful")
         else:
             self.add_text("Programming failed.")
             app_logger.error(
-                f"Programming {self.device} failed. Error code: {process.returncode}"
+                f"Programming {self.device_name} failed. Error code: {process.returncode}"
             )
 
     def run_test(self):
@@ -679,7 +683,7 @@ class MainWindow:
                 )
             )
 
-            self.queue.append((int(5000 * speed), self.add_text, "Testing complete."))
+            self.queue.append((int(100 * speed), self.add_text, "\n\nPress the Test button to continue."))
 
             self.queue.append((1, self.wait_for_button))
 
@@ -687,9 +691,9 @@ class MainWindow:
                 ((1), self.device.write_pin_by_func, "battery", 0)
             )
 
-            self.queue.append((1000, self.clear_text))
+            # self.queue.append((10, self.clear_text))
 
-            self.queue.append((100, self.load_text_from_file, "instructions.txt"))
+            self.queue.append((10, self.load_text_from_file, "instructions.txt"))
 
             self.queue.append(  # turn off indicator
                 ((1), self.device.write_pin_by_func, "testing indicator", 0)
@@ -711,7 +715,7 @@ class MainWindow:
         if self.queue:
             delay, task, *args = self.queue.pop(0)  # Get the next task
             print("\nTask started")
-            self.window.after(
+            self.after(
                 delay, lambda: self.execute_task(task, args)
             )  # Execute the task after the delay
             print("Task executed\n")
@@ -723,7 +727,7 @@ class MainWindow:
         print(f"Waiting for button {self.button_pressed}")
         self.waiting = True
         if not self.button_pressed:
-            self.window.after(100, self.wait_for_button)
+            self.after(100, self.wait_for_button)
         else:
             self.button_pressed = False
             self.waiting = False
@@ -752,7 +756,7 @@ class MainWindow:
         self.add_text("Settings file: settings.json")
         self.add_text(f"Settings file location: {self.settings.get_path()}")
         self.add_text("\r\n")
-        self.add_text(f"Serial Port: {self.settings.get(KEY_SERIAL_PORT)}")
+        self.add_text(f"Serial Port: {self.settings.get(KEY_COM_PORT)}")
         self.add_text(
             f"Programmer serial number: {self.settings.get('programmer_serial_number')}"
         )
@@ -765,7 +769,7 @@ class MainWindow:
         self.add_text(
             f"Arduino Instance ID: {self.settings.get(KEY_ARDUINO_INSTANCE_ID)}"
         )
-        self.add_text(f"Skip Login: {self.settings.get(KEY_SKIP_LOGIN)}")
+        self.add_text(f"Skip Login: {self.settings.get(KEY_AUTO_LOGIN)}")
         self.add_text(f"Debug: {self.settings.get(KEY_DEBUG)}")
         self.add_text(f"Firmware Location: {self.settings.get(KEY_FIRMWARE_FOLDER)}")
 
@@ -773,31 +777,28 @@ class MainWindow:
         """Get the font."""
         _font = self.settings.get("font_family")
         _size = self.settings.get("font_size")
-        _style = self.settings.get("font_style")
+        _style = self.settings.get("font_weight")
         # current_font = Font(
         font_dict = {"family": _font, "size": int(_size), "weight": _style}
-        fc = askfont(self.window, **font_dict)
-        # fc = FontChooser(master=self.window) #, **font_dict)
+        fc = askfont(self, **font_dict)
+        # fc = FontChooser(master=self) #, **font_dict)
         # fc.mainloop()
-        # self.new_font = askfont(self.window, **current_font)#, title="Select Font", command=self.set_font)
+        # self.new_font = askfont(self, **current_font)#, title="Select Font", command=self.set_font)
         # print(fc)
         self.set_font(family=fc["family"], size=fc["size"], style=fc["weight"])
         # return new_font
 
-    def toggle_connect(self, _state="disabled"):
+    def toggle_menuitem(self, menu, _state="disabled"):
         """Set the state of the connect menu items."""
-        self.file_menu.entryconfig("Connect", state=_state)
-        self.menu.entryconfig("Connect", state=_state)
+        self.file_menu.entryconfig(menu, state=_state)
+        self.menu.entryconfig(menu, state=_state)
 
     def toggle_state(self, _state="normal"):
         """Toggle the state of the window."""
-        # state = self.window.state()
         if _state == "normal":
-            self.window.deiconify()
-        # self.window.state(_state)
+            self.deiconify()
         else:
-            self.window.withdraw()
-            # self.window.state("normal")
+            self.withdraw()
 
     def show_log(self):
         """Show the logs in the text area."""
@@ -814,7 +815,7 @@ class MainWindow:
         :param key: The key to store the value in.
         :param type: The type of the value.
         """
-        # self.window.withdraw()  # hide the main window
+        # self.withdraw()  # hide the main window
 
         initialvalue = self.settings.get(key)
 
@@ -835,14 +836,14 @@ class MainWindow:
             self.settings.set(key, user_input)
             print(user_input)
             self.settings.__save__()
-        self.window.deiconify()  # show the main window
+        self.deiconify()  # show the main window
 
     def on_closing(self):
         """Handle the window closing."""
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             # if self.device != None and self.device.is_connected():
             #     self.device.cleanup()
-            # self.window.quit()
+            # self.quit()
             self.parent.exit()
 
     def do_blink(self):
@@ -874,18 +875,18 @@ class MainWindow:
             command=self.run_test,
             padx=(3),
         )
-        # self.window.destroy()
-        # self.window = tk.Tk()
+        # self.destroy()
+        # self = tk.Tk()
 
     def close(self):
         """
         Close the window.
         """
-        # self.window.destroy()
+        # self.destroy()
         self.parent.exit()
 
     def run(self):
-        self.window.mainloop()
+        self.mainloop()
 
 
 if __name__ == "__main__":

@@ -10,8 +10,13 @@
         "admin": true
     },
     {
-        "username": "amdin",
-        "password": "$2b$12$.pm08gr6xzHCTEQOBDEjWeg6fXAerPm/ucD/yb4sgbn1fmDa6UsW2",
+        "username": "admin",
+        "password": "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW",
         "admin": true
+    },
+    {
+        "username": "user",
+        "password": "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm",
+        "admin": false
     }
 ]
