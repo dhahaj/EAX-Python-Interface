@@ -56,12 +56,10 @@ KEY_AUTO_TEST = "auto_test"
 KEY_FONT_FAMILY = "font_family"
 KEY_FONT_SIZE = "font_size"
 KEY_FONT_WEIGHT = "font_weight"
-KEY_FONT_COLOR = "font_color"
 KEY_AUTO_LOGIN = "skip_login"
 KEY_AUTO_CONNECT = "auto_connect"
 KEY_ARDUINO_INSTANCE_ID = "arduino_instance_id"
 KEY_FIRMWARE_FOLDER = "firmware_folder"
-KEY_FIRMWARE_LOCATION = "firmware_location"
 KEY_LOGOFF_DELAY = "auto_logoff_delay"
 KEY_BACKGROUND_COLOR = "bg_color"
 KEY_FOREGROUND_COLOR = "fg_color"
@@ -70,17 +68,16 @@ KEY_FOREGROUND_COLOR = "fg_color"
 """
 Default settings for the application.
 """
-DEFAULT_SETTINGS = {
-    KEY_COM_PORT: "COM30",
+DEFAULT_SETTINGS = {            
+    KEY_COM_PORT: "COM30",               
     KEY_PROGRAMMER_SERIAL_NUMBER: "1E660",
-    KEY_CHIP_PART: "PIC16F627A",
+    KEY_CHIP_PART: "PIC16F627A",        
     KEY_LAST_USER: "dmh",
-    KEY_TESTING_SPEED: 1.0,
+    KEY_TESTING_SPEED: 1.0,             
     KEY_AUTO_TEST: True,
     KEY_FONT_FAMILY: "Consolas",
     KEY_FONT_SIZE: 14,
     KEY_FONT_WEIGHT: "normal",
-    KEY_FONT_COLOR: "#000000",
     KEY_AUTO_LOGIN: False,
     KEY_AUTO_CONNECT: False,
     KEY_ARDUINO_INSTANCE_ID: 1,
@@ -88,7 +85,7 @@ DEFAULT_SETTINGS = {
     KEY_FIRMWARE_FOLDER: "firmware",
     KEY_LOGOFF_DELAY: 10,
     KEY_BACKGROUND_COLOR: "#000000",
-    KEY_FOREGROUND_COLOR: "#ffffff;"
+    KEY_FOREGROUND_COLOR: "#ffffff"
 }
 
 """
