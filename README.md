@@ -21,7 +21,7 @@ This application uses the telemetrix Arduino library to communicate with the fix
 
 ## Usage
 
-The EAX Fixture Interface can be modified by changing the values located in the [pins.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/pins.json), [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/settings.json), and [users.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.json) files.
+The EAX Fixture Interface can be modified by changing the values located in the [pins.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/pins.json), [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/settings.json), and [users.db](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.db) files.
 
 ### `pins.json`
 
@@ -66,18 +66,15 @@ The [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/set
 
 ```
 
-### `users.json`
+### `users.db`
 
-The [users.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.json) file contains the user login information for the application. The `admin` field is currently not used. The `password` field is the SHA256 hash of the user's password.
+The `users.db` file is a SQLite database is used to store user data. This database uses the following schema:
 
-```json
-{
-    "users": [
-        {
-            "username": "user",
-            "password": "password",
-            "admin": false,
-        }
-    ]
-}
+```sql
+CREATE TABLE users (
+                        id INTEGER PRIMARY KEY,
+                        username TEXT NOT NULL UNIQUE,
+                        password TEXT NOT NULL,
+                        is_admin BOOLEAN NOT NULL
+                    )
 ```
