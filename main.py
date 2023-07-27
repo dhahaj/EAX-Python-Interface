@@ -259,7 +259,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Run the test."""
         if self.testing:
             self.button_pressed = True
-        elif not self.blocked:# and self.device is not None and self.device.is_connected():
+        elif not self.blocked:
+            if self.device is None:
+                QMessageBox.warning(self, 'Error', f'USB device not connected.', QMessageBox.Ok)
+                return
+            elif not self.device.is_connected():
+                QMessageBox.warning(self, 'Error', f'USB device not connected.', QMessageBox.Ok)
+                return
             self.blinker_running = False
             app_logger.info(f"# Testing {self.device_name} started")
             # Clear the queue
@@ -481,7 +487,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
 
         if self.usb_device is None:
             QMessageBox.warning(self, 'Error', f'USB device not connected.', QMessageBox.Ok)
-
+            self.close()
         self.battery_button.clicked.connect(self.toggle_battery)
         self.low_battery_button.clicked.connect(self.toggle_low_battery)
         self.test_indicator_button.clicked.connect(self.toggle_testing_indicator)
@@ -522,6 +528,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
             if self.usb_device.is_connected():
                 self.usb_device.set_all_pins(0)
                 self.usb_device.write_pin_by_func("indicator", 1)
+        db.close()
         event.accept()
 
 
@@ -544,7 +551,8 @@ class SettingsDialog(QWidget, Ui_Settings):
 
         if not self.settings.validate():
             QMessageBox.warning(self, 'Error', f'Error loading settings. File not found.', QMessageBox.Ok)
-
+            self.close()
+            return
         for i in range(CHIP_PARTS.__len__()):
             self.comboBox_chip.addItem(CHIP_PARTS[i])
         self.comboBox_chip.setCurrentIndex(CHIP_PARTS.index(self.settings.get(KEY_CHIP_PART)))
@@ -585,7 +593,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         color = QColorDialog.getColor(old_color, self)
         if color.isValid():
             print(f"User selected color: {color.name()}")
-            self.settings.set(KEY_FOREGROUND_COLOR, f"{color.name()};")
+            self.settings.set(KEY_FOREGROUND_COLOR, f"{color.name()}")
 
     def choose_background_color(self):
         old_color = QColor(self.settings.get(KEY_BACKGROUND_COLOR))
