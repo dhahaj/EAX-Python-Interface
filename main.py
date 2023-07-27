@@ -11,6 +11,7 @@ from constants import *
 from applogger import AppLogger
 from usbhandler import USBHandler
 from settings import Settings
+from userdatabase import UserDatabase
 from user import User
 from rich import print
 
@@ -22,6 +23,7 @@ timer = QTimer()
 settings = Settings("settings.json")
 users = User("users.json")
 usb_device = None
+db = UserDatabase('users.db')
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -445,9 +447,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.statusbar.showMessage(f"Logged in as: {username}")
 
         # Block if the user is not an admin
-        self.actionModify_Settings.setEnabled(users.is_admin(username))
-        self.actionAdd_User.setEnabled(users.is_admin(username))
-        self.actionRemove_User.setEnabled(users.is_admin(username))
+        self.actionModify_Settings.setEnabled(db.is_admin(username))
+        self.actionAdd_User.setEnabled(db.is_admin(username))
+        self.actionRemove_User.setEnabled(db.is_admin(username))
         self.settings.set(KEY_LAST_USER, username)
 
     def closeEvent(self, event):
@@ -611,13 +613,13 @@ class AddUserDialog(QDialog,Ui_AddUserDialog):
         self.buttonBox.accepted.connect(self.save)
         self.buttonBox.rejected.connect(self.close)
 
-        self.users = User("users.json")
+        self.users = db.get_users()
 
     def save(self):
         print(self.lineEdit_username.text())
         print(self.lineEdit_password.text())
         admin = self.checkBox.isChecked()
-        User.add_user(self.lineEdit_username.text(),self.lineEdit_password.text(),admin)
+        db.insert_user(self.lineEdit_username.text(),self.lineEdit_password.text(),admin)
         self.close()
 
 from ui_RemoveUserDialog import Ui_RemoveUserDialog
@@ -628,7 +630,7 @@ class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
 
-        self.us = User.load_users()
+        self.us = db.to_dict()
         for user in self.us:
             self.comboBox.addItem(user["username"])
 
@@ -641,11 +643,7 @@ class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
             QMessageBox.critical(self, 'Error', f'Cannot remove user: {selected_username}', QMessageBox.Ok)
             self.close()
             return
-        removed = User.remove_user_s(selected_username)
-        if removed:
-            self.close()
-        else:
-            QMessageBox.warning(self, 'Error', f'Error removing user: {selected_username}', QMessageBox.Ok)
+        db.remove_user(selected_username)
 
 
 from ui_LoginDialog import Ui_LoginDialog
@@ -657,9 +655,9 @@ class LoginDialog(QDialog, Ui_LoginDialog):
         self.lineEdit_password.setEchoMode(QLineEdit.Password)
     
         if settings.get(KEY_DEBUG):
-            print(users.get_users())
+            print(db.get_users())
 
-        for user in users.get_users():
+        for user in db.to_dict():
             self.comboBox.addItem(user["username"])
         self.comboBox.setCurrentText(last_user)
 
@@ -669,7 +667,7 @@ class LoginDialog(QDialog, Ui_LoginDialog):
     def ok(self):
         selected_username = self.comboBox.currentText()
         selected_password = self.lineEdit_password.text()
-        validate = users.validate_credentials(selected_username, selected_password)
+        validate = db.check_password(selected_username, selected_password)
         return (validate, selected_username)
 
     def cancel(self):
