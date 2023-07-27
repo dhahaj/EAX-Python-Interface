@@ -8,7 +8,7 @@ values can be adjusted here to make the application more modular.
 """
 
 SETTINGS_FILE = "settings.json"
-USERS_FILE = "users.json"
+USERS_FILE = "users.db"
 PINS_FILE = "pins.json"
 
 FILES = [SETTINGS_FILE, USERS_FILE, PINS_FILE]
