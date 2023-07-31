@@ -1,17 +1,11 @@
 # This script will update the firmware on the Arduino board. 
 
-# Define the URL to the Arduino CLI zip file
-$url = "https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip"
-
 $newDir = "$PWD\..\temp"
 
 # Create the new directory if it does not exist
 if (-not (Test-Path $newDir)) {
     New-Item -Path $newDir -ItemType Directory > $null
 }
-
-# Define the output location
-$output = "$PWD\..\temp\arduino-cli_latest_Windows_64bit.zip"
 
 # Define the extraction path
 $extractPath = "$PWD\..\temp\"
@@ -57,7 +51,7 @@ $headerFile = "$PWD\..\sketches\Telemetrix4Arduino\Telemetrix4Arduino_config.h"
 $arduinoId = "TELEMETRIX4ARDUINO_ID $arduinoId"
 
 # Replace the arduino id in the header file
-(Get-Content $headerFile) | ForEach-Object { $_ -replace "TELEMETRIX4ARDUINO_ID 1", $arduinoId } | Set-Content $headerFile
+(Get-Content $headerFile) | ForEach-Object { $_ -replace "TELEMETRIX4ARDUINO_ID", $arduinoId } | Set-Content $headerFile
 
 # Compile the sketch
 & "..\temp\arduino-cli.exe" compile --fqbn $fqbn $sketch

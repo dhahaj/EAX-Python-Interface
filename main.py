@@ -62,18 +62,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.menuBar().addMenu(self.connect_menu)
 
+        # Settings
+        self.settings = settings 
+        self.settings_dialog = SettingsDialog(self)
+        self.settings_dialog.closed.connect(self.on_settings_closed)
+
         self.inactivityTimer = QTimer()
         self.inactivityTimer.setSingleShot(True)
         self.inactivityTimer.timeout.connect(self.onInactivityTimeout)
         self.installEventFilter(self)
+
         for widget in QApplication.instance().allWidgets():
             widget.installEventFilter(self)
-
-        # Settings
-        global settings
-        self.settings = settings
-        self.settings_dialog = SettingsDialog()
-        self.settings_dialog.closed.connect(self.on_settings_closed)
 
         # Setup the text area
         self.text_edit.setFont(
@@ -191,16 +191,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print('saved "' + item + '" to settings.')
 
     def eventFilter(self, watched, event):
-        if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
-            # Reset the inactivity timer if a mouse movement or key press event is detected
-            self.inactivityTimer.start(
-                self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
-            )  # 60 seconds of inactivity before timeout
+        # Unless auto login is enabled, reset the inactivity timer on mouse move or key press
+        if not self.settings.get(KEY_AUTO_LOGIN):
+            if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
+                lgr.debug("Mouse move or key press detected.")
+                # Reset the inactivity timer if a mouse movement or key press event is detected
+                self.inactivityTimer.start(
+                    self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
+                )  # 60 seconds of inactivity before timeout
+        else:
+            # If auto login is enabled, stop the inactivity timer because
+            # the login functionality is not used
+            self.inactivityTimer.stop()
         return super(MainWindow, self).eventFilter(watched, event)
 
     def onInactivityTimeout(self):
         if self.settings.get(KEY_DEBUG):
-            print("Inactivity timeout.")
             app_logger.debug("Inactivity timeout.")
             lgr.debug("Inactivity timeout.")
         if not self.settings.get(KEY_AUTO_LOGIN):
@@ -456,7 +462,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings_dialog.show()
 
     def on_settings_closed(self, result):
-        global settings
+        # global settings
         self.settings = settings
         lgr.info(f"Settings dialog closed. Result: {result}")
         self.text_edit.setStyleSheet(
@@ -673,17 +679,15 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         event.accept()
 
 
-from private import Private
 from ui_Settings import Ui_Settings
 
 class SettingsDialog(QWidget, Ui_Settings):
-    closed = QtCore.Signal(int)
+    closed = QtCore.Signal(Settings)
 
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-        global settings
         self.settings = settings
         self.settings.load()
         if not self.settings.validate():
@@ -695,61 +699,54 @@ class SettingsDialog(QWidget, Ui_Settings):
             )
             self.close()
             return
-
-        for port in Private.get_com_ports():
-            self.comboBox_com_port.addItem(port)
-
+        for i in range(CHIP_PARTS.__len__()):
+            self.comboBox_chip.addItem(CHIP_PARTS[i])
+        
         self.commandLinkButton_select_color.clicked.connect(self.choose_color)
         self.commandLinkButton_bg_color.clicked.connect(self.choose_background_color)
 
-        for i in range(CHIP_PARTS.__len__()):
-            self.comboBox_chip.addItem(CHIP_PARTS[i])
-        self.comboBox_chip.setCurrentIndex(
-            CHIP_PARTS.index(self.settings.get(KEY_CHIP_PART))
-        )
-
-        self.spinBox_autologoff_delay.setValue(self.settings.get(KEY_LOGOFF_DELAY))
-        value = self.settings.get(KEY_TESTING_SPEED)
-        self.dial.setValue(value)
-        self.spinBox_arduino_id.setValue(self.settings.get(KEY_ARDUINO_INSTANCE_ID))
-        self.lineEdit_serial.setText(self.settings.get(KEY_PROGRAMMER_SERIAL_NUMBER))
-        self.checkBox_test.setChecked(self.settings.get(KEY_AUTO_TEST))
-        self.checkBox_connect.setChecked(self.settings.get(KEY_AUTO_CONNECT))
-        self.checkBox_debug.setChecked(self.settings.get(KEY_DEBUG))
-        self.checkBox_logon.setChecked(self.settings.get(KEY_AUTO_LOGIN))
         self.pushButton_save.clicked.connect(self.save)
-
-        self.checkBox_auto_find.setChecked(self.settings.get(KEY_AUTO_FIND))
-        self.checkBox_shutdown_on_exception.setChecked(
-            self.settings.get(KEY_SHUTDOWN_ON_EXCEPTION)
-        )
-        self.lineEdit_serial_sleep_tune.setText(str(self.settings.get(KEY_SLEEP_TUNE)))
-        self.spinBox_wait_time.setValue(self.settings.get(KEY_ARDUINO_WAIT))
+        self.pushButton_default.clicked.connect(self.set_default)
 
         lcd = self.lcdNumber
         palette = lcd.palette()
         palette.setColor(QPalette.WindowText, Qt.blue)
         lcd.setPalette(palette)
+        self.apply_settings()
 
-        self.pushButton_default.clicked.connect(self.set_default)
+    def apply_settings(self):
+        self.lineEdit_serial.setText(self.settings.get(KEY_PROGRAMMER_SERIAL_NUMBER))
+        self.comboBox_chip.setCurrentIndex(CHIP_PARTS.index(self.settings.get(KEY_CHIP_PART)))
+        value = self.settings.get(KEY_TESTING_SPEED)
+        self.spinBox_autologoff_delay.setValue(self.settings.get(KEY_LOGOFF_DELAY))
+        self.dial.setValue(value)
+        self.spinBox_arduino_id.setValue(self.settings.get(KEY_ARDUINO_INSTANCE_ID))
+        self.checkBox_test.setChecked(self.settings.get(KEY_AUTO_TEST))
+        self.checkBox_connect.setChecked(self.settings.get(KEY_AUTO_CONNECT))
+        self.checkBox_debug.setChecked(self.settings.get(KEY_DEBUG))
+        self.checkBox_logon.setChecked(self.settings.get(KEY_AUTO_LOGIN))
+        self.checkBox_auto_find.setChecked(self.settings.get(KEY_AUTO_FIND))
+        self.checkBox_shutdown_on_exception.setChecked(self.settings.get(KEY_SHUTDOWN_ON_EXCEPTION))
+        self.lineEdit_serial_sleep_tune.setText(str(self.settings.get(KEY_SLEEP_TUNE)))
+        self.spinBox_wait_time.setValue(self.settings.get(KEY_ARDUINO_WAIT))
 
     def set_default(self):
-        self.settings.set(KEY_COM_PORT, "COM8")
-        self.settings.set(KEY_CHIP_PART, CHIP_PARTS[0])
-        self.settings.set(KEY_PROGRAMMER_SERIAL_NUMBER, "1E660")
-        self.settings.set(KEY_AUTO_TEST, True)
-        self.settings.set(KEY_AUTO_CONNECT, True)
-        self.settings.set(KEY_DEBUG, False)
-        self.settings.set(KEY_AUTO_LOGIN, True)
-        self.settings.set(KEY_ARDUINO_INSTANCE_ID, 1)
-        self.settings.set(KEY_TESTING_SPEED, 2100)
-        self.settings.set(KEY_LOGOFF_DELAY, 10)
-        self.settings.set(KEY_AUTO_FIND, True)
-        self.settings.set(KEY_SHUTDOWN_ON_EXCEPTION, True)
-        self.settings.set(KEY_SLEEP_TUNE, 1e-6)
-        self.settings.set(KEY_ARDUINO_WAIT, 4)
-        self.settings.save()
-        self.close()
+        defaults = [DEFAULT_SETTINGS[key] for key in DEFAULT_SETTINGS.keys()]
+        self.comboBox_com_port.setCurrentIndex(0)
+        self.lineEdit_serial.setText(defaults[1])
+        self.comboBox_chip.setCurrentIndex(CHIP_PARTS.index(defaults[2]))
+        self.dial.setValue(int(defaults[4]))
+        self.checkBox_test.setChecked(defaults[5])
+        self.checkBox_logon.setChecked(defaults[9])
+        self.checkBox_connect.setChecked(defaults[10])
+        self.spinBox_arduino_id.setValue(defaults[11])
+        self.checkBox_debug.setChecked(defaults[12])
+        self.spinBox_autologoff_delay.setValue(defaults[14])
+        self.spinBox_wait_time.setValue(defaults[17])
+        self.checkBox_shutdown_on_exception.setChecked(defaults[18])
+        self.checkBox_auto_find.setChecked(defaults[19])
+        self.lineEdit_serial_sleep_tune.setText(str(defaults[20]))
+
 
     def save(self):
         self.settings.set(KEY_COM_PORT, self.comboBox_com_port.currentText())
@@ -787,7 +784,7 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def closeEvent(self, event):
         self.settings.load()
-        self.closed.emit(0)
+        self.closed.emit((0,self.settings))
         event.accept()
 
 
@@ -934,13 +931,15 @@ def check_requirements():
 
 
 if __name__ == "__main__":
-    app = QApplication([])
-    (success, missing) = check_requirements()
-    if not success:
-        QMessageBox.critical(
-            None, "Error", f"Missing files:\n{missing}", QMessageBox.Ok
-        )
-        sys.exit(1)
-    window = MainWindow(app)
-    window.show()
-    app.exec()
+
+    with lgr.catch(message="Error in program: {message}", reraise=True):
+        app = QApplication([])
+        (success, missing) = check_requirements()
+        if not success:
+            QMessageBox.critical(
+                None, "Error", f"Missing files:\n{missing}", QMessageBox.Ok
+            )
+            sys.exit(1)
+        window = MainWindow(app)
+        window.show()
+        app.exec()

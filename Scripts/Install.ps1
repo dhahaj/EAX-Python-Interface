@@ -1,17 +1,10 @@
 
-
-# Define the URL to the Arduino CLI zip file
-$url = "https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip"
-
 $newDir = "$PWD\..\temp"
 
 # Create the new directory if it does not exist
 if (-not (Test-Path $newDir)) {
     New-Item -Path $newDir -ItemType Directory > $null
 }
-
-# Define the output location
-$output = "$PWD\..\temp\arduino-cli_latest_Windows_64bit.zip"
 
 # Define the extraction path
 $extractPath = "$PWD\..\temp\"
@@ -46,7 +39,7 @@ else {
 }
 
 # Define the board fqbn, sketch file location and port
-$fqbn = "adafruit:avr:metro"
+$fqbn = "arduino:avr:uno"
 $sketch = "$PWD\..\sketches\Telemetrix4Arduino\Telemetrix4Arduino.ino"
 
 # Compile the sketch
