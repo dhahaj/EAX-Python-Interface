@@ -2,7 +2,9 @@ import json
 import os
 from constants import *
 
+
 class Settings:
+
     """Settings class for the GUI."""
 
     def __init__(self, filename="settings.json"):
@@ -47,7 +49,7 @@ class Settings:
             if not os.path.exists(self.filename):
                 with open(os.path.join(".", self.filename), "w") as file:
                     json.dump(self.settings, file, indent=4)
-            
+
             # Load the settings from the settings file
             with open(self.filename, "r") as file:
                 self.settings.update(json.load(file))
@@ -60,7 +62,7 @@ class Settings:
         """Save the settings to a JSON file."""
         with open(self.filename, "w") as file:
             json.dump(self.settings, file, indent=4)
-        self.load() # Reload the settings
+        self.load()  # Reload the settings
 
     def get_path(self):
         """
@@ -69,8 +71,7 @@ class Settings:
         :return: The path of the settings file.
         """
         return os.path.abspath(self.filename)
-    
+
     def validate(self):
-        """ Check if the settings file exists."""
+        """Check if the settings file exists."""
         return os.path.exists(self.filename)
-    

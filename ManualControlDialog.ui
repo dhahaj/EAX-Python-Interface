@@ -6,19 +6,19 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>452</width>
-    <height>475</height>
+    <width>316</width>
+    <height>466</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Manual Control</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resource.qrc">
-    <normaloff>:/new/prefix1/images/pcb.ico</normaloff>:/new/prefix1/images/pcb.ico</iconset>
+   <iconset resource="icons.qrc">
+    <normaloff>:/resources/icons/images/icons/plug.png</normaloff>:/resources/icons/images/icons/plug.png</iconset>
   </property>
   <property name="modal">
-   <bool>false</bool>
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -181,6 +181,7 @@
  </widget>
  <resources>
   <include location="resource.qrc"/>
+  <include location="icons.qrc"/>
  </resources>
  <connections/>
 </ui>

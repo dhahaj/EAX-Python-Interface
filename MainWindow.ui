@@ -6,22 +6,37 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1100</width>
-    <height>944</height>
+    <width>1025</width>
+    <height>850</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1025</width>
+    <height>850</height>
+   </size>
   </property>
   <property name="font">
    <font>
     <pointsize>11</pointsize>
    </font>
   </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
   <property name="windowTitle">
    <string>EAX Interface</string>
   </property>
   <property name="windowIcon">
    <iconset>
-    <activeon>:/new/prefix1/images/pcb.ico</activeon>
+    <normalon>:/resources/icons/images/icons/powershell.ico</normalon>
    </iconset>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>32</width>
+    <height>32</height>
+   </size>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -33,8 +48,26 @@
         <pointsize>16</pointsize>
        </font>
       </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
       <property name="styleSheet">
        <string notr="true"/>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::WinPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="autoFormatting">
+       <set>QTextEdit::AutoAll</set>
       </property>
       <property name="undoRedoEnabled">
        <bool>false</bool>
@@ -42,25 +75,16 @@
       <property name="readOnly">
        <bool>true</bool>
       </property>
+      <property name="textInteractionFlags">
+       <set>Qt::NoTextInteraction</set>
+      </property>
       <property name="placeholderText">
        <string>Text Area</string>
       </property>
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="spacing">
-       <number>10</number>
-      </property>
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
-      </property>
-      <property name="leftMargin">
-       <number>4</number>
-      </property>
-      <property name="rightMargin">
-       <number>4</number>
-      </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QPushButton" name="program_button">
         <property name="sizePolicy">
@@ -72,7 +96,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>0</height>
+          <height>80</height>
          </size>
         </property>
         <property name="baseSize">
@@ -89,81 +113,317 @@
         <property name="text">
          <string>Program</string>
         </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="device_label">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-          <bold>true</bold>
-         </font>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/resources/icons/images/icons/micro.png</normaloff>:/resources/icons/images/icons/micro.png</iconset>
         </property>
-        <property name="styleSheet">
-         <string notr="true">color: rgb(255, 0, 0);
-font-weight: bold;</string>
+        <property name="iconSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
         </property>
-        <property name="frameShape">
-         <enum>QFrame::WinPanel</enum>
+        <property name="shortcut">
+         <string>P</string>
         </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="text">
-         <string>Device: Not Selected</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::AutoText</enum>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
+        <property name="flat">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="usb_label">
-        <property name="font">
-         <font>
-          <pointsize>12</pointsize>
-          <bold>true</bold>
-         </font>
+       <widget class="QGroupBox" name="groupBox_2">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
         </property>
-        <property name="autoFillBackground">
-         <bool>false</bool>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
         </property>
-        <property name="styleSheet">
-         <string notr="true">color: rgb(255, 0, 0);
+        <property name="title">
+         <string/>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="device_label">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>14</pointsize>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: rgb(255, 0, 0);
+image: url(:/resources/icons/images/detex_dark.png);
 font-weight: bold;</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::RichText</enum>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
         </property>
-        <property name="frameShape">
-         <enum>QFrame::WinPanel</enum>
+        <property name="title">
+         <string/>
         </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="text">
-         <string>USB: Not Connected</string>
-        </property>
-        <property name="textFormat">
-         <enum>Qt::AutoText</enum>
-        </property>
-        <property name="scaledContents">
-         <bool>false</bool>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_usb_icon">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>48</width>
+             <height>65</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>9</pointsize>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));
+
+background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 0, 0, 100), stop:0.284091 rgba(255, 0, 0, 80), stop:0.5 rgba(255, 0, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));</string>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img width=&quot;40&quot; height=&quot;40&quot; src=&quot;:/resources/icons/images/icons/usb3.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::AutoText</enum>
+           </property>
+           <property name="scaledContents">
+            <bool>false</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="usb_label">
+           <property name="palette">
+            <palette>
+             <active>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="PlaceholderText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="128">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </active>
+             <inactive>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="PlaceholderText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="128">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </inactive>
+             <disabled>
+              <colorrole role="WindowText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="Text">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="ButtonText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+              <colorrole role="PlaceholderText">
+               <brush brushstyle="SolidPattern">
+                <color alpha="128">
+                 <red>255</red>
+                 <green>0</green>
+                 <blue>0</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </disabled>
+            </palette>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>14</pointsize>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>USB: Not Connected</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+           <property name="margin">
+            <number>9</number>
+           </property>
+           <property name="buddy">
+            <cstring>test_button</cstring>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
        <widget class="QPushButton" name="test_button">
+        <property name="minimumSize">
+         <size>
+          <width>158</width>
+          <height>80</height>
+         </size>
+        </property>
         <property name="font">
          <font>
-          <pointsize>18</pointsize>
+          <pointsize>20</pointsize>
+          <bold>false</bold>
          </font>
         </property>
         <property name="text">
          <string>Test</string>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normalon>:/resources/icons/images/icons/robot-arm.png</normalon>
+         </iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>50</width>
+          <height>50</height>
+         </size>
+        </property>
+        <property name="shortcut">
+         <string>T</string>
+        </property>
+        <property name="flat">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -176,7 +436,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1100</width>
+     <width>1025</width>
      <height>26</height>
     </rect>
    </property>
@@ -186,6 +446,9 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="defaultUp">
+    <bool>false</bool>
+   </property>
+   <property name="nativeMenuBar">
     <bool>false</bool>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -227,6 +490,7 @@ font-weight: bold;</string>
     <addaction name="actionRemove_User"/>
     <addaction name="separator"/>
     <addaction name="actionManual_Control"/>
+    <addaction name="actionChip_Select"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -241,27 +505,34 @@ font-weight: bold;</string>
    <addaction name="menuSetting"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar">
-   <property name="enabled">
-    <bool>true</bool>
-   </property>
-   <property name="font">
-    <font>
-     <pointsize>11</pointsize>
-    </font>
-   </property>
-  </widget>
   <action name="actionConnect">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/usb3.png</normaloff>
+     <normalon>:/resources/icons/images/icons/usb.png</normalon>
+     <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/resources/icons/images/icons/usb3.png</iconset>
+   </property>
    <property name="text">
     <string>Connect</string>
    </property>
+   <property name="toolTip">
+    <string>Connect to the fixture.</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
+   </property>
   </action>
   <action name="actionLogout">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>
+     <normalon>:/resources/icons/images/icons/remove-user.png</normalon>:/resources/icons/images/icons/remove-user.png</iconset>
+   </property>
    <property name="text">
     <string>Logout</string>
    </property>
@@ -272,6 +543,11 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionExit_2">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/logout2.png</normaloff>
+     <disabledoff>:/resources/icons/images/icons/logout2.png</disabledoff>:/resources/icons/images/icons/logout2.png</iconset>
+   </property>
    <property name="text">
     <string>Exit</string>
    </property>
@@ -279,6 +555,9 @@ font-weight: bold;</string>
     <font>
      <pointsize>11</pointsize>
     </font>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
    </property>
    <property name="menuRole">
     <enum>QAction::QuitRole</enum>
@@ -454,6 +733,11 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionChange_font">
+   <property name="icon">
+    <iconset>
+     <normalon>:/resources/icons/images/icons/size.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Change Font</string>
    </property>
@@ -464,6 +748,10 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionModify_Settings">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/settings.ico</normaloff>:/resources/icons/images/icons/settings.ico</iconset>
+   </property>
    <property name="text">
     <string>Modify Settings</string>
    </property>
@@ -474,6 +762,11 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionAdd_User">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/follow.png</normaloff>
+     <normalon>:/resources/icons/images/icons/follow.png</normalon>:/resources/icons/images/icons/follow.png</iconset>
+   </property>
    <property name="text">
     <string>Add User</string>
    </property>
@@ -484,6 +777,10 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionRemove_User">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>:/resources/icons/images/icons/remove-user.png</iconset>
+   </property>
    <property name="text">
     <string>Remove User</string>
    </property>
@@ -494,6 +791,10 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionShow_Logs">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/files.png</normaloff>:/resources/icons/images/icons/files.png</iconset>
+   </property>
    <property name="text">
     <string>Show Logs</string>
    </property>
@@ -504,6 +805,10 @@ font-weight: bold;</string>
    </property>
   </action>
   <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/information.png</normaloff>:/resources/icons/images/icons/information.png</iconset>
+   </property>
    <property name="text">
     <string>About</string>
    </property>
@@ -512,10 +817,34 @@ font-weight: bold;</string>
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::AboutQtRole</enum>
+   </property>
   </action>
   <action name="actionManual_Control">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/gear.png</normaloff>:/resources/icons/images/icons/gear.png</iconset>
+   </property>
    <property name="text">
     <string>Manual Control</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionChip_Select">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/resources/icons/images/icons/chip.png</normaloff>:/resources/icons/images/icons/chip.png</iconset>
+   </property>
+   <property name="text">
+    <string>Chip Select</string>
    </property>
    <property name="font">
     <font>
@@ -526,6 +855,7 @@ font-weight: bold;</string>
  </widget>
  <resources>
   <include location="resource.qrc"/>
+  <include location="icons.qrc"/>
  </resources>
  <connections>
   <connection>

@@ -1,0 +1,47 @@
+<RCC>
+  <qresource prefix="/resources/icons">
+    <file>images/icons/code.ico</file>
+    <file>images/icons/favicon.ico</file>
+    <file>images/icons/powershell.ico</file>
+    <file>images/icons/ps_black_32x32.ico</file>
+    <file>images/icons/settings.ico</file>
+    <file>images/icons/settings2.ico</file>
+    <file>images/icons/sql.ico</file>
+    <file>images/icons/windows.ico</file>
+    <file>images/icons/icon.png</file>
+    <file>images/icons/user.ico</file>
+    <file>images/icons/Failed.ico</file>
+    <file>images/icons/blue.ico</file>
+    <file>images/icons/green.ico</file>
+    <file>images/icons/red.ico</file>
+    <file>images/icons/yellow.ico</file>
+    <file>images/icons/add.ico</file>
+    <file>images/icons/delete.ico</file>
+    <file>images/icons/Help 16x16.ico</file>
+    <file>images/icons/logout.png</file>
+    <file>images/icons/logout2.png</file>
+    <file>images/icons/size.png</file>
+    <file>images/icons/follow.png</file>
+    <file>images/icons/remove-user.png</file>
+    <file>images/icons/gear.png</file>
+    <file>images/icons/chip.png</file>
+    <file>images/icons/plug.png</file>
+    <file>images/icons/files.png</file>
+    <file>images/icons/information.png</file>
+    <file>images/icons/settings3.png</file>
+    <file>images/icons/foreground-color.png</file>
+    <file>images/icons/background-color.png</file>
+    <file>images/icons/usb.png</file>
+    <file>images/icons/usb2.png</file>
+    <file>images/icons/usb3.png</file>
+    <file>images/icons/usb4.png</file>
+    <file>images/icons/micro.png</file>
+    <file>images/icons/test.png</file>
+    <file>images/icons/robot-arm.png</file>
+    <file>images/icons/robot-arm2.png</file>
+    <file>images/icons/robot-arm3.png</file>
+    <file>images/icons/automation.png</file>
+    <file>images/detex_dark.png</file>
+    <file>main.qml</file>
+  </qresource>
+</RCC>

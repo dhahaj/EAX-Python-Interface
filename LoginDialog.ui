@@ -22,6 +22,10 @@
   <property name="windowTitle">
    <string>Login</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/resources/icons/images/icons/windows.ico</normaloff>:/resources/icons/images/icons/windows.ico</iconset>
+  </property>
   <property name="modal">
    <bool>true</bool>
   </property>
@@ -95,7 +99,10 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resource.qrc"/>
+  <include location="icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
