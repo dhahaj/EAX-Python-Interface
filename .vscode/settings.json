@@ -13,5 +13,22 @@
             "command": "py application.py"
           },
         ]
-    }
+    },
+    "isort.interpreter": [
+      "C:\\Python311\\python.exe"
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.exclude": [
+      "**/dist",
+      ".git",
+      "**/build"
+    ],
+    "autoDocstring.logLevel": "Info",
+    "autoDocstring.includeName": false,
+    "autoDocstring.startOnNewLine": true,
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "python.formatting.provider": "none",
 }

@@ -1,4 +1,5 @@
-from constants import *
+from telemetrix.telemetrix import Telemetrix
+from settings import Settings
 
 import threading
 import json
@@ -6,8 +7,8 @@ import os
 import traceback
 from rich import print
 
-
-from telemetrix.telemetrix import Telemetrix
+from constants import *
+from private import *
 
 
 class USBHandler(Telemetrix):
@@ -19,9 +20,12 @@ class USBHandler(Telemetrix):
 
     def __init__(
         self,
-        port=None,
+        _port=None,
         device_connected_callback=None,
         arduino_instance_id=1,
+        wait=ARDUINO_WAIT_DEF,
+        shutdown_on_exception=SHUTDOWN_ON_EXCEPTION,
+        sleep_tune=SLEEP_TUNE,
         debug=True,
     ):
         """
@@ -31,10 +35,26 @@ class USBHandler(Telemetrix):
         :param device_connected_callback: The callback function to call when the device is connected.
         :param arduino_instance_id: The instance ID of the Arduino board.
         """
+        print(_port)
+        self.port = None
+        self.settings = Settings()
+        if self.settings.validate():
+            if self.settings.get(KEY_AUTO_FIND):
+                self.port = None
+            else:
+                self.port = self.settings.get(KEY_COM_PORT)
+        else:
+            print("Settings not valid")
+            self.port = _port
+        print(self.port)
         self.device_connected_callback = device_connected_callback
         self.arduino_instance_id = arduino_instance_id
+        self.shutdown_on_exception = shutdown_on_exception
+        self.arduino_wait = wait
+        self.sleep_tune = sleep_tune
+
         self.board = None
-        self.port = port
+
         self.device_connected = False
         self.debug = debug
         # Default settings
@@ -43,25 +63,34 @@ class USBHandler(Telemetrix):
     def connect(self, callback=None):
         """Connect to the Arduino board."""
         if self.debug:
-            print(f"[bold red]Method[/bold red]: {self.connect.__name__} - Thread started")
+            print(
+                f"[bold red]Method[/bold red]: {self.connect.__name__} - Thread started"
+            )
         if self.device_connected is None:
             self.device_connected = callback
         if not self.device_connected and self.board is None:
-            self.check_device_thread = threading.Thread(target=self.check_device_connection)
+            self.check_device_thread = threading.Thread(
+                target=self.check_device_connection
+            )
             self.check_device_thread.start()
 
     def check_device_connection(self):
         """Check the connection to the Arduino board."""
         if self.debug:
             print(
-                f"[bold red]Method[/bold red]: {self.check_device_connection.__name__}, Connection: {self.device_connected}"
+                f"[bold red]Method[/bold red]: {self.check_device_connection.__name__},"
+                f" Connection: {self.device_connected}"
             )
         try:
             if not self.device_connected:
+                print(self.port)
                 # Create a new Telemetrix instance
                 super(USBHandler, self).__init__(
                     com_port=self.port,
                     arduino_instance_id=self.arduino_instance_id,
+                    arduino_wait=self.arduino_wait,
+                    shutdown_on_exception=self.shutdown_on_exception,
+                    sleep_tune=self.sleep_tune,
                 )
                 self.load_pins()  # Load the pins from the pins.json file
                 self.set_pin_modes()  # Set the pin modes
@@ -90,7 +119,10 @@ class USBHandler(Telemetrix):
         :return: The integer pin number, or None if not found.
         """
         if self.debug:
-            print(f"[bold red]Method[/bold red]: {self.get_pin_by_function.__name__}, [bold green]Function[/bold green]: {function}")
+            print(
+                f"[bold red]Method[/bold red]: {self.get_pin_by_function.__name__},"
+                f" [bold green]Function[/bold green]: {function}"
+            )
 
         # Loop through the pins and find the pin with the specified function
         for pin in self.pins:
@@ -151,7 +183,9 @@ class USBHandler(Telemetrix):
         """
         if self.debug:
             print(
-                f"[bold red]Method[/bold red]: {self.write_pin.__name__}, [bold green]Pin[/bold green]: {pin_number}, [bold green]Value[/bold green]: {value}"
+                f"[bold red]Method[/bold red]: {self.write_pin.__name__}, [bold"
+                f" green]Pin[/bold green]: {pin_number}, [bold green]Value[/bold"
+                f" green]: {value}"
             )
 
         if pin_number is not None:  # If the pin is found
@@ -168,7 +202,9 @@ class USBHandler(Telemetrix):
         """
         if self.debug:
             print(
-                f"[bold red]Method[/bold red]: {self.write_pin_by_func.__name__}, [bold green]Pin[/bold green]: {pin_function}, [bold green]Value[/bold green]: {value}"
+                f"[bold red]Method[/bold red]: {self.write_pin_by_func.__name__}, [bold"
+                f" green]Pin[/bold green]: {pin_function}, [bold green]Value[/bold"
+                f" green]: {value}"
             )
         if pin_function is not None:  # If the pin function is specified
             pin = self.get_pin_by_function(pin_function)
@@ -188,7 +224,10 @@ class USBHandler(Telemetrix):
         :return: The value of the pin.
         """
         if self.debug:
-            print(f"[bold red]Method[/bold red]: {self.read_pin.__name__}, [bold green]Pin[/bold green]: {pin_number}")
+            print(
+                f"[bold red]Method[/bold red]: {self.read_pin.__name__}, [bold"
+                f" green]Pin[/bold green]: {pin_number}"
+            )
         if self.is_connected() and pin_number is not None:
             if isinstance(pin_number, str):
                 # pin = int(pin_number)
@@ -211,14 +250,20 @@ class USBHandler(Telemetrix):
         :param value: The value to set the pins to.
         """
         if self.debug:
-            print(f"[bold red]Method[/bold red]: {self.set_all_pins.__name__}, [bold green]Value[/bold green]: {value}")
+            print(
+                f"[bold red]Method[/bold red]: {self.set_all_pins.__name__}, [bold"
+                f" green]Value[/bold green]: {value}"
+            )
 
         for pin in self.pins:
             self.write_pin(pin[KEY_PIN_NUMBER], value)
 
     def toggle_pin(self, pin_number):
         if self.debug:
-            print(f"Method: {self.toggle_pin.__name__}, [bold green]Pin[/bold green]: {pin_number}")
+            print(
+                f"Method: {self.toggle_pin.__name__}, [bold green]Pin[/bold green]:"
+                f" {pin_number}"
+            )
 
         if isinstance(pin_number, str):
             pin = self.get_pin_by_function(pin_number)
@@ -246,4 +291,7 @@ class USBHandler(Telemetrix):
 
     def __str__(self) -> str:
         """Return a string representation of the Arduino object."""
-        return f"USB Device(port={self.port}, arduino_instance_id={self.arduino_instance_id}, debug={self.debug})"
+        return (
+            f"USB Device(port={self.port},"
+            f" arduino_instance_id={self.arduino_instance_id}, debug={self.debug})"
+        )

@@ -35,7 +35,7 @@ class AppLogger:
         self.file_name = file_name
 
         self.check_and_move_old_log_file()
-        
+
         # Create file handler
         file_handler = logging.FileHandler(file_name, mode="a")
         file_handler.setLevel(logging.DEBUG)
@@ -76,20 +76,27 @@ class AppLogger:
         logging.getLogger("logger").info(f"{message}")
 
     @staticmethod
-    def get_logs():
+    def get_logs(file_name="debug.log"):
         """
         Get the log file contents.
 
         :return: The log file contents.
         """
-        with open("debug.log", "r") as file:
+        with open(file_name, "r") as file:
             return file.read()
+    @staticmethod
+    def get_table(file_name="debug.log"):
+        logs = AppLogger.get_logs(file_name)
+        logs = logs.strip()
+        logs = logs.split('\n')
+        log_list = []
+        for log in logs:
+            log_list.append(list(Log.parse(log)))
+        return log_list
 
     @staticmethod
     def shutdown():
-        """
-        Shutdown the logging system.
-        """
+        """ Shutdown the logging system. """
         logging.shutdown()
 
     def check_and_move_old_log_file(self):
@@ -99,31 +106,33 @@ class AppLogger:
         """
         if os.path.exists(self.file_name):
             # Get the date of the log file
-            print(f'file name: {self.file_name}')
+            print(f"file name: {self.file_name}")
 
             file_date = datetime.fromtimestamp(os.path.getmtime(self.file_name))
-            print(f'current file date: {file_date}')
+            print(f"current file date: {file_date}")
 
             today = datetime.now()
-            print(f'todays date: {today}')
+            print(f"todays date: {today}")
 
-            # If the date of the log file is older than today, move it to the 
-            # logs folder and append the date to the file name. 
+            # If the date of the log file is older than today, move it to the
+            # logs folder and append the date to the file name.
             if file_date.date() != today.date():
-                print('moving file')
+                print("moving file")
                 # Create the logs folder if it doesn't exist
                 if not os.path.exists("logs"):
-                    print('creating logs folder')
+                    print("creating logs folder")
                     os.makedirs("logs")
                 # Create the new file name
                 new_file_name = f"logs/{self.file_name.split('.')[0]}_{file_date.strftime('%Y-%m-%d')}.log"
                 # Move the file
-                shutil.move(self.file_name, new_file_name)  # use shutil.move instead of shutil.copy
-                open(self.file_name, 'a').close() # create a new empty file
+                shutil.move(
+                    self.file_name, new_file_name
+                )  # use shutil.move instead of shutil.copy
+                open(self.file_name, "a").close()  # create a new empty file
 
-        else:   # File does not exist
-            print('file does not exist')
-            open(self.file_name, 'a').close()
+        else:  # File does not exist
+            print("file does not exist")
+            open(self.file_name, "a").close()
 
     @staticmethod
     def archive_logs(archive_name="logs"):
@@ -144,3 +153,29 @@ class AppLogger:
         """
         with zipfile.ZipFile(archive_name, "a") as myzip:
             myzip.write(file_name)
+
+
+
+class Log:
+    
+    def __init__(self, value=None, date=None, level=None, message=None):
+        if value is not None:
+            value = value.split(' - ')
+            value = [v.strip() for v in value]
+            self.date = value[0]
+            self.level = value[2]
+            self.message = value[3]
+        else:
+            self.date = date
+            self.level = level
+            self.message = message
+
+    @staticmethod
+    def parse(value):
+        value = value.split(' - ')
+        value = [v.strip() for v in value]
+        return (value[0], value[2], value[3])
+
+    def __str__(self):
+        return f"{self.date} {self.level} {self.message}"
+    

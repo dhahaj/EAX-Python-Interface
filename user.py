@@ -3,10 +3,12 @@ import json
 import os
 import bcrypt
 
+
 class User:
     """
     This class is used to handle the user data.
     """
+
     def __init__(self, filename="users.json"):
         """
         Initialize the User class.
@@ -27,7 +29,7 @@ class User:
         """
         if filename is None:
             filename = self.filename
-        
+
         # Check if the file exists
         if os.path.exists(filename):
             # Load settings from file
@@ -42,7 +44,7 @@ class User:
                 except json.JSONDecodeError:
                     print("Failed to decode JSON from user file.")
                     # self.users = []
-        else: # File does not exist
+        else:  # File does not exist
             print(f"User file {filename} does not exist.")
             # self.users = []
         if self.users is None:
@@ -51,10 +53,10 @@ class User:
             print(f"{len(self.users)} users loaded.")
         else:
             print("Unexpected error in load_users(). self.users is not a list.")
-        
+
     def save_users(self):
-        """ Save the users to a JSON file. """
-        with open(self.filename, 'w') as file:
+        """Save the users to a JSON file."""
+        with open(self.filename, "w") as file:
             json.dump(self.users, file, indent=4)
 
     def validate_credentials(self, username, password_attempt):
@@ -67,9 +69,9 @@ class User:
         """
         self.load()
         for user in self.users:
-            if user['username'] == username:
-                password_attempt = password_attempt.encode('utf-8')
-                password_hash = user['password'].encode('utf-8')
+            if user["username"] == username:
+                password_attempt = password_attempt.encode("utf-8")
+                password_hash = user["password"].encode("utf-8")
                 return bcrypt.checkpw(password_attempt, password_hash)
         return False
 
@@ -77,7 +79,7 @@ class User:
     def add_user(username, password, admin=False, filename="users.json"):
         """
         Add a user to the user list. Saves the user list to a JSON file.
-        
+
         :param username: The username to add.
         :param password: The password to add.
         :param admin: True if the user is an admin, False otherwise.
@@ -87,25 +89,24 @@ class User:
 
         # Check if the user already exists
         for user in users:
-            if user['username'] == username:
+            if user["username"] == username:
                 print(f"User {username} already exists.")
                 return
 
-        # Hash the password        
-        password = password.encode('utf-8')
+        # Hash the password
+        password = password.encode("utf-8")
         password = bcrypt.hashpw(password, bcrypt.gensalt())
-        password = password.decode('utf-8')
+        password = password.decode("utf-8")
 
         # Add the user to the list and save the list
-        users.append({'username': username, 'password': password, 'admin': admin})
-        
+        users.append({"username": username, "password": password, "admin": admin})
+
         """ Save the users to a JSON file. """
-        with open(filename, 'w') as file:
+        with open(filename, "w") as file:
             json.dump(users, file, indent=4)
 
     @staticmethod
     def load_users(filename=None):
-
         if filename is None:
             filename = "users.json"
         users = None
@@ -138,15 +139,15 @@ class User:
     def remove_user_s(username, filename="users.json"):
         """
         Remove a user from the user list.
-        
+
         :param username: The username to remove.
         :return: True if the user was removed, False otherwise.
         """
         users = User.load_users(filename)
         for user in users:
-            if user['username'] == username:
+            if user["username"] == username:
                 users.remove(user)
-                with open(filename, 'w') as file:
+                with open(filename, "w") as file:
                     json.dump(users, file, indent=4)
                 return True
         print(f"User {username} does not exist.")
@@ -155,7 +156,7 @@ class User:
     def remove_user(self, username):
         """
         Remove a user from the user list.
-        
+
         :param username: The username to remove.
         :return: True if the user was removed, False otherwise.
         """
@@ -175,12 +176,12 @@ class User:
         :return: True if the user is an admin, False otherwise.
         """
         for user in self.users:
-            if user['username'] == username:
-                if user['admin']:
+            if user["username"] == username:
+                if user["admin"]:
                     return True
                 else:
-                    return False   
-        
+                    return False
+
     def get_user(self, username):
         """
         Get a single user.
@@ -189,16 +190,19 @@ class User:
         :return: The user if it exists, None otherwise.
         """
         for user in self.users:
-            if user['username'] == username:
+            if user["username"] == username:
                 return user
         return None
 
     def get_users(self):
         return self.users
+
+
 class SingleUser:
     """
     This class defines a single user.
     """
+
     def __init__(self, username, password, admin=False):
         """
         Initialize the User class.
@@ -213,7 +217,7 @@ class SingleUser:
 
     def __str__(self):
         return f"User: {self.username}, Admin: {self.admin}"
-    
+
     def is_admin(self):
         """
         Check if the user is an admin.
@@ -221,7 +225,7 @@ class SingleUser:
         :return: True if the user is an admin, False otherwise.
         """
         return self.admin
-    
+
     def check_password(self, password):
         """
         Check if the password matches the user's password.
@@ -229,6 +233,6 @@ class SingleUser:
         :param password: The hashed password to check.
         :return: True if the password matches, False otherwise.
         """
-        password_attempt = password_attempt.encode('utf-8')
-        password_hash = self.user['password'].encode('utf-8')
+        password_attempt = password_attempt.encode("utf-8")
+        password_hash = self.user["password"].encode("utf-8")
         return bcrypt.checkpw(password_attempt, password_hash)

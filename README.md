@@ -61,7 +61,11 @@ The [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/set
     "arduino_instance_id": 1,
     "debug": true,
     "firmware_folder": "",
-    "firmware_location": "./firmware"
+    "firmware_location": "./firmware",
+    "shutdown_on_exception": true,
+    "auto_find": true,
+    "sleep_tune": 1e-06,
+    "arduino_wait": 2,
 }
 
 ```

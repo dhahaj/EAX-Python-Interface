@@ -19,3 +19,6 @@ conf.py
 azure.tcl
 themes/
 test.json
+temp/
+test.ui
+ui_Test.py

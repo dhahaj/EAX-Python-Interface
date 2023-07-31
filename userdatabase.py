@@ -15,17 +15,19 @@ class UserDatabase:
         rows = c.fetchall()
         users = []
         for row in rows:
-            users.append({
-                "id": row[0],
-                "username": row[1],
-                "password": row[2],  # Do NOT display this in a real application!
-                "is_admin": row[3]
-            })
+            users.append(
+                {
+                    "id": row[0],
+                    "username": row[1],
+                    "password": row[2],  # Do NOT display this in a real application!
+                    "is_admin": row[3],
+                }
+            )
         return users
 
     def __str__(self):
         return f"UserDatabase: {self.database_file}"
-    
+
     def remove_user(self, username):
         c = self.conn.cursor()
         c.execute("DELETE FROM users WHERE username=?", (username,))
@@ -47,12 +49,14 @@ class UserDatabase:
         rows = c.fetchall()
         users = []
         for row in rows:
-            users.append({
-                "id": row[0],
-                "username": row[1],
-                "password": row[2],  # Do NOT display this in a real application!
-                "is_admin": row[3]
-            })
+            users.append(
+                {
+                    "id": row[0],
+                    "username": row[1],
+                    "password": row[2],  # Do NOT display this in a real application!
+                    "is_admin": row[3],
+                }
+            )
         return users
 
     def get_user(self, username):
@@ -67,7 +71,7 @@ class UserDatabase:
                 "id": row[0],
                 "username": row[1],
                 "password": row[2],  # Do NOT display this in a real application!
-                "is_admin": row[3]
+                "is_admin": row[3],
             }
             return user
 
@@ -93,11 +97,13 @@ class UserDatabase:
             print(e)
 
     def insert_user(self, username, password, is_admin):
-        hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
         try:
             c = self.conn.cursor()
-            c.execute("INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
-                      (username, hashed, is_admin))
+            c.execute(
+                "INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
+                (username, hashed, is_admin),
+            )
             self.conn.commit()
         except sqlite3.IntegrityError:
             print(f"Username {username} is already taken.")
@@ -110,7 +116,7 @@ class UserDatabase:
             print("No such user")
         else:
             hashed = row[0]
-            if bcrypt.checkpw(password_to_check.encode('utf-8'), hashed):
+            if bcrypt.checkpw(password_to_check.encode("utf-8"), hashed):
                 return True
         return False
 
@@ -120,5 +126,5 @@ class UserDatabase:
         self.conn.commit()
 
     def close(self):
+        print("Closing database connection...")
         self.conn.close()
-

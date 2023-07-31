@@ -7,6 +7,25 @@ This file contains many variables that are used throughout the application. Cert
 values can be adjusted here to make the application more modular. 
 """
 
+
+"""
+image: url(:/resources/icons/images/icons/usb3.png);
+background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0.0909091 rgba(255, 209, 209, 206), stop:0.232955 rgba(255, 31, 31, 80), stop:0.369318 rgba(255, 162, 162, 80), stop:0.44 rgba(252, 128, 128, 80), stop:0.443182 rgba(255, 132, 132, 156), stop:1 rgba(255, 255, 255, 0));
+background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.295455 rgba(85, 170, 0, 80), stop:0.448864 rgba(85, 170, 0, 80), stop:0.551136 rgba(85, 170, 0, 80), stop:0.710227 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));
+background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.0284091 rgba(255, 255, 0, 80), stop:0.181818 rgba(255, 255, 0, 80), stop:0.284091 rgba(255, 255, 0, 80), stop:0.443182 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));
+"""
+
+ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
+ICON_USB_BACKGROUND_RED = 'background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 0, 0, 100), stop:0.284091 rgba(255, 0, 0, 80), stop:0.5 rgba(255, 0, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));'
+ICON_USB_BACKGROUND_GRN = 'background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.284091 rgba(85, 170, 0, 80), stop:0.5 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));'
+ICON_USB_BACKGROUND_YLW = 'background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));'
+
+ORANGE = "color: rgb(229, 153, 0);"
+GREEN = "color: green;"
+YELLOW = "color: rgb(200, 195, 0);"
+RED = "color: red;"
+DEVICE_LABEL = 'color: rgb(255, 0, 0); image: url(:/resources/icons/images/detex_dark.png); font-weight: bold;'
+
 SETTINGS_FILE = "settings.json"
 USERS_FILE = "users.db"
 PINS_FILE = "pins.json"
@@ -26,7 +45,7 @@ PIN_TESTING_INDICATOR = 4
 PIN_BATTERY = 12
 PIN_INDICATOR = 13
 
-CHIP_PARTS = ["PIC16F627","PIC16F627A","PIC16F628","PIC16F628A"]
+CHIP_PARTS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
 
 
 """
@@ -63,17 +82,19 @@ KEY_FIRMWARE_FOLDER = "firmware_folder"
 KEY_LOGOFF_DELAY = "auto_logoff_delay"
 KEY_BACKGROUND_COLOR = "bg_color"
 KEY_FOREGROUND_COLOR = "fg_color"
-
-
+KEY_ARDUINO_WAIT = "arduino_wait"
+KEY_SHUTDOWN_ON_EXCEPTION = "shutdown_on_exception"
+KEY_AUTO_FIND = "auto_find"
+KEY_SLEEP_TUNE = "sleep_tune"
 """
 Default settings for the application.
 """
-DEFAULT_SETTINGS = {            
-    KEY_COM_PORT: "COM30",               
+DEFAULT_SETTINGS = {
+    KEY_COM_PORT: "COM30",
     KEY_PROGRAMMER_SERIAL_NUMBER: "1E660",
-    KEY_CHIP_PART: "PIC16F627A",        
+    KEY_CHIP_PART: "PIC16F627A",
     KEY_LAST_USER: "dmh",
-    KEY_TESTING_SPEED: 1.0,             
+    KEY_TESTING_SPEED: 1.0,
     KEY_AUTO_TEST: True,
     KEY_FONT_FAMILY: "Consolas",
     KEY_FONT_SIZE: 14,
@@ -85,7 +106,11 @@ DEFAULT_SETTINGS = {
     KEY_FIRMWARE_FOLDER: "firmware",
     KEY_LOGOFF_DELAY: 10,
     KEY_BACKGROUND_COLOR: "#000000",
-    KEY_FOREGROUND_COLOR: "#ffffff"
+    KEY_FOREGROUND_COLOR: "#ffffff",
+    KEY_ARDUINO_WAIT: 4,
+    KEY_SHUTDOWN_ON_EXCEPTION: True,
+    KEY_AUTO_FIND: True,
+    KEY_SLEEP_TUNE: 0.000001,
 }
 
 """
@@ -140,11 +165,10 @@ KEY_ADMIN = "admin"
 Default users for the application.
 """
 DEFAULT_USERS = [
-    {KEY_USERNAME: "dmh", KEY_PASSWORD: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O", KEY_ADMIN: True},
-    {KEY_USERNAME: "sm", KEY_PASSWORD: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG", KEY_ADMIN: True},
-    {KEY_USERNAME: "admin", KEY_PASSWORD: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW", KEY_ADMIN: True},
-    {KEY_USERNAME: "user", KEY_PASSWORD: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm", KEY_ADMIN: False},
-]
+    {KEY_USERNAME: "dmh",KEY_PASSWORD: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O",KEY_ADMIN: True,},
+    {KEY_USERNAME: "sm",KEY_PASSWORD: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG",KEY_ADMIN: True,},
+    {KEY_USERNAME: "admin",KEY_PASSWORD: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW",KEY_ADMIN: True,},
+    {KEY_USERNAME: "user",KEY_PASSWORD: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm",KEY_ADMIN: False,},]
 
 """
 Keys for the firmware dictionary.
