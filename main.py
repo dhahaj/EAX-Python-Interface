@@ -351,7 +351,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return
             self.blinker_running = False
             app_logger.info(f"Testing started for {self.eax_device.name}")
-
+            lgr.info(f"Testing started for {self.eax_device.name}")
+            
             self.queue = []
 
             speed = self.settings.get(KEY_TESTING_SPEED)
@@ -455,7 +456,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_settings_closed(self, result):
         global settings
         self.settings = settings
-        print(f"Settings dialog closed. Result: {result}")
+        lgr.info(f"Settings dialog closed. Result: {result}")
         self.text_edit.setStyleSheet(
             f"color: {self.settings.get(KEY_FOREGROUND_COLOR)}; background-color:"
             f" {self.settings.get(KEY_BACKGROUND_COLOR)};"
@@ -524,9 +525,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if returncode == 0:
             self.add_text("Programming successful.")
             app_logger.info(f"Programming {self.eax_device.name} successful")
+            lgr.success(f"Programming {self.eax_device.name} successful")
             if self.settings.get(KEY_AUTO_TEST):
                 self.run_test()
         else:
+            lgr.error(f"Programming {self.eax_device.name} failed. Error code: {returncode}")
             self.add_text(
                 f"\nProgramming {self.eax_device.name} failed. Error code: {returncode}"
             )
@@ -574,7 +577,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     sys.exit(0)
 
         # Now 'username' contains the username of the logged-in user
-        print(f"Logged in as: {username}")
+        lgr.success(f"Logged in as: {username}")
         app_logger.info(f"Logged in as: {username}")
 
         # Block if the user is not an admin
@@ -596,6 +599,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if usb_device is not None:
                 if usb_device.is_connected():
                     usb_device.cleanup()
+            lgr.info("Application closed.")
             db.close()
             event.accept()
         else:
