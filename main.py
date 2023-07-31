@@ -83,7 +83,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
         )
         self.text_edit.setStyleSheet(
-            f'color:{self.settings.get(KEY_FOREGROUND_COLOR)};background-color:{self.settings.get(KEY_BACKGROUND_COLOR)};'
+            f"color:{self.settings.get(KEY_FOREGROUND_COLOR)};background-color:{self.settings.get(KEY_BACKGROUND_COLOR)};"
         )
 
         # Connect the menu items
@@ -141,14 +141,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if action.text() != self.sender().text():
                 action.setChecked(False)
 
-
         # Uncheck the device label if the same action is clicked
         if self.eax_device is not None and not self.sender().isChecked():
             self.device_label.setStyleSheet(DEVICE_LABEL)
             self.device_label.setText("")
             self.eax_device = None
             return
-        
+
         self.eax_device = Device(self.sender().text())
         self.device_label.setText(f"Device: {self.eax_device.name}")
 
@@ -161,7 +160,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.device_label.setStyleSheet(ORANGE)
 
         print(self.eax_device)
-
 
     def choose_font(self):
         old_font = self.text_edit.font()
@@ -294,14 +292,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionConnect.triggered.connect(self.disconnect)
             self.actionConnect.triggered.disconnect(self.connect)
             if self.settings.get(KEY_DEBUG):
-                app_logger.debug(f"USB: connected to {self.device.serial_port.port}")
+                app_logger.debug(f"USB: connected to {error}")
             lgr.success(f"USB: connected to {self.device.serial_port.port}")
         else:
-            print(f'Error: {error}')    
-            lgr.error(f'Error: {error}')
+            print(f"Error: {error}")
+            lgr.error(f"Error: {error}")
             if self.settings.get(KEY_DEBUG):
                 app_logger.error(f"USB: connection failed. Error: {error}")
                 lgr.error(f"USB: connection failed. Error: {error}")
+            if error is not None and str.__contains__(error, "Incorrect Arduino ID"):
+                self.add_text(f"Connection Failed. {error}")
             self.label_usb_icon.setStyleSheet(ICON_USB_BACKGROUND_RED)
             self.connect_menu.setEnabled(True)
             self.actionConnect.setText("Connect")
@@ -335,7 +335,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.manual.show()
 
     def run_test(self):
-        """ Run the test. """
+        """Run the test."""
         if self.testing:
             self.button_pressed = True
         elif not self.blocked:
@@ -352,13 +352,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.blinker_running = False
             app_logger.info(f"Testing started for {self.eax_device.name}")
             lgr.info(f"Testing started for {self.eax_device.name}")
-            
+
             self.queue = []
 
             speed = self.settings.get(KEY_TESTING_SPEED)
 
             # self.text_edit.setText("")
-            self.text_edit.setMarkdown(f"# Starting test for {self.eax_device.name}... ")
+            self.text_edit.setMarkdown(
+                f"# Starting test for {self.eax_device.name}... "
+            )
 
             self.queue.append(  # turn on indicator
                 (1, self.device.write_pin_by_func, "testing indicator", 1)
@@ -529,7 +531,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.settings.get(KEY_AUTO_TEST):
                 self.run_test()
         else:
-            lgr.error(f"Programming {self.eax_device.name} failed. Error code: {returncode}")
+            lgr.error(
+                f"Programming {self.eax_device.name} failed. Error code: {returncode}"
+            )
             self.add_text(
                 f"\nProgramming {self.eax_device.name} failed. Error code: {returncode}"
             )
@@ -613,6 +617,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionLogout.setEnabled(False)
 
 
+
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     def __init__(self, usb_handler=None):
         super().__init__()
@@ -668,11 +673,8 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         event.accept()
 
 
-from serial.serialutil import SerialException
-from serial.tools import list_ports, list_ports_windows
 from private import Private
 from ui_Settings import Ui_Settings
-
 
 class SettingsDialog(QWidget, Ui_Settings):
     closed = QtCore.Signal(int)
@@ -729,8 +731,25 @@ class SettingsDialog(QWidget, Ui_Settings):
         palette.setColor(QPalette.WindowText, Qt.blue)
         lcd.setPalette(palette)
 
-    # def dial_changed(self, value):
-    # self.label_speed.setText(f"{DEFAULT_TESTING_SPEED/1000*value/100.0}s")
+        self.pushButton_default.clicked.connect(self.set_default)
+
+    def set_default(self):
+        self.settings.set(KEY_COM_PORT, "COM8")
+        self.settings.set(KEY_CHIP_PART, CHIP_PARTS[0])
+        self.settings.set(KEY_PROGRAMMER_SERIAL_NUMBER, "1E660")
+        self.settings.set(KEY_AUTO_TEST, True)
+        self.settings.set(KEY_AUTO_CONNECT, True)
+        self.settings.set(KEY_DEBUG, False)
+        self.settings.set(KEY_AUTO_LOGIN, True)
+        self.settings.set(KEY_ARDUINO_INSTANCE_ID, 1)
+        self.settings.set(KEY_TESTING_SPEED, 2100)
+        self.settings.set(KEY_LOGOFF_DELAY, 10)
+        self.settings.set(KEY_AUTO_FIND, True)
+        self.settings.set(KEY_SHUTDOWN_ON_EXCEPTION, True)
+        self.settings.set(KEY_SLEEP_TUNE, 1e-6)
+        self.settings.set(KEY_ARDUINO_WAIT, 4)
+        self.settings.save()
+        self.close()
 
     def save(self):
         self.settings.set(KEY_COM_PORT, self.comboBox_com_port.currentText())
@@ -777,7 +796,6 @@ from ui_AddUserDialog import Ui_AddUserDialog
 from PySide6.QtWidgets import QLineEdit
 from user import User, SingleUser
 
-
 class AddUserDialog(QDialog, Ui_AddUserDialog):
     def __init__(self):
         super().__init__()
@@ -800,7 +818,6 @@ class AddUserDialog(QDialog, Ui_AddUserDialog):
 
 
 from ui_RemoveUserDialog import Ui_RemoveUserDialog
-
 
 class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
     def __init__(self):
@@ -831,7 +848,6 @@ class RemoveUserDialog(QDialog, Ui_RemoveUserDialog):
 
 from ui_LoginDialog import Ui_LoginDialog
 
-
 class LoginDialog(QDialog, Ui_LoginDialog):
     def __init__(self, last_user=None):
         super().__init__()
@@ -859,9 +875,8 @@ class LoginDialog(QDialog, Ui_LoginDialog):
         return (False, None)
 
 
-from PySide6.QtWidgets import QTableWidget, QHeaderView, QTableWidgetItem
+from PySide6.QtWidgets import QTableWidgetItem
 from ui_LogView import Ui_LogView
-
 
 class LogView(QWidget, Ui_LogView):
     def __init__(self, data, *args):
@@ -899,13 +914,12 @@ class CommandRunner(QThread):
 
 from PySide6.QtWidgets import QMenu
 
-
 class ConnectMenu(QMenu):
     menu_clicked = Signal()
-
+    
     def showEvent(self, event):
         self.menu_clicked.emit()
-        super().showEvent(event)
+        # super().showEvent(event)
 
 
 def check_requirements():

@@ -22,3 +22,5 @@ test.json
 temp/
 test.ui
 ui_Test.py
+palette.xml
+private.py

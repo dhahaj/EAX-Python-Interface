@@ -1,9 +1,9 @@
 {
     "serial_port": "COM8",
     "programmer_serial_number": "1E660",
-    "chip_part": "PIC16F627A",
+    "chip_part": "PIC16F627",
     "last_user": "dmh",
-    "testing_speed": 2144,
+    "testing_speed": 2100,
     "auto_test": true,
     "font_family": "Calibri",
     "font_size": 16,
@@ -13,12 +13,12 @@
     "arduino_instance_id": 3,
     "debug": true,
     "firmware_folder": "",
-    "auto_logoff_delay": 3,
+    "auto_logoff_delay": 10,
     "bg_color": "#000000",
     "fg_color": "#ff5500",
-    "arduino_wait": 2,
+    "arduino_wait": 4,
     "shutdown_on_exception": true,
-    "auto_find": true,
+    "auto_find": false,
     "sleep_tune": 1e-06,
     "firmware_location": "./firmware"
 }
