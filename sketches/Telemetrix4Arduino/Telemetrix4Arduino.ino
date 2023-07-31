@@ -71,6 +71,7 @@
 
 #include <Arduino.h>
 #include "Telemetrix4Arduino.h"
+#include "Telemetrix4Arduino_config.h"
 
 #ifdef SERVO_ENABLED
 #include <Servo.h>
@@ -111,7 +112,7 @@
 // connect to a specific board regardless of the current com port
 // it is currently connected to.
 
-#define ARDUINO_ID 1
+#define ARDUINO_ID TELEMETRIX4ARDUINO_ID
 
 
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
@@ -694,12 +695,12 @@ void serial_loopback()
   Serial.write(loop_back_buffer, 3);
 }
 
-void set_pin_mode()
 /*
     Set a pin to digital input, digital input_pullup, digital output,
     and analog input. PWM is considered digital output, and i2c, spi, dht,
     sonar, servo, and onewire have their own init methods.
 */
+void set_pin_mode()
 {
   byte pin;
   byte mode;
@@ -1649,7 +1650,9 @@ void get_next_command()
   command = (byte)Serial.read();
 
   // uncomment the next line to see the packet length and command
-  //send_debug_info(packet_length, command);
+  #ifdef TELEMETRIX4ARDUINO_DEBUG
+  send_debug_info(packet_length, command);
+  #endif
   command_entry = command_table[command];
 
   if (packet_length > 1)

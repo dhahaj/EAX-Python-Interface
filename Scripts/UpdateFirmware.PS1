@@ -1,7 +1,9 @@
+# This script will update the firmware on the Arduino board. 
+
 # Define the URL to the Arduino CLI zip file
 $url = "https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip"
 
-$newDir = "$PWD\temp"
+$newDir = "$PWD\..\temp"
 
 # Create the new directory if it does not exist
 if (-not (Test-Path $newDir)) {
@@ -9,27 +11,13 @@ if (-not (Test-Path $newDir)) {
 }
 
 # Define the output location
-$output = "$PWD\temp\arduino-cli_latest_Windows_64bit.zip"
+$output = "$PWD\..\temp\arduino-cli_latest_Windows_64bit.zip"
 
 # Define the extraction path
-$extractPath = "$PWD\temp\"
+$extractPath = "$PWD\..\temp\"
 
-# Download the file
-Invoke-WebRequest -Uri $url -OutFile $output
-
-# Verify if the file has been downloaded
-if (Test-Path -Path $output) {
-    Write-Output "Arduino CLI zip file has been downloaded successfully to $output"
-
-    # Unzip the contents
-    Expand-Archive -Path $output -DestinationPath $extractPath -Force
-
-    Write-Output "Arduino CLI zip file has been extracted successfully to $extractPath"
-}
-else {
-    Write-Output "Failed to download Arduino CLI zip file."
-    exit 1
-}
+# Install arduino-cli.exe
+& "$PWD\ArduinoInstall.ps1"
 
 # Install Telemetrix4Arduino library using Arduino CLI
 & "$extractPath\arduino-cli.exe" lib install Telemetrix4Arduino
@@ -60,10 +48,19 @@ else {
 
 # Define the board fqbn, sketch file location and port
 $fqbn = "adafruit:avr:metro"
-$sketch = "$PWD\sketches\Telemetrix4Arduino\Telemetrix4Arduino.ino"
+$sketch = "$PWD\..\sketches\Telemetrix4Arduino\Telemetrix4Arduino.ino"
+
+Read-Host -Prompt 'Please enter the arduino id: ' -OutVariable arduinoId > $null
+
+$headerFile = "$PWD\..\sketches\Telemetrix4Arduino\Telemetrix4Arduino_config.h"
+
+$arduinoId = "TELEMETRIX4ARDUINO_ID $arduinoId"
+
+# Replace the arduino id in the header file
+(Get-Content $headerFile) | ForEach-Object { $_ -replace "TELEMETRIX4ARDUINO_ID 1", $arduinoId } | Set-Content $headerFile
 
 # Compile the sketch
-& ".\temp\arduino-cli.exe" compile --fqbn $fqbn $sketch
+& "..\temp\arduino-cli.exe" compile --fqbn $fqbn $sketch
 
 # Verify if the sketch has been compiled
 if ($LASTEXITCODE -eq 0) {
@@ -92,7 +89,7 @@ $selectedPort = $comPorts[$selectedPortIndex - 1]
 Write-Output "You selected COM port: $selectedPort"
 
 # Upload the sketch
-& ".\temp\arduino-cli.exe" upload -p $selectedPort --fqbn $fqbn $sketch
+& "..\temp\arduino-cli.exe" upload -p $selectedPort --fqbn $fqbn $sketch
 
 # Verify if the sketch has been uploaded
 if ($LASTEXITCODE -eq 0) {
@@ -103,5 +100,5 @@ else {
     exit 1
 }
 
-Remove-Item -Recurse .\temp\
+Remove-Item -Recurse ..\temp\
 Write-Output "Removing temporary files."
