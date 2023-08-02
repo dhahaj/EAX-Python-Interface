@@ -3,6 +3,45 @@ import bcrypt
 
 
 class UserDatabase:
+    """
+    A class to represent a user database. This class is used to create, read, update and delete users. It also
+    provides methods to check if a user is an admin and to check if a password is correct. The database is stored in
+    a SQLite database file.
+
+    Attributes
+    ----------
+    conn : sqlite3.Connection
+        The connection to the SQLite database.
+    database_file : str
+        The path to the SQLite database file.
+
+    Methods
+    -------
+    to_dict()
+        Returns a list of dictionaries containing all users in the database.
+    __str__()
+        Returns a string representation of the UserDatabase object.
+    remove_user(username)
+        Removes a user from the database.
+    is_admin(username)
+        Checks if a user is an admin.
+    to_json()
+        Returns a list of dictionaries containing all users in the database.
+    get_user(username)
+        Returns a dictionary containing the user with the given username.
+    get_users()
+        Returns a list of all usernames in the database.
+    create_users_table()
+        Creates the users table in the database.
+    insert_user(username, password, is_admin)
+        Inserts a user into the database.
+    check_password(username, password_to_check)
+        Checks if a password is correct for a given user.
+    purge()
+        Removes the users table from the database.
+    close()
+        Closes the connection to the database.
+    """
     def __init__(self, db_name):
         self.conn = sqlite3.connect(db_name)
         self.create_users_table()
