@@ -11,7 +11,7 @@ This is a Python version of the EAX Test Fixture Interface. It is a GUI built on
 
 ## Firmware
 
-This application uses the telemetrix Arduino library to communicate with the fixture. It can be compilled and uploaded via the Arduino IDE. This installation of the firmware can be automated using the [Install.ps1](https://github.com/dhahaj/EAX-Python-Interface/blob/main/Install.ps1) script. This script will download the `arduino-cli` tool, install the required libraries, compile the firmware, and upload it to the Arduino. It prompts for the COM port of the Arduino before uploading the firmware. Modify the file [Telemetrix4Arduino.ino](https://github.com/dhahaj/EAX-Python-Interface/blob/main/sketches/Telemetrix4Arduino/Telemetrix4Arduino.ino) to make modifications to the firmware, such as changing the `arduino_instance_id`. See [The Telemetrix Project](https://mryslab.github.io/telemetrix/) for more information.
+This application uses the telemetrix Arduino library to communicate with the fixture. It can be compilled and uploaded via the Arduino IDE. This installation of the firmware can be automated using the [Install.ps1](Scripts/Install.ps1) script. This script will download the `arduino-cli` tool, install the required libraries, compile the firmware, and upload it to the Arduino. It prompts for the COM port of the Arduino before uploading the firmware. Modify the file [Telemetrix4Arduino.ino](https://github.com/dhahaj/EAX-Python-Interface/blob/main/sketches/Telemetrix4Arduino/Telemetrix4Arduino.ino) to make modifications to the firmware, such as changing the `arduino_instance_id`. See [The Telemetrix Project](https://mryslab.github.io/telemetrix/) for more information.
 
 ## Screenshots
 
@@ -21,11 +21,11 @@ This application uses the telemetrix Arduino library to communicate with the fix
 
 ## Usage
 
-The EAX Fixture Interface can be modified by changing the values located in the [pins.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/pins.json), [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/settings.json), and [users.db](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.db) files.
+The EAX Fixture Interface can be modified by changing the values located in the [pins.json](pins.json), [settings.json](settings.json), and [users.db](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.db) files.
 
 ### `pins.json`
 
-The [pins.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/pins.json) file contains the pin assignments for the application. The pin assignments are stored in a JSON object with the following format:
+The [pins.json](pins.json) file contains the pin assignments for the application. The pin assignments are stored in a JSON object with the following format:
 
 ```json
 {
@@ -42,7 +42,7 @@ The [pins.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/pins.js
 
 ### `settings.json`
 
-The [settings.json](https://github.com/dhahaj/EAX-Python-Interface/blob/main/settings.json) file contains the runtime settings for the application. The settings are pretty self-explanatory. The `arduino_instance_id` is a value that is set in the firmware and is used where they may be multiple connected devices.
+The [settings.json](settings.json) file contains the runtime settings for the application. The settings are pretty self-explanatory. The `arduino_instance_id` is a value that is set in the firmware and is used where they may be multiple connected devices.
 
 ```json
 {
