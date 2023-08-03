@@ -1,13 +1,13 @@
-# EAX Test Interface
+# Usage
 
 ## Table of Contents
 
-- [EAX Test Interface](#eax-test-interface)
+- [Usage](#usage)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
-  - [Usage](#usage)
     - [New Features](#new-features)
     - [GUI](#gui)
+    - [Users](#users)
     - [Settings](#settings)
     - [Firmware](#firmware)
 
@@ -19,8 +19,6 @@
 4. Run `Start.bat` from the `Scrpts` directory to start the application.
 5. Install the required Python package dependencies listed in `requirements.txt` using the command `pip install -r requirements.txt`.
 6. A standalone executable can be created using `pyinstaller`. Install `pyinstaller` using the command `pip install pyinstaller`. (Optional)
-
-## Usage
 
 The EAX Test Interface is an improvement over the last version. The interface was written in pure Python using the [Pyside6](https://doc.qt.io/qtforpython-6/) library and [Qt](https://www.qt.io/) framwork. The improvements are listed below:
 
@@ -41,19 +39,40 @@ The EAX Test Interface is an improvement over the last version. The interface wa
 
 ### GUI
 
-The main window is composed of a text console, two buttons and two labels. The text console is used for displaying messages, and the buttons are used for programming and testing. The two text labels are used for displaying the status of the USB connection and the currently selected device. The menu bar contains the `File`, `Device`, `Settings` and `Help` menus. The `File` menu contains items for logging in and out, connecting and disconnecting from the fixture, and exiting the application. The `Device` menu contains items for selecting the device. The `Settings` menu contains various items for modifying the settings. The `Help` menu contains items for displaying the debugging logs and the about dialog.
+The main window is composed of a text console, two buttons and two labels. The text console is used for displaying messages, and the buttons are used for programming and testing. The two text labels are used for displaying the status of the USB connection and the currently selected device. The menu bar contains the `File`, `Device`, `Settings` and `Help` menus. The `File` menu contains items for logging in and out, connecting and disconnecting from the fixture, and exiting the application. The `Device` menu contains items for selecting the device. The `Settings` menu contains various items for modifying the settings. The `Help` menu contains items for displaying the debugging logs and displaying the about dialog.
 
-![alt text](images/../../images/MainWindow.png)
+![alt text](../images/MainWindow.png)
+
+### Users
+
+The users are stored in a SQLite database called `users.db`. The database contains a single table called `users` with the following schema:
+
+```sql
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    is_admin INTEGER NOT NULL
+);
+```
+
+The `username` and `password` fields are used for logging in. The `is_admin` field is used to determine if the user is an administrator. The `id` field is used internally by the application and should not be modified. The `users.db` file can also be modified using the `Add User` and `Remove User` menu items located in the `Settings` menu. The `Add User` menu item will show a dialog for entering the `username`, `password` and `admin` fields. The user is added to the database when `Okay` is pressed. The `Remove User` menu item will delete the currently selected user from the database. `Administrator` access is required to make modifications to the applicaiton settings.
 
 ### Settings
 
 The settings can be changed by clicking on the `Modify Settings` menu item. This will open up a new window as shown below. Any changes made on this window will not be applied until the `Save` button is pressed. The `Default` button will reset all the settings to their default values. The dial on the bottom right can be used to change the testing speed. Rotating it CW will increase the speed and CCW will decrease the speed. The exact timing is shown just above the dial, which is specified in ms. The `Debug` checkbox just enables additional debug messages to be printed to the console and to the log file. The `Auto Logoff Delay` is the amount of time in minutes before the application will automatically logoff the current user (note that this is only valid if `Auto Login` is disabled). The `Chip` combobox is used to select the particular chip that is populated on the EAX board. This setting can be changed here or by selecting `Chip Select` from the settings menu. All the items in the `Advanced` section should not be changed unless you know what you are doing. These settings modify how the application interacts with the fixture and the firmware.
 
-![alt text](images/../../images/SettingsDialog.png)
+![alt text](../images/SettingsMenu.png)
 
 <!-- ![alt text](images/../../images/SettingsMenu.png) -->
 
 ### Firmware
 
-The test fixture uses an arduino library called `Telemetrix`. In can easily be installed using either the Arduino IDE or by using the `Install.ps1` script provided. To upload firmware with a customized `arduino_instance_id`, run the `UpdateFirmware.ps1`  script and enter the desired `arduino_instance_id` and COM port when prompted. This compiles and  uploads the firmware to the test fixture.
+The test fixture uses an arduino library called `Telemetrix`. It can easily be installed to the test fixture using the `Arduino` IDE, or with the `Install.ps1` or `UpdateFirmware.ps1` scripts located in the `Scripts` folder. To run the script from the GUI, select `Update Firmware` from the `Settings` menu. This will attempt to download and update the `arduino_cli` tool, compile the firmware, and upload it to the test fixture. The basic steps for updating the firmware are listed below:
 
+1. An internet connection may be required if the necessary files have not already been downloaded.
+2. Ensure that the test fixture is connected to the computer but is not connected to the application.
+3. Open the `Settings` menu and make sure that `COM Port` and `arduino_instance_id` are set to the correct values. These will be the values used to upload the firmware. Press `Save` to save the settings.
+4. From the `Settings` menu, select `Update Firmware`. This will start the firmware update process and its progress will be displayed in the console window. (See the image below)
+
+![alt text](../images/FirmwareUpdate.png)
