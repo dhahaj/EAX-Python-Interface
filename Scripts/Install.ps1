@@ -1,5 +1,5 @@
 
-$newDir = "$PWD\..\temp"
+$newDir = "$PWD\..\tools"
 
 # Create the new directory if it does not exist
 if (-not (Test-Path $newDir)) {
@@ -7,7 +7,7 @@ if (-not (Test-Path $newDir)) {
 }
 
 # Define the extraction path
-$extractPath = "$PWD\..\temp\"
+$extractPath = "$PWD\..\tools\"
 
 & "$PWD\ArduinoInstall.ps1"
 
@@ -43,7 +43,7 @@ $fqbn = "arduino:avr:uno"
 $sketch = "$PWD\..\sketches\Telemetrix4Arduino\Telemetrix4Arduino.ino"
 
 # Compile the sketch
-& "..\temp\arduino-cli.exe" compile --fqbn $fqbn $sketch
+& "..\tools\arduino-cli.exe" compile --fqbn $fqbn $sketch
 
 # Verify if the sketch has been compiled
 if ($LASTEXITCODE -eq 0) {
@@ -72,7 +72,7 @@ $selectedPort = $comPorts[$selectedPortIndex - 1]
 Write-Output "You selected COM port: $selectedPort"
 
 # Upload the sketch
-& "..\temp\arduino-cli.exe" upload -p $selectedPort --fqbn $fqbn $sketch
+& "..\tools\arduino-cli.exe" upload -p $selectedPort --fqbn $fqbn $sketch
 
 # Verify if the sketch has been uploaded
 if ($LASTEXITCODE -eq 0) {
@@ -83,5 +83,5 @@ else {
     exit 1
 }
 
-Remove-Item -Recurse ..\temp\
+Remove-Item -Recurse ..\tools\
 Write-Output "Removing temporary files."

@@ -2,21 +2,39 @@
 # Define the URL to the Arduino CLI zip file
 $url = "https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip"
 
-$newDir = "$PWD\..\temp"
 
-# Create the new directory if it does not exist
-if (-not (Test-Path $newDir)) {
-    New-Item -Path $newDir -ItemType Directory > $null
+if ($args.Length -lt 1)
+{
+    $newDir = ".\tools"
+    
+    # Create the new directory if it does not exist
+    if (-not (Test-Path $newDir)) {
+        New-Item -Path $newDir -ItemType Directory > $null
+    }
+    
+    # Define the output location
+    $output = "$newDir\arduino-cli_latest_Windows_64bit.zip"
+    
+    # Define the extraction path
+    $extractPath = "$newDir"
+} else {
+    $newDir = $args[0]
+    
+    # Create the new directory if it does not exist
+    if (-not (Test-Path $newDir)) {
+        New-Item -Path $newDir -ItemType Directory > $null
+    }
+    
+    # Define the output location
+    $output = "$newDir\arduino-cli_latest_Windows_64bit.zip"
+    
+    # Define the extraction path
+    $extractPath = "$newDir"
 }
 
-# Define the output location
-$output = "$PWD\..\temp\arduino-cli_latest_Windows_64bit.zip"
-
-# Define the extraction path
-$extractPath = "$PWD\..\temp\"
 
 # Check if the Arduino CLI is already installed
-if (Test-Path -Path "..\temp\arduino-cli.exe") {
+if (Test-Path -Path "$extractPath\arduino-cli.exe") {
     Write-Output "Arduino CLI is already installed."
 }
 else {
