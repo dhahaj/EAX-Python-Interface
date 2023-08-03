@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/resources/icons">
+    <file>images/icons/radio-off-button.png</file>
+    <file>images/icons/radio-on-button.png</file>
     <file>images/icons/code.ico</file>
     <file>images/icons/favicon.ico</file>
     <file>images/icons/powershell.ico</file>
@@ -41,7 +43,45 @@
     <file>images/icons/robot-arm2.png</file>
     <file>images/icons/robot-arm3.png</file>
     <file>images/icons/automation.png</file>
+    <file>images/icons/icons8-windows11.png</file>
+    <file>images/icons/icons8-windows10.png</file>
+    <file>images/icons/icons8-folder.png</file>
+    <file>images/icons/icons8-about.png</file>
+    <file>images/icons/icons8-info.png</file>
+    <file>images/icons/firmware.png</file>
     <file>images/detex_dark.png</file>
+    <file>images/icons/hash.png</file>
+    <file>images/icons/coding.png</file>
+    <file>images/icons/hex.png</file>
+    <file>images/icons/ps.png</file>
+    <file>images/icons/geometric.png</file>
+    <file>images/icons/connected.png</file>
+    <file>images/icons/connected2.png</file>
+    <file>images/icons/connecting.png</file>
+    <file>images/icons/disconnected.png</file>
+    <file>images/icons/disconnected2.png</file>
+    <file>images/icons/test-button.png</file>
+    <file>images/icons/prog-button.png</file>
+    <file>images/icons/forward-button.png</file>
+    <file>images/icons/help.png</file>
+    <file>images/FirmwareUpdate.png</file>
     <file>main.qml</file>
+  </qresource>
+  <qresource prefix="/resources">
+    <file>README.html</file>
+    <file>docs/Settings.html</file>
+    <file>docs/USAGE.html</file>
+    <file>images/DeviceMenu.png</file>
+    <file>images/MainWindow.png</file>
+    <file>images/SettingsMenu.png</file>
+    <file>images/ManualControl.png</file>
+    <file>images/SettingsDialog.png</file>
+    <file>images/FirmwareUpdate.png</file>
+  </qresource>
+  <qresource prefix="resources/images">
+    <file>images/ManualControl.png</file>
+    <file>images/DeviceMenu.png</file>
+    <file>images/SettingsMenu.png</file>
+    <file>images/FirmwareUpdate.png</file>
   </qresource>
 </RCC>

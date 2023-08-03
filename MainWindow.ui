@@ -2,18 +2,21 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1025</width>
-    <height>850</height>
+    <width>900</width>
+    <height>788</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>1025</width>
-    <height>850</height>
+    <width>900</width>
+    <height>700</height>
    </size>
   </property>
   <property name="font">
@@ -29,7 +32,7 @@
   </property>
   <property name="windowIcon">
    <iconset>
-    <normalon>:/resources/icons/images/icons/powershell.ico</normalon>
+    <normalon>:/resources/icons/images/icons/geometric.png</normalon>
    </iconset>
   </property>
   <property name="iconSize">
@@ -37,6 +40,9 @@
     <width>32</width>
     <height>32</height>
    </size>
+  </property>
+  <property name="toolButtonStyle">
+   <enum>Qt::ToolButtonTextBesideIcon</enum>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -111,23 +117,23 @@
          </font>
         </property>
         <property name="text">
-         <string>Program</string>
+         <string/>
         </property>
         <property name="icon">
          <iconset resource="icons.qrc">
-          <normaloff>:/resources/icons/images/icons/micro.png</normaloff>:/resources/icons/images/icons/micro.png</iconset>
+          <normaloff>:/resources/icons/images/icons/prog-button.png</normaloff>:/resources/icons/images/icons/prog-button.png</iconset>
         </property>
         <property name="iconSize">
          <size>
-          <width>50</width>
-          <height>50</height>
+          <width>100</width>
+          <height>100</height>
          </size>
         </property>
         <property name="shortcut">
          <string>P</string>
         </property>
         <property name="flat">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -165,7 +171,7 @@
            </property>
            <property name="styleSheet">
             <string notr="true">color: rgb(255, 0, 0);
-image: url(:/resources/icons/images/detex_dark.png);
+/*image: url(:/resources/icons/images/detex_dark.png);*/
 font-weight: bold;</string>
            </property>
            <property name="frameShape">
@@ -217,16 +223,15 @@ font-weight: bold;</string>
            <property name="font">
             <font>
              <pointsize>9</pointsize>
-             <bold>true</bold>
+             <bold>false</bold>
+             <kerning>false</kerning>
             </font>
            </property>
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));
-
-background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 0, 0, 100), stop:0.284091 rgba(255, 0, 0, 80), stop:0.5 rgba(255, 0, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));</string>
+            <string notr="true"/>
            </property>
            <property name="frameShape">
             <enum>QFrame::NoFrame</enum>
@@ -235,7 +240,7 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img width=&quot;40&quot; height=&quot;40&quot; src=&quot;:/resources/icons/images/icons/usb3.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img width=&quot;52&quot; height=&quot;52&quot; src=&quot;:/resources/icons/images/icons/disconnected2.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
             <enum>Qt::AutoText</enum>
@@ -399,6 +404,12 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
           <height>80</height>
          </size>
         </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>80</height>
+         </size>
+        </property>
         <property name="font">
          <font>
           <pointsize>20</pointsize>
@@ -406,24 +417,27 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
          </font>
         </property>
         <property name="text">
-         <string>Test</string>
+         <string/>
         </property>
         <property name="icon">
-         <iconset>
-          <normalon>:/resources/icons/images/icons/robot-arm.png</normalon>
+         <iconset theme="document-print">
+          <normalon>:/resources/icons/images/icons/test-button.png</normalon>
          </iconset>
         </property>
         <property name="iconSize">
          <size>
-          <width>50</width>
-          <height>50</height>
+          <width>100</width>
+          <height>100</height>
          </size>
         </property>
         <property name="shortcut">
          <string>T</string>
         </property>
-        <property name="flat">
+        <property name="autoDefault">
          <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -436,7 +450,7 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1025</width>
+     <width>900</width>
      <height>26</height>
     </rect>
    </property>
@@ -491,6 +505,9 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
     <addaction name="separator"/>
     <addaction name="actionManual_Control"/>
     <addaction name="actionChip_Select"/>
+    <addaction name="separator"/>
+    <addaction name="actionUpdate_Firmware"/>
+    <addaction name="actionExplore_Directory"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -499,6 +516,7 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
     <addaction name="actionShow_Logs"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
+    <addaction name="actionHelp"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDevice"/>
@@ -567,18 +585,31 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
+   </property>
    <property name="text">
     <string>EAX300</string>
    </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
+     <bold>false</bold>
     </font>
    </property>
   </action>
   <action name="actionEAX500">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX500</string>
@@ -588,10 +619,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX503">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX503</string>
@@ -601,10 +641,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX504">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX504</string>
@@ -614,10 +663,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX505">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX505</string>
@@ -627,10 +685,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX510">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX510</string>
@@ -640,10 +707,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX513">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX513</string>
@@ -653,10 +729,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX514">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX514</string>
@@ -666,10 +751,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX515">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX515</string>
@@ -679,10 +773,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX520">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX520</string>
@@ -692,10 +795,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX523">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX523</string>
@@ -705,10 +817,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX524">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX524</string>
@@ -718,10 +839,19 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
+   </property>
   </action>
   <action name="actionEAX525">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <selectedoff>:/resources/icons/images/icons/radio-off-button.png</selectedoff>
+     <selectedon>:/resources/icons/images/icons/radio-on-button.png</selectedon>
+    </iconset>
    </property>
    <property name="text">
     <string>EAX525</string>
@@ -730,6 +860,9 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
     <font>
      <pointsize>11</pointsize>
     </font>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionChange_font">
@@ -845,6 +978,51 @@ background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5
    </property>
    <property name="text">
     <string>Chip Select</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionUpdate_Firmware">
+   <property name="icon">
+    <iconset>
+     <normalon>:/resources/icons/images/icons/ps.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Update Firmware</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionExplore_Directory">
+   <property name="icon">
+    <iconset>
+     <normalon>:/resources/icons/images/icons/icons8-folder.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Explore Directory</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset>
+     <normalon>:/resources/icons/images/icons/help.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
    </property>
    <property name="font">
     <font>
