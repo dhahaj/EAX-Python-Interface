@@ -313,6 +313,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def load_file_text(self, filename='instructions.txt'):
         '''Load text from a file and add it to the text area.'''
+
+        with open(filename, 'r') as f:
+            self.insert_markdown(f.read())
+            return
+
         self.text_edit.setMarkdown(INSTRUCTIONS + '   \r\n')
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
@@ -649,6 +654,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f'Programming {self.eax_device.selected_device} successful')
             if self.settings.get(KEY_AUTO_TEST):
                 self.execute_test()
+        elif returncode == 2:
+            self.insert_text(f'## Programming {self.eax_device.selected_device} failed. Error code: {returncode} (Check Programmer Serial Number?)')
+        elif returncode == 7:
+            self.insert_text(f'## Programming {self.eax_device.selected_device} failed. Error code: {returncode} (Check chip part number)')
         else:
             lgr.error(
                 f'Programming {self.eax_device.selected_device} failed. Error code: {returncode}'
