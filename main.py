@@ -289,12 +289,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def add_user(self):
-        self.add = UserAdditionDialog()
-        self.add.show()
+        if self.settings.get(KEY_AUTO_LOGIN):
+            if self.authenticate():
+                self.add = UserAdditionDialog()
+                self.add.show()
 
     def remove_user(self):
-        self.remove = UserRemovalDialog()
-        self.remove.show()
+        if self.settings.get(KEY_AUTO_LOGIN):
+            if self.authenticate():        
+                self.remove = UserRemovalDialog()
+                self.remove.show()
 
     def insert_text(self, text):
         '''Add text to the text console.'''
@@ -531,22 +535,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def modify_settings(self):
         # if auto login is enabled, force the user to login
         if self.settings.get(KEY_AUTO_LOGIN):
-            self.loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
-            if self.loginDialog.exec() == QDialog.Accepted:
-                success, username = self.loginDialog.ok()
-                if not success:
-                    QMessageBox.critical(
-                        self.loginDialog,
-                        'Invalid credentials',
-                        (
-                            'The username or password you entered'
-                            'is incorrect. Please try again.'
-                        ),
-                    )
-                    return
+            if self.authenticate():
+                self.settings_dialog.show()
+
+    def authenticate(self):
+        """Authenticate by showing the login dialog."""
+        self.loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
+        if self.loginDialog.exec() == QDialog.Accepted:
+            success, username = self.loginDialog.ok()
+            if success:
+                self.settings.set(KEY_LAST_USER, username)
             else:
-                return
-        self.settings_dialog.show()
+                QMessageBox.critical(self.loginDialog,'Invalid credentials',('The username or password you entered is incorrect. Please try again.'),)
+            return success
+        else:
+            return False
 
     def on_settings_closed(self, result):
         # global settings
@@ -726,6 +729,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionLogout.setEnabled(False)
 
     def update_firmware(self):
+        """Update the test fixture firmware."""
+
+        if self.settings.get(KEY_AUTO_LOGIN):
+            if not self.authenticate():
+                return
+        
         app_logger.info('Updating firmware...')
         self.disconnected = False
         if self.device is not None:
