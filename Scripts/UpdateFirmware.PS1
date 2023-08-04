@@ -10,6 +10,17 @@ function Print-Usage {
     Write-Output ""
 }
 
+# Check if there is an internet connection
+try {
+    & Invoke-WebRequest -Uri http://www.google.com -UseBasicParsing *> $null
+    Write-Host "Connected to the Internet"
+    $connected = $true  
+}
+catch {
+    Write-Host "Not connected to the Internet. The script will continue but it may fail if the required libraries are not already installed."
+    $connected = $false
+}
+
 # Create the new directory if it does not exist
 if (-not (Test-Path "tools")) {
     New-Item -Path "tools" -ItemType Directory > $null
@@ -17,7 +28,6 @@ if (-not (Test-Path "tools")) {
 
 # Install arduino-cli.exe
 . ".\Scripts\ArduinoInstall.ps1" *>&1
-# & "$PWD\Scripts\ArduinoInstall.ps1"
 
 $arduino_cli = ".\tools\arduino-cli.exe"
 
@@ -36,8 +46,6 @@ function Install-Telemetrix4Arduino {
         exit 1
     }
 }
-
-Install-Telemetrix4Arduino
 
 function Update-Arduino {
     
@@ -62,8 +70,11 @@ function Update-Arduino {
 
 }
 
-Update-Arduino
-
+# If connected to the internet, install the Telemetrix4Arduino library and update the arduino:avr core
+if ($connected) {
+    Install-Telemetrix4Arduino
+    Update-Arduino
+}
 
 # Exit function
 function Exit-Function {

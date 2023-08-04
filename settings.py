@@ -3,7 +3,7 @@ import os
 from constants import *
 from loguru import logger as log
 
-class Settings:
+class ApplicationSettings:
     """ The settings class, used to store settings. """
 
     def __init__(self, filename="settings.json"):
@@ -18,7 +18,7 @@ class Settings:
         self.settings = DEFAULT_SETTINGS.copy()
 
         # Load settings from file
-        self.load()
+        self.load_settings()
 
     def get(self, key):
         """
@@ -37,16 +37,16 @@ class Settings:
         :param value: The value of the setting.
         """
         self.settings[key] = value
-        self.save()
+        self.save_settings()
 
     @log.catch(message="Settings file is invalid, resetting to default.", reraise=True, exception=json.JSONDecodeError)
-    def load(self):
+    def load_settings(self):
         """
         Load the settings from a JSON file.
         """
 
         # Check if the settings file exists, and create it if it doesn't
-        if not self.validate():
+        if not self.validate_settings():
             with open(os.path.join(".", self.filename), "w") as file:
                 json.dump(DEFAULT_SETTINGS, file, indent=4)
 
@@ -73,13 +73,13 @@ class Settings:
         #     # self.settings = DEFAULT_SETTINGS
         #     self.save()
 
-    def save(self):
+    def save_settings(self):
         """ Save the settings to a JSON file. """
         with open(self.filename, "w") as file:
             json.dump(self.settings, file, indent=4)
-        self.load()  # Reload the settings
+        self.load_settings()  # Reload the settings
 
-    def get_path(self):
+    def get_settings_path(self):
         """
         Get the path of the settings file.
 
@@ -87,6 +87,17 @@ class Settings:
         """
         return os.path.abspath(self.filename)
 
-    def validate(self):
+    def validate_settings(self):
         """Check if the settings file exists."""
         return os.path.exists(self.filename)
+
+    @staticmethod
+    @log.catch(message="Settings file is invalid, resetting to default.", reraise=True, exception=json.JSONDecodeError)
+    def read_settings_from_file(filename="settings.json"):
+        values = DEFAULT_SETTINGS.copy()
+        if os.path.exists(filename):
+            with open(os.path.join(".", filename), "r") as file:
+                values.update(json.load(file))
+        else:
+            log.warning(f"Settings file {filename} does not exist.")
+        return values
