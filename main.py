@@ -200,6 +200,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_label.setText(f'Device: {device}')
         self.eax_device.set_name(device)
 
+        dialog = ModelDialog(OPTIONS)
+        dialog.setModal(True)
+        
+        if dialog.exec() == QDialog.Accepted:
+            lgr.info(f'User selected: {dialog.selected_option()}') 
+
         # Set the color of the device label
         if self.eax_device.get_name() == 'EAX300':
             self.device_label.setStyleSheet(YELLOW)
@@ -1137,6 +1143,26 @@ class SingleInstanceApp(QApplication):
             return
 
         self.semaphore.release()
+
+
+from ui_ModelDialog import Ui_ModelDialog
+
+class ModelDialog(QDialog, Ui_ModelDialog):
+    def __init__(self, options):
+        super().__init__()
+        self.setupUi(self)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
+
+        for option in options:
+            self.comboBox.addItem(option)
+
+    def closeEvent(self, event):
+        event.accept()
+    
+    def selected_option(self):
+        return self.comboBox.currentText()
+
+
 
 
 def check_requirements():
