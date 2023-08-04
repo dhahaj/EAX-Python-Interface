@@ -39,7 +39,7 @@ from PySide6.QtGui import (
     QPalette,
     QIcon,
 )
-from private import Private
+# from private import Private
 from multiprocessing import Semaphore
 from ui_ManualControlDialog import Ui_ManualControlDialog
 from ui_MainWindow import Ui_MainWindow
@@ -264,33 +264,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lgr.debug('saved ' ' + item + ' ' to settings.')
 
     def eventFilter(self, watched, event):
-        # Unless auto login is enabled, reset the inactivity timer on mouse move or key press
-        if not self.settings.get(KEY_AUTO_LOGIN):
-            if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
-                # lgr.debug('Mouse move or key press detected.')
-                # Reset the inactivity timer if a mouse movement or key press event is detected
-                self.inactivityTimer.start(
-                    self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
-                )  # 60 seconds of inactivity before timeout
-        else:
-            # If auto login is enabled, stop the inactivity timer because
-            # the login functionality is not used
-            self.inactivityTimer.stop()
+        # Reset the inactivity timer if a mouse movement or key press event is detected
+        if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
+            self.inactivityTimer.start(
+                self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
+            )  # 60 seconds of inactivity before timeout
         return super(MainWindow, self).eventFilter(watched, event)
 
     def handle_inactivity_timeout(self):
-        if self.settings.get(KEY_DEBUG) and not self.settings.get(KEY_AUTO_LOGIN):
+        if self.settings.get(KEY_DEBUG):
             app_logger.debug('Inactivity timeout.')
             lgr.debug('Inactivity timeout.')
-            name = self.eax_device.get_name()
-            icon = QIcon()
-            icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
-            # Uncheck all menu actions
-            for action in self.menuDevice.actions():
-                action.setIcon(icon)
-            self.device_label.setText('')
-            self.eax_device.set_name(None)  # reset the device
+
+        if not self.settings.get(KEY_AUTO_LOGIN):
             self.perform_login()  # show the login dialog
+        
+        icon = QIcon()
+        icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
+        # Uncheck all menu actions
+        for action in self.menuDevice.actions():
+            action.setIcon(icon)
+        self.device_label.setText('') # clear the device label
+        self.eax_device.set_name(None)  # reset the device
+
 
     def add_user(self):
         self.add = UserAdditionDialog()
@@ -1157,8 +1153,7 @@ if __name__ == '__main__':
                    ):
         (success, missing) = check_requirements()
         if not success:
-            QMessageBox.critical(
-                None, 'Error', f'Missing files:\n{missing}', QMessageBox.Ok)
+            QMessageBox.critical(None, 'Error', f'Missing files:\n{missing}', QMessageBox.Ok)
             sys.exit(1)
 
         app = SingleInstanceApp([])
