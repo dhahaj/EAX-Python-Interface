@@ -1,167 +1,105 @@
-2023-07-26 00:15:16,818 - logger - INFO - Logged in as: dmh
-2023-07-26 00:22:18,356 - logger - INFO - Logged in as: dmh
-2023-07-26 00:26:13,371 - logger - INFO - Logged in as: dmh
-2023-07-26 00:30:01,005 - logger - INFO - Logged in as: dmh
-2023-07-26 00:32:02,715 - logger - INFO - Logged in as: dmh
-2023-07-26 00:34:18,310 - logger - INFO - Logged in as: dmh
-2023-07-26 00:35:49,911 - logger - INFO - Logged in as: dmh
-2023-07-26 00:36:19,440 - logger - INFO - Logged in as: dmh
-2023-07-26 00:37:13,940 - logger - INFO - Logged in as: dmh
-2023-07-26 00:38:34,897 - logger - INFO - Logged in as: dmh
-2023-07-26 00:42:07,203 - logger - INFO - Logged in as: dmh
-2023-07-26 00:45:34,072 - logger - INFO - Logged in as: dmh
-2023-07-26 00:45:55,529 - logger - INFO - Logged in as: dmh
-2023-07-26 00:53:00,595 - logger - INFO - Logged in as: dmh
-2023-07-26 01:00:55,562 - logger - INFO - Logged in as: dmh
-2023-07-26 01:16:39,777 - logger - INFO - Logged in as: dmh
-2023-07-26 01:18:37,613 - logger - INFO - Logged in as: dmh
-2023-07-26 01:22:11,956 - logger - INFO - Logged in as: dmh
-2023-07-26 01:22:39,349 - logger - INFO - # Testing None started
-2023-07-26 01:23:36,495 - logger - INFO - # Testing EAX300 started
-2023-07-26 01:26:07,507 - logger - INFO - Logged in as: dmh
-2023-07-26 01:31:30,340 - logger - INFO - Logged in as: dmh
-2023-07-26 01:32:26,300 - logger - INFO - # Testing EAX500 started
-2023-07-26 01:32:37,597 - logger - INFO - Logged in as: dmh
-2023-07-26 01:37:15,171 - logger - INFO - Logged in as: dmh
-2023-07-26 01:45:18,673 - logger - INFO - Logged in as: dmh
-2023-07-26 01:47:32,237 - logger - INFO - Logged in as: dmh
-2023-07-26 01:49:00,668 - logger - INFO - Logged in as: dmh
-2023-07-26 01:49:22,385 - logger - INFO - Logged in as: dmh
-2023-07-26 03:31:10,135 - logger - INFO - Logged in as: dmh
-2023-07-26 03:32:23,059 - logger - INFO - # Testing EAX300 started
-2023-07-26 03:32:57,166 - logger - INFO - Programming EAX525 args: ['up.exe', '/part PIC16F628A /q1 /s 1E660 /p firmware/EAX525_591.hex']
-2023-07-26 03:32:59,122 - logger - ERROR - Programming EAX525 failed. Error code: 3
-2023-07-26 03:33:05,602 - logger - INFO - Programming EAX514 args: ['up.exe', '/part PIC16F628A /q1 /s 1E660 /p firmware/EAX514_591.hex']
-2023-07-26 03:33:07,161 - logger - ERROR - Programming EAX514 failed. Error code: 3
-2023-07-26 03:33:10,530 - logger - INFO - Programming EAX524 args: ['up.exe', '/part PIC16F628A /q1 /s 1E660 /p firmware/EAX524_591.hex']
-2023-07-26 03:33:12,258 - logger - ERROR - Programming EAX524 failed. Error code: 3
-2023-07-26 03:33:53,821 - logger - INFO - # Testing EAX524 started
-2023-07-26 03:37:36,101 - logger - ERROR - USB: connection failed.
-2023-07-26 04:15:47,305 - logger - INFO - Logged in as: dmh
-2023-07-26 04:53:24,848 - logger - INFO - Logged in as: dmh
-2023-07-26 04:53:50,579 - logger - INFO - # Testing EAX300 started
-2023-07-26 04:54:51,037 - logger - INFO - Logged in as: dmh
-2023-07-26 04:54:55,532 - logger - INFO - # Testing None started
-2023-07-26 04:55:07,191 - logger - INFO - # Testing None started
-2023-07-26 04:55:33,832 - logger - INFO - Programming EAX504 args: ['up.exe', '/part PIC16F628A /q1 /s 1E660 /p firmware/EAX504_591.hex']
-2023-07-26 04:55:41,717 - logger - ERROR - Programming EAX504 failed. Error code: 3
-2023-07-26 05:00:17,911 - logger - INFO - Logged in as: dmh
-2023-07-26 05:00:22,762 - logger - INFO - Programming EAX504 args: ['up.exe', '/part PIC16F628A /q1 /s 1E660 /p firmware/EAX504_591.hex']
-2023-07-26 05:00:35,926 - logger - ERROR - Programming EAX504 failed. Error code: 3
-2023-07-26 05:01:22,613 - logger - INFO - Logged in as: dmh
-2023-07-26 05:11:48,982 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 05:11:50,922 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 05:12:07,996 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 05:12:10,011 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 05:12:21,331 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 05:12:23,451 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 05:12:40,384 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 05:12:42,291 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 05:12:46,560 - logger - INFO - # Testing EAX500 started
-2023-07-26 05:13:01,727 - logger - INFO - # Testing EAX500 started
-2023-07-26 05:14:22,970 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 05:14:24,931 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 05:14:26,845 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 05:14:28,785 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 05:38:53,358 - logger - INFO - Logged in as: dmh
-2023-07-26 05:38:55,411 - logger - INFO - Logged in as: dmh
-2023-07-26 05:41:07,931 - logger - INFO - Logged in as: dmh
-2023-07-26 05:44:36,682 - logger - INFO - Logged in as: dmh
-2023-07-26 05:45:34,271 - logger - INFO - # Testing EAX300 started
-2023-07-26 05:46:18,446 - logger - INFO - # Testing EAX300 started
-2023-07-26 13:22:57,766 - logger - INFO - Logged in as: dmh
-2023-07-26 13:24:05,172 - logger - INFO - # Testing EAX500 started
-2023-07-26 13:24:20,435 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:24:22,464 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:25:56,322 - logger - INFO - Logged in as: dmh
-2023-07-26 13:33:33,837 - logger - INFO - Logged in as: dmh
-2023-07-26 13:33:46,071 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:33:48,005 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:34:20,132 - logger - INFO - Logged in as: dmh
-2023-07-26 13:34:27,920 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:34:29,859 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:35:37,169 - logger - INFO - Logged in as: dmh
-2023-07-26 13:35:47,728 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:35:49,762 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:36:06,957 - logger - INFO - Logged in as: dmh
-2023-07-26 13:36:09,810 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:36:11,715 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:37:29,868 - logger - INFO - Logged in as: dmh
-2023-07-26 13:37:35,686 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:37:37,739 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:38:01,039 - logger - INFO - Logged in as: dmh
-2023-07-26 13:38:04,824 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:38:06,741 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:39:39,927 - logger - INFO - Logged in as: dmh
-2023-07-26 13:39:42,994 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:40:15,328 - logger - INFO - Logged in as: dmh
-2023-07-26 13:40:28,154 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:40:52,462 - logger - INFO - Logged in as: dmh
-2023-07-26 13:40:55,443 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:40:57,419 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:41:16,214 - logger - INFO - # Testing EAX500 started
-2023-07-26 13:41:29,553 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:41:31,399 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:42:11,070 - logger - INFO - Logged in as: dmh
-2023-07-26 13:42:28,056 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:42:29,947 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:43:02,200 - logger - INFO - Logged in as: dmh
-2023-07-26 13:43:05,554 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:43:07,494 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:43:54,357 - logger - INFO - Logged in as: dmh
-2023-07-26 13:43:56,863 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 13:43:59,037 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 13:44:33,813 - logger - INFO - Logged in as: dmh
-2023-07-26 13:44:40,022 - logger - INFO - Programming EAX503 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX503_591.hex', '/q1']
-2023-07-26 13:44:42,039 - logger - ERROR - Programming EAX503 failed. Error code: 2
-2023-07-26 13:44:51,889 - logger - INFO - # Testing EAX503 started
-2023-07-26 13:45:04,342 - logger - INFO - Programming EAX503 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX503_591.hex', '/q1']
-2023-07-26 13:45:06,307 - logger - ERROR - Programming EAX503 failed. Error code: 2
-2023-07-26 13:45:10,172 - logger - INFO - Programming EAX503 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX503_591.hex', '/q1']
-2023-07-26 13:45:12,085 - logger - ERROR - Programming EAX503 failed. Error code: 2
-2023-07-26 13:48:18,161 - logger - INFO - Logged in as: dmh
-2023-07-26 13:48:21,645 - logger - INFO - Programming EAX510 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX510_591.hex', '/q1']
-2023-07-26 13:54:51,444 - logger - INFO - Logged in as: dmh
-2023-07-26 14:06:19,780 - logger - INFO - Logged in as: dmh
-2023-07-26 14:06:25,199 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:12:15,213 - logger - INFO - Logged in as: dmh
-2023-07-26 14:12:21,431 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:12:23,371 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:12:41,424 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:12:43,394 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:15:18,260 - logger - INFO - Logged in as: dmh
-2023-07-26 14:15:20,639 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:15:22,661 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:17:48,108 - logger - INFO - Logged in as: dmh
-2023-07-26 14:17:51,020 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:17:53,010 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:18:44,426 - logger - INFO - Logged in as: dmh
-2023-07-26 14:18:47,725 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:18:49,652 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:19:20,100 - logger - INFO - Logged in as: dmh
-2023-07-26 14:19:22,753 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:19:24,801 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:19:27,824 - logger - INFO - # Testing EAX500 started
-2023-07-26 14:19:45,711 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:19:47,610 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:19:52,207 - logger - INFO - Programming EAX300 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX300_59.hex', '/q1']
-2023-07-26 14:19:54,166 - logger - ERROR - Programming EAX300 failed. Error code: 2
-2023-07-26 14:20:45,080 - logger - INFO - Programming EAX300 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX300_59.hex', '/q1']
-2023-07-26 14:20:47,081 - logger - ERROR - Programming EAX300 failed. Error code: 2
-2023-07-26 14:21:44,408 - logger - INFO - Logged in as: dmh
-2023-07-26 14:21:50,207 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:21:52,187 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 14:23:03,310 - logger - INFO - Inactivity timeout.
-2023-07-26 14:23:12,156 - logger - INFO - Logged in as: dmh
-2023-07-26 14:23:30,565 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
-2023-07-26 14:23:32,527 - logger - ERROR - Programming EAX500 failed. Error code: 2
-2023-07-26 19:22:54,965 - logger - INFO - Logged in as: sm
-2023-07-26 19:23:27,657 - logger - INFO - Logged in as: sm
-2023-07-26 19:25:06,159 - logger - INFO - Logged in as: sm
-2023-07-26 22:54:08,711 - logger - INFO - Logged in as: dmh
-2023-07-26 22:54:33,148 - logger - INFO - USB: disconnected.
-2023-07-26 22:54:34,939 - logger - INFO - # Testing EAX300 started
-2023-07-26 22:57:41,813 - logger - INFO - Logged in as: dmh
-2023-07-26 22:57:53,914 - logger - INFO - USB: disconnected.
-2023-07-26 22:58:01,183 - logger - INFO - Programming EAX300 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX300_59.hex', '/q1']
-2023-07-26 22:58:02,934 - logger - ERROR - Programming EAX300 failed. Error code: 2
+2023-08-03 01:07:19,090 - logger - INFO - Updating firmware...
+2023-08-03 01:07:41,592 - logger - INFO - Firmware update complete.
+2023-08-03 02:40:03,868 - logger - INFO - Updating firmware...
+2023-08-03 02:40:11,402 - logger - INFO - Firmware update complete.
+2023-08-03 02:41:18,549 - logger - INFO - Updating firmware...
+2023-08-03 02:41:26,825 - logger - INFO - Firmware update complete.
+2023-08-03 02:42:05,180 - logger - INFO - Updating firmware...
+2023-08-03 02:42:13,012 - logger - INFO - Firmware update complete.
+2023-08-03 02:42:35,015 - logger - INFO - Updating firmware...
+2023-08-03 02:42:42,916 - logger - INFO - Firmware update complete.
+2023-08-03 02:45:53,427 - logger - INFO - Updating firmware...
+2023-08-03 02:46:15,509 - logger - INFO - Firmware update complete.
+2023-08-03 02:46:27,690 - logger - INFO - Updating firmware...
+2023-08-03 02:46:49,278 - logger - INFO - Firmware update complete.
+2023-08-03 02:48:06,803 - logger - INFO - Updating firmware...
+2023-08-03 02:48:13,196 - logger - INFO - Firmware update complete.
+2023-08-03 02:48:30,555 - logger - INFO - Updating firmware...
+2023-08-03 02:48:36,984 - logger - INFO - Firmware update complete.
+2023-08-03 02:57:03,519 - logger - INFO - Updating firmware...
+2023-08-03 02:57:25,253 - logger - INFO - Firmware update complete.
+2023-08-03 02:58:14,073 - logger - INFO - Updating firmware...
+2023-08-03 02:58:35,813 - logger - INFO - Firmware update complete.
+2023-08-03 02:59:03,043 - logger - INFO - Updating firmware...
+2023-08-03 02:59:24,525 - logger - INFO - Firmware update complete.
+2023-08-03 05:19:54,317 - logger - INFO - Updating firmware...
+2023-08-03 05:20:17,005 - logger - INFO - Firmware update complete.
+2023-08-03 05:20:35,308 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F627A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
+2023-08-03 05:20:37,152 - logger - ERROR - Programming EAX500 failed. Error code: 2
+2023-08-03 05:22:04,691 - logger - DEBUG - Inactivity timeout.
+2023-08-03 05:22:47,714 - logger - INFO - Logged in as: dmh
+2023-08-03 05:33:09,814 - logger - INFO - Logged in as: dmh
+2023-08-03 05:39:25,488 - logger - INFO - Logged in as: dmh
+2023-08-03 05:50:50,024 - logger - INFO - Logged in as: None
+2023-08-03 05:54:44,377 - logger - INFO - Logged in as: dmh
+2023-08-03 13:07:14,248 - logger - INFO - Logged in as: sm
+2023-08-03 13:08:10,344 - logger - INFO - Programming EAX503 args: ['up.exe', '/part PIC16F627A', '/s 1E660', '/p firmware/EAX503_591.hex', '/q1']
+2023-08-03 13:08:12,022 - logger - ERROR - Programming EAX503 failed. Error code: 2
+2023-08-03 13:31:41,444 - logger - INFO - Logged in as: sm
+2023-08-03 13:31:59,303 - logger - ERROR - USB: connection failed. Error: could not open port 'COM44': FileNotFoundError(2, 'The system cannot find the file specified.', None, 2)
+2023-08-03 13:43:35,101 - logger - INFO - Logged in as: sm
+2023-08-03 13:44:18,470 - logger - INFO - Logged in as: sm
+2023-08-03 13:46:14,548 - logger - INFO - Logged in as: sm
+2023-08-03 13:48:54,797 - logger - INFO - Logged in as: sm
+2023-08-03 13:48:59,812 - logger - INFO - Application closed.
+2023-08-03 13:49:06,337 - logger - INFO - Logged in as: sm
+2023-08-03 13:49:18,498 - logger - INFO - Application closed.
+2023-08-03 13:49:27,905 - logger - INFO - Logged in as: sm
+2023-08-03 13:49:28,987 - logger - INFO - Application closed.
+2023-08-03 13:49:42,474 - logger - INFO - Logged in as: sm
+2023-08-03 13:50:36,751 - logger - INFO - Application closed.
+2023-08-03 13:50:42,235 - logger - INFO - Logged in as: sm
+2023-08-03 13:50:47,496 - logger - INFO - Application closed.
+2023-08-03 13:50:52,366 - logger - INFO - Application closed.
+2023-08-03 13:52:51,388 - logger - INFO - Logged in as: sm
+2023-08-03 13:53:03,969 - logger - INFO - Application closed.
+2023-08-03 13:53:10,302 - logger - INFO - Logged in as: sm
+2023-08-03 13:53:13,020 - logger - INFO - Application closed.
+2023-08-03 13:56:27,576 - logger - INFO - Logged in as: sm
+2023-08-03 13:56:46,672 - logger - INFO - Application closed.
+2023-08-03 13:56:53,217 - logger - INFO - Logged in as: sm
+2023-08-03 13:57:06,420 - logger - INFO - Application closed.
+2023-08-03 13:57:12,479 - logger - INFO - Application closed.
+2023-08-03 14:03:03,146 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
+2023-08-03 14:03:16,755 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
+2023-08-03 14:03:32,671 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:03:37,804 - logger - INFO - Application closed.
+2023-08-03 14:03:49,583 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:04:00,142 - logger - INFO - Application closed.
+2023-08-03 14:04:56,374 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:04:59,621 - logger - INFO - Testing started for EAX500
+2023-08-03 14:05:10,458 - logger - INFO - Testing started for EAX500
+2023-08-03 14:05:33,588 - logger - INFO - Testing started for EAX500
+2023-08-03 14:05:41,678 - logger - INFO - Testing started for EAX500
+2023-08-03 14:06:03,425 - logger - INFO - Application closed.
+2023-08-03 14:06:12,945 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:06:22,076 - logger - INFO - Testing started for EAX300
+2023-08-03 14:06:28,904 - logger - INFO - Application closed.
+2023-08-03 14:10:23,677 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:10:27,479 - logger - INFO - Application closed.
+2023-08-03 14:10:36,764 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:10:40,772 - logger - INFO - Application closed.
+2023-08-03 14:10:50,251 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:11:41,892 - logger - INFO - Testing started for EAX500
+2023-08-03 14:19:44,664 - logger - DEBUG - Inactivity timeout.
+2023-08-03 14:23:17,083 - logger - INFO - Application closed.
+2023-08-03 14:25:38,593 - logger - INFO - Logged in as: sm
+2023-08-03 14:25:43,441 - logger - DEBUG - USB: connected to COM44
+2023-08-03 14:25:51,441 - logger - INFO - Testing started for EAX500
+2023-08-03 14:25:57,105 - logger - INFO - Testing started for EAX500
+2023-08-03 14:26:02,420 - logger - INFO - Testing started for EAX500
+2023-08-03 14:26:17,060 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F627A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
+2023-08-03 14:26:18,862 - logger - ERROR - Programming EAX500 failed. Error code: 2
+2023-08-03 14:26:20,668 - logger - INFO - Application closed.
+2023-08-03 15:11:24,810 - logger - INFO - Logged in as: sm
+2023-08-03 15:11:29,655 - logger - DEBUG - USB: connected to COM44
+2023-08-03 15:11:45,642 - logger - INFO - Testing started for EAX500
+2023-08-03 15:12:46,262 - logger - DEBUG - Inactivity timeout.
+2023-08-03 15:22:55,406 - logger - INFO - Logged in as: dmh
+2023-08-03 15:23:10,980 - logger - INFO - Application closed.
+2023-08-03 15:31:14,308 - logger - DEBUG - USB: connected to COM44
+2023-08-03 15:31:16,570 - logger - INFO - Application closed.
+2023-08-03 15:33:19,904 - logger - DEBUG - USB: connected to COM44
+2023-08-03 15:34:45,826 - logger - INFO - Application closed.
+2023-08-03 15:38:32,939 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
+2023-08-03 15:38:52,425 - logger - INFO - Application closed.

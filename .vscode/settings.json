@@ -10,7 +10,7 @@
             "singleInstance": true,
             "color": "#ffe65c",
             "cwd": "${workspaceFolder}",
-            "command": "py application.py"
+            "command": ".venv\\scripts\\python main.py"
           },
         ]
     },
@@ -22,13 +22,36 @@
     "python.analysis.exclude": [
       "**/dist",
       ".git",
-      "**/build"
+      "**/build",
+      "**/venv",
+      "**/.venv",
+      ".venv/*",
+      "venv/*"
     ],
     "autoDocstring.logLevel": "Info",
     "autoDocstring.includeName": false,
     "autoDocstring.startOnNewLine": true,
     "[python]": {
-      "editor.defaultFormatter": "ms-python.black-formatter"
+      "editor.defaultFormatter": "ms-python.autopep8"
+      // "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none",
+    "python.formatting.provider": "black",
+    "python.languageServer": "Default",
+    "multiFormatter.formatterList": [
+      "black"
+    ],
+    "python.analysis.autoFormatStrings": true,
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.fixAll": [],
+    "python.autoComplete.extraPaths": [],
+    "python.envFile": "${workspaceFolder}/.venv/pyvenv.cfg",
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "black-formatter.interpreter": [
+      "${workspaceFolder}/.venv/Scripts/python"
+    ],
+    "black-formatter.args": [
+      "--skip-string-normalization",
+      "--line-length=150",
+      "--max-line-length=150"
+    ]
 }

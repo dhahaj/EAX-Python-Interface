@@ -24,3 +24,10 @@ test.ui
 ui_Test.py
 palette.xml
 private.py
+*.spec
+tools/
+main.dist/
+*.pdf
+Scripts/Test.ps1
+docs/*.pdf
+cmd_test.py

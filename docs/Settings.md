@@ -1,6 +1,6 @@
 # Settings
 
-## Dictionary Keys
+## Descriptions of the settings in the `settings.json` file.
 
 - serial_port: The serial port that is connected to the device. Example: "COM8".
 - programmer_serial_number: The serial number of the programmer. Example: "1E660".
@@ -24,6 +24,7 @@
 - auto_find: If set to true, the software will automatically find and connect to the device on startup.
 - sleep_tune: The delay in seconds to wait for tuning to complete. Example: 1e-06.
 - firmware_location: The path to the firmware file. Example: "./firmware".
+- full_screen: If set to true, the software will start in full screen mode.
 
 ```json
 {
@@ -47,6 +48,7 @@
     "auto_find": true,
     "sleep_tune": 1e-06,
     "arduino_wait": 2,
+    "full_screen": false
 }
 ```
 

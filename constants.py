@@ -1,34 +1,30 @@
 """
 Constants used for the EAX300/500 Test Fixture.
 
-Author: Daniel Hahaj 2021-09-30
+Author: Daniel Hahaj 2023-08-01
 
 This file contains many variables that are used throughout the application. Certian
 values can be adjusted here to make the application more modular. 
 """
 
 
-"""
-image: url(:/resources/icons/images/icons/usb3.png);
-background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0.0909091 rgba(255, 209, 209, 206), stop:0.232955 rgba(255, 31, 31, 80), stop:0.369318 rgba(255, 162, 162, 80), stop:0.44 rgba(252, 128, 128, 80), stop:0.443182 rgba(255, 132, 132, 156), stop:1 rgba(255, 255, 255, 0));
-background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.295455 rgba(85, 170, 0, 80), stop:0.448864 rgba(85, 170, 0, 80), stop:0.551136 rgba(85, 170, 0, 80), stop:0.710227 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));
-background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.0284091 rgba(255, 255, 0, 80), stop:0.181818 rgba(255, 255, 0, 80), stop:0.284091 rgba(255, 255, 0, 80), stop:0.443182 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));
-"""
-
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
 
-ICON_USB_RED ='<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/disconnected2.png"/></p></body></html>'
-ICON_USB_GREEN ='<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/connected2.png"/></p></body></html>'
-ICON_USB_YELLOW ='<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/connecting.png"/></p></body></html>'
+ICON_USB_RED = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/disconnected2.png"/></p></body></html>'
+ICON_USB_GREEN = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/connected2.png"/></p></body></html>'
+ICON_USB_YELLOW = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/connecting.png"/></p></body></html>'
 
-ICON_USB_BACKGROUND_GRN = 'background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.284091 rgba(85, 170, 0, 80), stop:0.5 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));'
-ICON_USB_BACKGROUND_YLW = 'background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));'
+ICON_USB_BACKGROUND_GRN = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.284091 rgba(85, 170, 0, 80), stop:0.5 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
+ICON_USB_BACKGROUND_YLW = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
 
 ORANGE = "color: rgb(229, 153, 0);"
 GREEN = "color: green;"
 YELLOW = "color: rgb(200, 195, 0);"
 RED = "color: red;"
-DEVICE_LABEL = 'color: rgb(255, 0, 0); image: url(:/resources/icons/images/detex_dark.png); font-weight: bold;'
+DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold;"
+
+RADIO_OFF_ICON = ":/resources/icons/images/icons/radio-off-button.png"
+RADIO_ON_ICON = ":/resources/icons/images/icons/radio-on-button.png"
 
 SETTINGS_FILE = "settings.json"
 USERS_FILE = "users.db"
@@ -90,6 +86,7 @@ KEY_ARDUINO_WAIT = "arduino_wait"
 KEY_SHUTDOWN_ON_EXCEPTION = "shutdown_on_exception"
 KEY_AUTO_FIND = "auto_find"
 KEY_SLEEP_TUNE = "sleep_tune"
+KEY_FULLSCREEN = "full_screen"
 """
 Default settings for the application.
 """
@@ -115,6 +112,7 @@ DEFAULT_SETTINGS = {
     KEY_SHUTDOWN_ON_EXCEPTION: True,
     KEY_AUTO_FIND: True,
     KEY_SLEEP_TUNE: 0.000001,
+    KEY_FULLSCREEN: False,
 }
 
 """
@@ -169,10 +167,27 @@ KEY_ADMIN = "admin"
 Default users for the application.
 """
 DEFAULT_USERS = [
-    {KEY_USERNAME: "dmh",KEY_PASSWORD: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O",KEY_ADMIN: True,},
-    {KEY_USERNAME: "sm",KEY_PASSWORD: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG",KEY_ADMIN: True,},
-    {KEY_USERNAME: "admin",KEY_PASSWORD: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW",KEY_ADMIN: True,},
-    {KEY_USERNAME: "user",KEY_PASSWORD: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm",KEY_ADMIN: False,},]
+    {
+        KEY_USERNAME: "dmh",
+        KEY_PASSWORD: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O",
+        KEY_ADMIN: True,
+    },
+    {
+        KEY_USERNAME: "sm",
+        KEY_PASSWORD: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG",
+        KEY_ADMIN: True,
+    },
+    {
+        KEY_USERNAME: "admin",
+        KEY_PASSWORD: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW",
+        KEY_ADMIN: True,
+    },
+    {
+        KEY_USERNAME: "user",
+        KEY_PASSWORD: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm",
+        KEY_ADMIN: False,
+    },
+]
 
 """
 Keys for the firmware dictionary.
@@ -207,7 +222,7 @@ INSTRUCTIONS = """# EAX-500 Testing Software
 ## Equipment Needed:
 
  - EAX-500 Test Fixture
- - An assembled 102618 PWA
+ - An assembled 102605/102605-1 PWA
  - A magnet for checking the reed switches
 
 ## Setup instructions:
