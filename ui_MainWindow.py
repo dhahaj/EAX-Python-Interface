@@ -20,8 +20,8 @@ from PySide6.QtWidgets import (QApplication, QFrame, QGroupBox, QHBoxLayout,
     QLabel, QMainWindow, QMenu, QMenuBar,
     QPushButton, QSizePolicy, QTextEdit, QVBoxLayout,
     QWidget)
-import resource_rc
 import icons_rc
+import resource_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -435,7 +435,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"EAX Interface", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"V40 Interface", None))
         self.actionConnect.setText(QCoreApplication.translate("MainWindow", u"Connect", None))
 #if QT_CONFIG(tooltip)
         self.actionConnect.setToolTip(QCoreApplication.translate("MainWindow", u"Connect to the fixture.", None))
@@ -445,17 +445,17 @@ class Ui_MainWindow(object):
 #if QT_CONFIG(shortcut)
         self.actionExit_2.setShortcut(QCoreApplication.translate("MainWindow", u"Esc", None))
 #endif // QT_CONFIG(shortcut)
-        self.actionEAX300.setText(QCoreApplication.translate("MainWindow", u"EAX300", None))
-        self.actionEAX500.setText(QCoreApplication.translate("MainWindow", u"EAX500", None))
-        self.actionEAX503.setText(QCoreApplication.translate("MainWindow", u"EAX503", None))
-        self.actionEAX504.setText(QCoreApplication.translate("MainWindow", u"EAX504", None))
-        self.actionEAX505.setText(QCoreApplication.translate("MainWindow", u"EAX505", None))
-        self.actionEAX510.setText(QCoreApplication.translate("MainWindow", u"EAX510", None))
-        self.actionEAX513.setText(QCoreApplication.translate("MainWindow", u"EAX513", None))
-        self.actionEAX514.setText(QCoreApplication.translate("MainWindow", u"EAX514", None))
-        self.actionEAX515.setText(QCoreApplication.translate("MainWindow", u"EAX515", None))
-        self.actionEAX520.setText(QCoreApplication.translate("MainWindow", u"EAX520", None))
-        self.actionEAX523.setText(QCoreApplication.translate("MainWindow", u"EAX523", None))
+        self.actionEAX300.setText(QCoreApplication.translate("MainWindow", u"V40xx00_SA", None))
+        self.actionEAX500.setText(QCoreApplication.translate("MainWindow", u"V40xx00", None))
+        self.actionEAX503.setText(QCoreApplication.translate("MainWindow", u"V40xx01", None))
+        self.actionEAX504.setText(QCoreApplication.translate("MainWindow", u"V40xx02", None))
+        self.actionEAX505.setText(QCoreApplication.translate("MainWindow", u"V40xx03", None))
+        self.actionEAX510.setText(QCoreApplication.translate("MainWindow", u"V40xx04", None))
+        self.actionEAX513.setText(QCoreApplication.translate("MainWindow", u"V40xx05", None))
+        self.actionEAX514.setText(QCoreApplication.translate("MainWindow", u"V40xx10", None))
+        self.actionEAX515.setText(QCoreApplication.translate("MainWindow", u"V40xx15", None))
+        self.actionEAX520.setText(QCoreApplication.translate("MainWindow", u"V40xx20", None))
+        self.actionEAX523.setText(QCoreApplication.translate("MainWindow", u"V40xx25", None))
         self.actionEAX524.setText(QCoreApplication.translate("MainWindow", u"EAX524", None))
         self.actionEAX525.setText(QCoreApplication.translate("MainWindow", u"EAX525", None))
         self.actionChange_font.setText(QCoreApplication.translate("MainWindow", u"Change Font", None))

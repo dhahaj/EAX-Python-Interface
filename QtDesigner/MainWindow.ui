@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>900</width>
-    <height>788</height>
+    <height>789</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -28,7 +28,7 @@
    <bool>true</bool>
   </property>
   <property name="windowTitle">
-   <string>EAX Interface</string>
+   <string>V40 Interface</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -78,8 +78,20 @@
       <property name="undoRedoEnabled">
        <bool>false</bool>
       </property>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::WidgetWidth</enum>
+      </property>
       <property name="readOnly">
        <bool>true</bool>
+      </property>
+      <property name="markdown">
+       <string/>
+      </property>
+      <property name="overwriteMode">
+       <bool>false</bool>
+      </property>
+      <property name="acceptRichText">
+       <bool>false</bool>
       </property>
       <property name="textInteractionFlags">
        <set>Qt::NoTextInteraction</set>
@@ -120,7 +132,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="icons.qrc">
+         <iconset resource="../icons.qrc">
           <normaloff>:/resources/icons/images/icons/prog-button.png</normaloff>:/resources/icons/images/icons/prog-button.png</iconset>
         </property>
         <property name="iconSize">
@@ -525,7 +537,7 @@ font-weight: bold;</string>
   </widget>
   <action name="actionConnect">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/usb3.png</normaloff>
      <normalon>:/resources/icons/images/icons/usb.png</normalon>
      <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/resources/icons/images/icons/usb3.png</iconset>
@@ -547,7 +559,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionLogout">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>
      <normalon>:/resources/icons/images/icons/remove-user.png</normalon>:/resources/icons/images/icons/remove-user.png</iconset>
    </property>
@@ -562,7 +574,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionExit_2">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/logout2.png</normaloff>
      <disabledoff>:/resources/icons/images/icons/logout2.png</disabledoff>:/resources/icons/images/icons/logout2.png</iconset>
    </property>
@@ -592,7 +604,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX300</string>
+    <string>V40xx00_SA</string>
    </property>
    <property name="font">
     <font>
@@ -612,7 +624,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX500</string>
+    <string>V40xx00</string>
    </property>
    <property name="font">
     <font>
@@ -634,7 +646,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX503</string>
+    <string>V40xx01</string>
    </property>
    <property name="font">
     <font>
@@ -656,7 +668,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX504</string>
+    <string>V40xx02</string>
    </property>
    <property name="font">
     <font>
@@ -678,7 +690,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX505</string>
+    <string>V40xx03</string>
    </property>
    <property name="font">
     <font>
@@ -700,7 +712,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX510</string>
+    <string>V40xx04</string>
    </property>
    <property name="font">
     <font>
@@ -722,7 +734,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX513</string>
+    <string>V40xx05</string>
    </property>
    <property name="font">
     <font>
@@ -744,7 +756,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX514</string>
+    <string>V40xx10</string>
    </property>
    <property name="font">
     <font>
@@ -766,7 +778,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX515</string>
+    <string>V40xx15</string>
    </property>
    <property name="font">
     <font>
@@ -788,7 +800,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX520</string>
+    <string>V40xx20</string>
    </property>
    <property name="font">
     <font>
@@ -810,7 +822,7 @@ font-weight: bold;</string>
     </iconset>
    </property>
    <property name="text">
-    <string>EAX523</string>
+    <string>V40xx25</string>
    </property>
    <property name="font">
     <font>
@@ -882,7 +894,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionModify_Settings">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/settings.ico</normaloff>:/resources/icons/images/icons/settings.ico</iconset>
    </property>
    <property name="text">
@@ -896,7 +908,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionAdd_User">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/follow.png</normaloff>
      <normalon>:/resources/icons/images/icons/follow.png</normalon>:/resources/icons/images/icons/follow.png</iconset>
    </property>
@@ -911,7 +923,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionRemove_User">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>:/resources/icons/images/icons/remove-user.png</iconset>
    </property>
    <property name="text">
@@ -925,7 +937,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionShow_Logs">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/files.png</normaloff>:/resources/icons/images/icons/files.png</iconset>
    </property>
    <property name="text">
@@ -939,7 +951,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/information.png</normaloff>:/resources/icons/images/icons/information.png</iconset>
    </property>
    <property name="text">
@@ -959,7 +971,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionManual_Control">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/gear.png</normaloff>:/resources/icons/images/icons/gear.png</iconset>
    </property>
    <property name="text">
@@ -973,7 +985,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionChip_Select">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/chip.png</normaloff>:/resources/icons/images/icons/chip.png</iconset>
    </property>
    <property name="text">
@@ -1032,8 +1044,8 @@ font-weight: bold;</string>
   </action>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
-  <include location="icons.qrc"/>
+  <include location="../icons.qrc"/>
+  <include location="../resource.qrc"/>
  </resources>
  <connections>
   <connection>
