@@ -2,26 +2,74 @@
     "pins": [
         {
             "pin_number": 2,
-            "function": "low battery",
             "io_mode": "output",
+            "function": "low battery",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 3,
+            "io_mode": "output",
+            "function": "test mode",
             "pullup_enabled": false
         },
         {
             "pin_number": 4,
             "io_mode": "output",
-            "function": "testing indicator",
+            "function": "battery",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 5,
+            "io_mode": "output",
+            "function": "remote",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 6,
+            "io_mode": "output",
+            "function": "pad",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 7,
+            "io_mode": "input",
+            "function": "relay in",
+            "pullup_enabled": true
+        },
+        {
+            "pin_number": 8,
+            "io_mode": "output",
+            "function": "okc",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 9,
+            "io_mode": "output",
+            "function": "ac",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 10,
+            "io_mode": "output",
+            "function": "indicator",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 11,
+            "io_mode": "output",
+            "function": "relay1",
             "pullup_enabled": false
         },
         {
             "pin_number": 12,
             "io_mode": "output",
-            "function": "battery",
+            "function": "relay2",
             "pullup_enabled": false
         },
         {
             "pin_number": 13,
             "io_mode": "output",
-            "function": "indicator",
+            "function": "testing indicator",
             "pullup_enabled": false
         }
     ]
