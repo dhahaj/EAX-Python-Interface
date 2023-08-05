@@ -39,7 +39,7 @@ from PySide6.QtGui import (
     QPalette,
     QIcon,
 )
-from private import Private
+# from private import Private
 from multiprocessing import Semaphore
 from ui_ManualControlDialog import Ui_ManualControlDialog
 from ui_MainWindow import Ui_MainWindow
@@ -264,41 +264,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             lgr.debug('saved ' ' + item + ' ' to settings.')
 
     def eventFilter(self, watched, event):
-        # Unless auto login is enabled, reset the inactivity timer on mouse move or key press
-        if not self.settings.get(KEY_AUTO_LOGIN):
-            if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
-                # lgr.debug('Mouse move or key press detected.')
-                # Reset the inactivity timer if a mouse movement or key press event is detected
-                self.inactivityTimer.start(
-                    self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
-                )  # 60 seconds of inactivity before timeout
-        else:
-            # If auto login is enabled, stop the inactivity timer because
-            # the login functionality is not used
-            self.inactivityTimer.stop()
+        # Reset the inactivity timer if a mouse movement or key press event is detected
+        if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
+            self.inactivityTimer.start(
+                self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
+            )  # 60 seconds of inactivity before timeout
         return super(MainWindow, self).eventFilter(watched, event)
 
     def handle_inactivity_timeout(self):
-        if self.settings.get(KEY_DEBUG) and not self.settings.get(KEY_AUTO_LOGIN):
+        if self.settings.get(KEY_DEBUG):
             app_logger.debug('Inactivity timeout.')
             lgr.debug('Inactivity timeout.')
-            name = self.eax_device.get_name()
-            icon = QIcon()
-            icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
-            # Uncheck all menu actions
-            for action in self.menuDevice.actions():
-                action.setIcon(icon)
-            self.device_label.setText('')
-            self.eax_device.set_name(None)  # reset the device
+
+        if not self.settings.get(KEY_AUTO_LOGIN):
             self.perform_login()  # show the login dialog
+        
+        icon = QIcon()
+        icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
+        # Uncheck all menu actions
+        for action in self.menuDevice.actions():
+            action.setIcon(icon)
+        self.device_label.setText('') # clear the device label
+        self.eax_device.set_name(None)  # reset the device
+
 
     def add_user(self):
-        self.add = UserAdditionDialog()
-        self.add.show()
+        if self.settings.get(KEY_AUTO_LOGIN):
+            if self.authenticate():
+                self.add = UserAdditionDialog()
+                self.add.show()
 
     def remove_user(self):
-        self.remove = UserRemovalDialog()
-        self.remove.show()
+        if self.settings.get(KEY_AUTO_LOGIN):
+            if self.authenticate():        
+                self.remove = UserRemovalDialog()
+                self.remove.show()
 
     def insert_text(self, text):
         '''Add text to the text console.'''
@@ -313,6 +313,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def load_file_text(self, filename='instructions.md'):
         '''Load text from a file and add it to the text area.'''
+
+        with open(filename, 'r') as f:
+            self.insert_markdown(f.read())
+            return
+
         self.text_edit.setMarkdown(INSTRUCTIONS)
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
@@ -535,22 +540,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def modify_settings(self):
         # if auto login is enabled, force the user to login
         if self.settings.get(KEY_AUTO_LOGIN):
-            self.loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
-            if self.loginDialog.exec() == QDialog.Accepted:
-                success, username = self.loginDialog.ok()
-                if not success:
-                    QMessageBox.critical(
-                        self.loginDialog,
-                        'Invalid credentials',
-                        (
-                            'The username or password you entered'
-                            'is incorrect. Please try again.'
-                        ),
-                    )
-                    return
+            if self.authenticate():
+                self.settings_dialog.show()
+
+    def authenticate(self):
+        """Authenticate by showing the login dialog."""
+        self.loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
+        if self.loginDialog.exec() == QDialog.Accepted:
+            success, username = self.loginDialog.ok()
+            if success:
+                self.settings.set(KEY_LAST_USER, username)
             else:
-                return
-        self.settings_dialog.show()
+                QMessageBox.critical(self.loginDialog,'Invalid credentials',('The username or password you entered is incorrect. Please try again.'),)
+            return success
+        else:
+            return False
 
     def on_settings_closed(self, result):
         # global settings
@@ -650,6 +654,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f'Programming {self.eax_device.selected_device} successful')
             if self.settings.get(KEY_AUTO_TEST):
                 self.execute_test()
+        elif returncode == 2:
+            self.insert_text(f'## Programming {self.eax_device.selected_device} failed. Error code: {returncode} (Check Programmer Serial Number?)')
+        elif returncode == 7:
+            self.insert_text(f'## Programming {self.eax_device.selected_device} failed. Error code: {returncode} (Check chip part number)')
         else:
             lgr.error(
                 f'Programming {self.eax_device.selected_device} failed. Error code: {returncode}'
@@ -730,6 +738,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionLogout.setEnabled(False)
 
     def update_firmware(self):
+        """Update the test fixture firmware."""
+
+        if self.settings.get(KEY_AUTO_LOGIN):
+            if not self.authenticate():
+                return
+        
         app_logger.info('Updating firmware...')
         self.disconnected = False
         if self.device is not None:
@@ -1157,8 +1171,7 @@ if __name__ == '__main__':
                    ):
         (success, missing) = check_requirements()
         if not success:
-            QMessageBox.critical(
-                None, 'Error', f'Missing files:\n{missing}', QMessageBox.Ok)
+            QMessageBox.critical(None, 'Error', f'Missing files:\n{missing}', QMessageBox.Ok)
             sys.exit(1)
 
         app = SingleInstanceApp([])
