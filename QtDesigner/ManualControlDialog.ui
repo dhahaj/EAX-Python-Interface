@@ -7,20 +7,42 @@
     <x>0</x>
     <y>0</y>
     <width>316</width>
-    <height>466</height>
+    <height>629</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Manual Control</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icons.qrc">
+   <iconset resource="../icons.qrc">
     <normaloff>:/resources/icons/images/icons/plug.png</normaloff>:/resources/icons/images/icons/plug.png</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="minimumSize">
+      <size>
+       <width>30</width>
+       <height>75</height>
+      </size>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>TextLabel</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
    <item>
     <widget class="QPushButton" name="battery_button">
      <property name="sizePolicy">
@@ -180,8 +202,8 @@
   </layout>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
-  <include location="icons.qrc"/>
+  <include location="../resource.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections/>
 </ui>
