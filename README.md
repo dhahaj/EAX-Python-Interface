@@ -1,6 +1,6 @@
-# EAX Test Fixture Interface
+# V40 Test Fixture Interface
 
-This is a Python version of the EAX Test Fixture Interface. It is a GUI built on the Qt framework that allows the user to control the EAX Test Fixture. It is designed to be used with the telemetrix Arduino library. See the [firmware](#firmware) section for more information.
+This is a Python version of the V40 Test Fixture Interface. It is a GUI built on the Qt framework that allows the user to control the EAX Test Fixture. It is designed to be used with the telemetrix Arduino library. See the [firmware](#firmware) section for more information.
 
 ## Installation
 
@@ -21,7 +21,7 @@ This application uses the telemetrix Arduino library to communicate with the fix
 
 ## Usage
 
-The EAX Fixture Interface can be modified by changing the values located in the [pins.json](pins.json), [settings.json](settings.json), and [users.db](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.db) files.
+The V40 Fixture Interface can be modified by changing the values located in the [pins.json](pins.json), [settings.json](settings.json), and [users.db](https://github.com/dhahaj/EAX-Python-Interface/blob/main/users.db) files.
 
 ### `pins.json`
 

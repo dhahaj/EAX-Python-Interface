@@ -150,19 +150,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionRemove_User.triggered.connect(self.remove_user)
         self.actionHelp.triggered.connect(self.show_help)
 
-        self.actionEAX300.triggered.connect(self.deviceSelect)
-        self.actionEAX500.triggered.connect(self.deviceSelect)
-        self.actionEAX503.triggered.connect(self.deviceSelect)
-        self.actionEAX504.triggered.connect(self.deviceSelect)
-        self.actionEAX505.triggered.connect(self.deviceSelect)
-        self.actionEAX510.triggered.connect(self.deviceSelect)
-        self.actionEAX513.triggered.connect(self.deviceSelect)
-        self.actionEAX514.triggered.connect(self.deviceSelect)
-        self.actionEAX515.triggered.connect(self.deviceSelect)
-        self.actionEAX520.triggered.connect(self.deviceSelect)
-        self.actionEAX523.triggered.connect(self.deviceSelect)
-        self.actionEAX524.triggered.connect(self.deviceSelect)
-        self.actionEAX525.triggered.connect(self.deviceSelect)
+        self.actionV40sa00.triggered.connect(self.deviceSelect)
+        self.actionV40xx00.triggered.connect(self.deviceSelect)
+        self.actionV40xx03.triggered.connect(self.deviceSelect)
+        self.actionV40xx04.triggered.connect(self.deviceSelect)
+        self.actionV40xx05.triggered.connect(self.deviceSelect)
+        self.actionV40xx10.triggered.connect(self.deviceSelect)
+        self.actionV40xx13.triggered.connect(self.deviceSelect)
+        self.actionV40xx14.triggered.connect(self.deviceSelect)
+        self.actionV40xx20.triggered.connect(self.deviceSelect)
+        self.actionV40xx23.triggered.connect(self.deviceSelect)
+        self.actionV40xx24.triggered.connect(self.deviceSelect)
         self.actionLogout.triggered.connect(self.perform_login)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.execute_test)
@@ -180,9 +178,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.load_file_text()
 
         # The device
-        self.eax_device = Device()
+        self.v40_device = Device()
 
-        if not self.eax_device.verify_firmware():
+        if not self.v40_device.verify_firmware():
             self.insert_text('Missing firmware!')
             lgr.error('Missing firmware!')
             app_logger.error('Missing firmware!')
@@ -198,21 +196,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_device_changed(self, device):
         lgr.info(f'Device changed: {device}')
         self.device_label.setText(f'Device: {device}')
-        self.eax_device.set_name(device)
+        self.v40_device.set_name(device)
 
-        dialog = ModelDialog(OPTIONS)
+        dialog = ModelDialog(self.v40_device)
         dialog.setModal(True)
         
         if dialog.exec() == QDialog.Accepted:
             lgr.info(f'User selected: {dialog.selected_option()}') 
 
         # Set the color of the device label
-        if self.eax_device.get_name() == 'EAX300':
-            self.device_label.setStyleSheet(YELLOW)
-        elif self.eax_device.get_name() == 'EAX500':
+        if self.v40_device.get_name() == 'v40xx00':
             self.device_label.setStyleSheet(GREEN)
         else:
             self.device_label.setStyleSheet(ORANGE)
+
+        if dialog.selected_option() is not None:
+            self.v40_device.set_model(dialog.selected_option())
+            self.model_label.setText(f'Model: {dialog.selected_option()}')
 
     def deviceSelect(self):
         icon = QIcon()
@@ -224,10 +224,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 action.setIcon(icon)
 
         # Uncheck the device label if the same action is clicked
-        if self.eax_device.get_name() == self.sender().text():
+        if self.v40_device.get_name() == self.sender().text():
             self.device_label.setStyleSheet(DEVICE_LABEL)
             self.device_label.setText('')
-            self.eax_device.set_name(None)
+            self.v40_device.set_name(None)
             self.sender().setIcon(icon)
             return
         icon.addFile(RADIO_ON_ICON, QSize(), QIcon.Normal, QIcon.On)
@@ -288,14 +288,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.settings.get(KEY_DEBUG) and not self.settings.get(KEY_AUTO_LOGIN):
             app_logger.debug('Inactivity timeout.')
             lgr.debug('Inactivity timeout.')
-            name = self.eax_device.get_name()
+            name = self.v40_device.get_name()
             icon = QIcon()
             icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
             # Uncheck all menu actions
             for action in self.menuDevice.actions():
                 action.setIcon(icon)
             self.device_label.setText('')
-            self.eax_device.set_name(None)  # reset the device
+            self.v40_device.set_name(None)  # reset the device
             self.perform_login()  # show the login dialog
 
     def add_user(self):
@@ -317,8 +317,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
 
-    def load_file_text(self, filename='instructions.txt'):
+    def load_file_text(self, filename='instructions.md'):
         '''Load text from a file and add it to the text area.'''
+
+        if os.path.exists(filename):
+            with open(filename, 'r') as file:
+                self.insert_markdown(file.read())
+                return
+
         self.text_edit.setMarkdown(INSTRUCTIONS + '   \r\n')
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
@@ -420,7 +426,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.testing:
             self.button_pressed = True
         elif not self.blocked:
-            if self.eax_device.get_name() is None:
+            if self.v40_device.get_name() is None:
                 QMessageBox.warning(
                     self, 'Error', f'Please select a device.', QMessageBox.Ok
                 )
@@ -438,19 +444,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.blinker_running = False
             app_logger.info(
-                f'Testing started for {self.eax_device.selected_device}')
-            lgr.info(f'Testing started for {self.eax_device.selected_device}')
+                f'Testing started for {self.v40_device.get_model()}')
+            lgr.info(f'Testing started for {self.v40_device.get_model()}')
 
             self.queue = []
 
             speed = self.settings.get(KEY_TESTING_SPEED)
 
             self.text_edit.setMarkdown(
-                f'# Starting test for {self.eax_device.selected_device}... '
+                f'# Starting test for V40 {self.v40_device.get_model()}... '
             )
 
             self.queue.append(  # turn on indicator
                 (1, self.device.write_pin_by_func, 'testing indicator', 1)
+            )
+
+            self.queue.append(
+                (
+                    int(speed / 4),
+                    self.insert_text,
+                    ' - Turning on AC power...',
+                )
+            )
+
+            self.queue.append(  # turn on battery
+                ((1), self.device.write_pin_by_func, 'ac power', 1)
             )
 
             self.queue.append(
@@ -469,7 +487,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 (
                     int(speed),
                     self.insert_text,
-                    ' - Starting low battery test...',
+                    " - Testing Low battery function → Both LED's blink alternately...",
                 )
             )
 
@@ -478,7 +496,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
 
             self.queue.append((int(speed), self.insert_text,
-                              ' - Low battery test off.'))
+                              " - Stopping Low Battery Test → Both LED's are OFF."))
 
             self.queue.append(  # turn off low battery
                 ((1), self.device.write_pin_by_func, 'low battery', 0)
@@ -613,10 +631,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def program(self):
         '''Program the device.'''
-        if not self.blocked and self.eax_device.get_name() is not None:
+        if not self.blocked and self.v40_device.get_name() is not None:
             # Check if the firmware file exists
-            if not os.path.exists(self.eax_device.get_firmware()):
-                self.insert_text(f'{self.eax_device.get_firmware()} not found!')
+            if not os.path.exists(self.v40_device.get_firmware()):
+                self.insert_text(f'{self.v40_device.get_firmware()} not found!')
                 return
 
             self.settings.load_settings()
@@ -627,7 +645,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 'up.exe',
                 f'/part {chip}',
                 f'/s {serial}',
-                f'/p {self.eax_device.get_firmware()}',
+                f'/p {self.v40_device.get_firmware()}',
                 '/q1',
             ]
 
@@ -637,7 +655,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.blocked = True
 
             app_logger.info(
-                f'Programming {self.eax_device.selected_device} args: {command}'
+                f'Programming {self.v40_device.selected_device} args: {command}'
             )
             self.runner = CommandRunner(command)
             self.runner.resultReady.connect(
@@ -651,20 +669,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if returncode == 0:
             self.insert_text('Programming successful.')
             app_logger.info(
-                f'Programming {self.eax_device.selected_device} successful')
+                f'Programming {self.v40_device.selected_device} successful')
             lgr.success(
-                f'Programming {self.eax_device.selected_device} successful')
+                f'Programming {self.v40_device.selected_device} successful')
             if self.settings.get(KEY_AUTO_TEST):
                 self.execute_test()
         else:
             lgr.error(
-                f'Programming {self.eax_device.selected_device} failed. Error code: {returncode}'
+                f'Programming {self.v40_device.selected_device} failed. Error code: {returncode}'
             )
             self.insert_text(
-                f'\nProgramming {self.eax_device.selected_device} failed. Error code: {returncode}'
+                f'\nProgramming {self.v40_device.selected_device} failed. Error code: {returncode}'
             )
             app_logger.error(
-                f'Programming {self.eax_device.selected_device} failed. Error code: {returncode}'
+                f'Programming {self.v40_device.selected_device} failed. Error code: {returncode}'
             )
         self.blocked = False
 
@@ -839,7 +857,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
     def closeEvent(self, event):
         if self.usb_device is not None:
             if self.usb_device.is_connected():
-                self.usb_device.set_all_pins(0)
+                self.usb_device.set_all_pins_to_value(0)
                 self.usb_device.write_pin_by_func('indicator', 1)
         event.accept()
 
@@ -1148,12 +1166,12 @@ class SingleInstanceApp(QApplication):
 from ui_ModelDialog import Ui_ModelDialog
 
 class ModelDialog(QDialog, Ui_ModelDialog):
-    def __init__(self, options):
+    def __init__(self, v40_device):
         super().__init__()
         self.setupUi(self)
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
 
-        for option in options:
+        for option in v40_device.get_model_names():
             self.comboBox.addItem(option)
 
     def closeEvent(self, event):

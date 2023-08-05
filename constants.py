@@ -4,9 +4,9 @@ Constants used for the EAX300/500 Test Fixture.
 Author: Daniel Hahaj 2023-08-01
 
 This file contains many variables that are used throughout the application. Certian
-values can be adjusted here to make the application more modular. 
+values can be adjusted here to make the application more modular.
 """
-
+OPTIONS = ["Option 1", "Option 2", "Option 3"]
 
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
 
@@ -202,47 +202,36 @@ This is used for locating the firmware binaries. The hex files are
 stored in a folder named "firmware" in the same folder as the application.
 """
 FIRMWARES = [
-    {FIRMWARE_NAME: "EAX300", FIRMWARE_VERSION: "59"},
-    {FIRMWARE_NAME: "EAX500", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX503", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX504", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX505", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX510", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX513", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX514", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX515", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX520", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX523", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX524", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX525", FIRMWARE_VERSION: "591"},
+    {FIRMWARE_NAME: "v40sa00", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx00", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx03", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx04", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx10", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx13", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx14", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx20", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx23", FIRMWARE_VERSION: "54"},
+    {FIRMWARE_NAME: "v40xx24", FIRMWARE_VERSION: "54"},
 ]
 
-INSTRUCTIONS = """# EAX-500 Testing Software
-
-## Equipment Needed:
-
- - EAX-500 Test Fixture
- - An assembled 102605/102605-1 PWA
- - A magnet for checking the reed switches
-
-## Setup instructions:
-
-- Head unit is connected and secured to the test fixture.
-- Place battery connector in the proper position before clamping down the board.
-- PWA is clamped down on the head unit.
-- Test base is powered and power LED is ON.
-- All USB cables from the tester are connected to the tablet.
-- Flip both slide switches to the OFF position.
-- Press the connect button to establish a connection with the fixture
-
-## Usage instructions:
-
-- Select the appropriate device from the Device drop down menu. *(e.g. EAX500, EAX505, etc.)*
-- Press the *Program* button to program the board. 
-- If auto test is enabled and programming was successful, testing will begin automatically.
-- If auto test is disabled, press the *Test* button to begin testing. 
-  
-```info
-
-```
-"""
+INSTRUCTIONS =  '# V40 Testing Software \n\n' \
+                'Equipment Needed:\n\n' \
+                '	1. T-683 Test Base \n' \
+                '	2. V40 Test Head \n' \
+                '	3. Assembled 104010 PWA \n' \
+                '\nSetup instructions for the V40 Tester: \n\n' \
+                '	1. Head unit is connected and secured to the test fixture. \n' \
+                '	2. PWA is clamped down on the head unit. \n' \
+                '	3. Test base is powered and power LED is ON. \n' \
+                '	4. Test fixture is connected to the computer. \n' \
+                '	5. Battery clip on PWA is connected to the test head battery connector. \n' \
+                '	6. Turn both slide switches to the OFF position.\n\n' \
+                '\n' \
+                '\nSelect a program from the device menu (e.g. V40xx00, V40xx10, etc.) \n' \
+                '\nSelect the model from the popup dialog window.\n\n' \
+                '  - Press the "Prog" button to program the board.\n' \
+                '  - Press the "Test" button to start begin testing.\n' \
+                '\n' \
+                '```info\n' \
+                ' \n' \
+                '```\n' \

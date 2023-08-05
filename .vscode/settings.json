@@ -53,5 +53,6 @@
       "--skip-string-normalization",
       "--line-length=150",
       "--max-line-length=150"
-    ]
+    ],
+    "python.analysis.extraPaths": []
 }

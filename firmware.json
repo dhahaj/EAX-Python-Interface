@@ -1,67 +1,95 @@
-[
-    {
-        "filename": "EAX300_59.hex",
-        "basename": "EAX300",
-        "version": "59"
-    },
-    {
-        "filename": "EAX500_591.hex",
-        "basename": "EAX500",
-        "version": "591"
-    },
-    {
-        "filename": "EAX503_591.hex",
-        "basename": "EAX503",
-        "version": "591"
-    },
-    {
-        "filename": "EAX504_591.hex",
-        "basename": "EAX504",
-        "version": "591"
-    },
-    {
-        "filename": "EAX505_591.hex",
-        "basename": "EAX505",
-        "version": "591"
-    },
-    {
-        "filename": "EAX510_591.hex",
-        "basename": "EAX510",
-        "version": "591"
-    },
-    {
-        "filename": "EAX513_591.hex",
-        "basename": "EAX513",
-        "version": "591"
-    },
-    {
-        "filename": "EAX514_591.hex",
-        "basename": "EAX514",
-        "version": "591"
-    },
-    {
-        "filename": "EAX515_591.hex",
-        "basename": "EAX515",
-        "version": "591"
-    },
-    {
-        "filename": "EAX520_591.hex",
-        "basename": "EAX520",
-        "version": "591"
-    },
-    {
-        "filename": "EAX523_591.hex",
-        "basename": "EAX523",
-        "version": "591"
-    },
-    {
-        "filename": "EAX524_591.hex",
-        "basename": "EAX524",
-        "version": "591"
-    },
-    {
-        "filename": "EAX525_591.hex",
-        "basename": "EAX525",
-        "version": "591"
-    }
-]
+{
+    "binaries": [
+        {
+            "filename": "V40sa00_54.hex",
+            "basename": "V40sa00",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx00_54.hex",
+            "basename": "V40xx00",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx03_54.hex",
+            "basename": "V40xx03",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx04_54.hex",
+            "basename": "V40xx04",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx05_54.hex",
+            "basename": "V40xx05",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx10_54.hex",
+            "basename": "V40xx10",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx13_54.hex",
+            "basename": "V40xx13",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx14_54.hex",
+            "basename": "V40xx14",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx20_54.hex",
+            "basename": "V40xx20",
+            "version": "591"
+        },
+        {
+            "filename": "V40xx23_54.hex",
+            "basename": "V40xx23",
+            "version": "54"
+        },
+        {
+            "filename": "V40xx24_54.hex",
+            "basename": "V40xx24",
+            "version": "54"
+        }
+    ],
+    "folder": "firmware",
+    "count": 11,
+    "models": [
+        {
+            "name": "EA",
+            "part_number": "104010-1"
+        },
+        {
+            "name": "EBxW",
+            "part_number": "104010-3"
+        },
+        {
+            "name": "EB",
+            "part_number": "104010-4"
+        },
+        {
+            "name": "EAxLBM",
+            "part_number": "104010-5"
+        },
+        {
+            "name": "EBxLBM",
+            "part_number": "104010-7"
+        },
+        {
+            "name": "EA_ADV",
+            "part_number": "104010-8"
+        },
+        {
+            "name": "EBxW_L9SI",
+            "part_number": "104010-9"
+        },
+        {
+            "name": "EA_L9SI",
+            "part_number": "104010-10"
+        }
+    ]
+}

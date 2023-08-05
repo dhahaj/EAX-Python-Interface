@@ -7,6 +7,18 @@
             "pullup_enabled": false
         },
         {
+            "pin_number": 11,
+            "function": "ac power",
+            "io_mode": "output",
+            "pullup_enabled": false
+        },
+        {
+            "pin_number": 7,
+            "function": "low battery",
+            "io_mode": "input",
+            "pullup_enabled": false
+        },
+        {
             "pin_number": 4,
             "io_mode": "output",
             "function": "testing indicator",

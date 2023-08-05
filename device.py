@@ -2,17 +2,43 @@ import os
 import json
 from constants import *
 from loguru import logger as log
+"""EA
+EBxW
+EB
+EAxLBM
+EBxLBM
+EA_ADV
+EBxW_L9SI
+EA_L9SI
 
+
+104010-1
+104010-3
+104010-4
+104010-5
+104010-7
+104010-8
+104010-9
+104010-10"""
 
 class Device:
     """ A class that contains the device information and maintains the current selected device. """
+    filename = 'firmware.json'
     def __init__(self, selected_device=None):
         self.selected_device = selected_device
-        self.version = None
-        self.firmware = None
-        self.set_version()
+        # self.version = None
+        self.firmware = self.get_list_by_name('binaries')
+        # self.set_version()
+        self.models = self.get_list_by_name('models')
         self.data = []
+        self.model = None
         self.load_from_file()
+
+    def set_model(self, model):
+        self.model = model
+
+    def get_model(self):
+        return self.model
 
     def set_name(self, name):
         self.selected_device = name
@@ -62,10 +88,19 @@ class Device:
         with open(filename, 'r') as file:
             self.data = json.load(file)
 
+    def get_list_by_name(self, name):
+        """Return a list of firmware dictionaries by name."""
+        with open(self.filename, 'r') as file:
+            return json.load(file)[name]
+
     def verify_firmware(self):
         """Verify the firmware is valid."""
-        for firmware in self.data:
+        for firmware in self.firmware:
             filename = firmware['filename']
             if not os.path.isfile(f'firmware/{filename}'):
                 return False
         return True
+
+    def get_model_names(self):
+        """Return a list of model names."""
+        return [model['name'] for model in self.models]
