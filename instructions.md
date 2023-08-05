@@ -2,9 +2,9 @@
 
 ## Equipment Needed:
 
- - EAX-500 Test Fixture
- - An assembled 102618 PWA
- - A magnet for checking the reed switches
+- EAX-500 Test Fixture
+- An assembled 102618 PWA
+- A magnet for checking the reed switches
 
 ## Setup instructions:
 
