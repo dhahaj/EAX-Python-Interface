@@ -311,9 +311,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
 
-    def load_file_text(self, filename='instructions.txt'):
+    def load_file_text(self, filename='instructions.md'):
         '''Load text from a file and add it to the text area.'''
-        self.text_edit.setMarkdown(INSTRUCTIONS + '   \r\n')
+        self.text_edit.setMarkdown(INSTRUCTIONS)
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
         return
