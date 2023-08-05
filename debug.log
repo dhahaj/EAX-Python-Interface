@@ -103,3 +103,10 @@
 2023-08-03 15:34:45,826 - logger - INFO - Application closed.
 2023-08-03 15:38:32,939 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
 2023-08-03 15:38:52,425 - logger - INFO - Application closed.
+2023-08-04 19:37:03,153 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
+2023-08-04 19:37:39,419 - logger - INFO - Updating firmware...
+2023-08-04 19:38:05,561 - logger - INFO - Firmware update complete.
+2023-08-04 19:38:24,793 - logger - DEBUG - USB: connected to COM4
+2023-08-04 19:38:29,642 - logger - INFO - Programming EAX500 args: ['up.exe', '/part PIC16F628A', '/s 1E660', '/p firmware/EAX500_591.hex', '/q1']
+2023-08-04 19:38:31,413 - logger - ERROR - Programming EAX500 failed. Error code: 2
+2023-08-04 19:41:52,100 - logger - INFO - Application closed.
