@@ -103,3 +103,40 @@
 2023-08-03 15:34:45,826 - logger - INFO - Application closed.
 2023-08-03 15:38:32,939 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
 2023-08-03 15:38:52,425 - logger - INFO - Application closed.
+2023-08-04 00:17:00,352 - logger - INFO - Application closed.
+2023-08-04 00:17:03,231 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
+2023-08-04 00:30:49,054 - logger - ERROR - USB: connection failed. Error: Incorrect Arduino ID: 99
+2023-08-04 00:31:20,119 - logger - INFO - Application closed.
+2023-08-04 00:34:37,793 - logger - INFO - Application closed.
+2023-08-04 00:39:01,699 - logger - DEBUG - USB: connected to COM44
+2023-08-04 00:39:03,688 - logger - INFO - Testing started for V40xx00
+2023-08-04 00:39:32,771 - logger - INFO - Application closed.
+2023-08-04 00:40:47,245 - logger - INFO - Application closed.
+2023-08-04 00:41:02,119 - logger - INFO - Application closed.
+2023-08-04 00:41:27,557 - logger - INFO - Application closed.
+2023-08-04 00:42:30,598 - logger - INFO - Application closed.
+2023-08-04 00:43:03,892 - logger - INFO - Application closed.
+2023-08-04 00:51:15,182 - logger - INFO - Application closed.
+2023-08-04 00:52:06,021 - logger - INFO - Application closed.
+2023-08-04 00:52:25,316 - logger - INFO - Application closed.
+2023-08-04 00:52:43,428 - logger - INFO - Application closed.
+2023-08-04 00:53:06,353 - logger - INFO - Application closed.
+2023-08-04 00:53:39,604 - logger - INFO - Application closed.
+2023-08-04 01:01:06,329 - logger - INFO - Application closed.
+2023-08-04 01:15:50,130 - logger - INFO - Application closed.
+2023-08-04 01:24:18,337 - logger - INFO - Application closed.
+2023-08-04 01:24:56,868 - logger - DEBUG - USB: connected to COM44
+2023-08-04 01:25:01,750 - logger - INFO - Testing started for V40xx00
+2023-08-04 01:25:13,422 - logger - INFO - Application closed.
+2023-08-04 01:27:06,277 - logger - DEBUG - USB: connected to COM44
+2023-08-04 01:29:37,666 - logger - INFO - Application closed.
+2023-08-04 03:36:13,055 - logger - INFO - Application closed.
+2023-08-04 03:38:33,657 - logger - INFO - Application closed.
+2023-08-04 04:06:24,485 - logger - INFO - Application closed.
+2023-08-04 04:09:02,307 - logger - INFO - Application closed.
+2023-08-04 04:12:12,827 - logger - INFO - Application closed.
+2023-08-04 04:15:32,092 - logger - INFO - Application closed.
+2023-08-04 04:16:44,494 - logger - INFO - Application closed.
+2023-08-04 04:26:12,330 - logger - DEBUG - USB: connected to COM44
+2023-08-04 04:26:42,227 - logger - INFO - Testing started for EA
+2023-08-04 04:27:57,431 - logger - INFO - Application closed.
