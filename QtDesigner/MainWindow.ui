@@ -120,7 +120,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="icons.qrc">
+         <iconset resource="../icons.qrc">
           <normaloff>:/resources/icons/images/icons/prog-button.png</normaloff>:/resources/icons/images/icons/prog-button.png</iconset>
         </property>
         <property name="iconSize">
@@ -517,6 +517,7 @@ font-weight: bold;</string>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
     <addaction name="actionHelp"/>
+    <addaction name="actionStatisitics"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuDevice"/>
@@ -525,7 +526,7 @@ font-weight: bold;</string>
   </widget>
   <action name="actionConnect">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/usb3.png</normaloff>
      <normalon>:/resources/icons/images/icons/usb.png</normalon>
      <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/resources/icons/images/icons/usb3.png</iconset>
@@ -547,7 +548,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionLogout">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>
      <normalon>:/resources/icons/images/icons/remove-user.png</normalon>:/resources/icons/images/icons/remove-user.png</iconset>
    </property>
@@ -562,7 +563,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionExit_2">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/logout2.png</normaloff>
      <disabledoff>:/resources/icons/images/icons/logout2.png</disabledoff>:/resources/icons/images/icons/logout2.png</iconset>
    </property>
@@ -882,7 +883,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionModify_Settings">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/settings.ico</normaloff>:/resources/icons/images/icons/settings.ico</iconset>
    </property>
    <property name="text">
@@ -896,7 +897,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionAdd_User">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/follow.png</normaloff>
      <normalon>:/resources/icons/images/icons/follow.png</normalon>:/resources/icons/images/icons/follow.png</iconset>
    </property>
@@ -911,7 +912,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionRemove_User">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>:/resources/icons/images/icons/remove-user.png</iconset>
    </property>
    <property name="text">
@@ -925,7 +926,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionShow_Logs">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/files.png</normaloff>:/resources/icons/images/icons/files.png</iconset>
    </property>
    <property name="text">
@@ -939,7 +940,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/information.png</normaloff>:/resources/icons/images/icons/information.png</iconset>
    </property>
    <property name="text">
@@ -959,7 +960,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionManual_Control">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/gear.png</normaloff>:/resources/icons/images/icons/gear.png</iconset>
    </property>
    <property name="text">
@@ -973,7 +974,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionChip_Select">
    <property name="icon">
-    <iconset resource="icons.qrc">
+    <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/chip.png</normaloff>:/resources/icons/images/icons/chip.png</iconset>
    </property>
    <property name="text">
@@ -1030,10 +1031,24 @@ font-weight: bold;</string>
     </font>
    </property>
   </action>
+  <action name="actionStatisitics">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/resources/icons/images/icons/bar-chart.png</normaloff>:/resources/icons/images/icons/bar-chart.png</iconset>
+   </property>
+   <property name="text">
+    <string>Statisitics</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
-  <include location="icons.qrc"/>
+  <include location="../resource.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

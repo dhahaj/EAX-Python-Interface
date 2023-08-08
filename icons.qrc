@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/resources/icons">
+    <file>images/icons/bar-chart.png</file>
     <file>images/icons/radio-off-button.png</file>
     <file>images/icons/radio-on-button.png</file>
     <file>images/icons/code.ico</file>
