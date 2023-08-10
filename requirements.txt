@@ -13,3 +13,4 @@ shiboken6==6.5.2
 telemetrix==1.20
 win32-setctime==1.1.0
 command-runner==1.5.0
+QDarkStyle==3.1
