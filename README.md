@@ -15,6 +15,8 @@ This application uses the telemetrix Arduino library to communicate with the fix
 
 ## Screenshots
 
+![alt images](animation.gif)
+
 ![alt text](images/MainWindow.png)
 
 ![alt text](images/SettingsDialog.png)
@@ -46,28 +48,30 @@ The [settings.json](settings.json) file contains the runtime settings for the ap
 
 ```json
 {
-    "serial_port": "COM8",
+    "serial_port": "COM4",
     "programmer_serial_number": "1E660",
     "chip_part": "PIC16F628A",
     "last_user": "dmh",
-    "testing_speed": 0.5,
-    "auto_test": true,
-    "font_family": "Arial",
-    "font_size": 14,
+    "testing_speed": 1711,
+    "auto_test": false,
+    "font_family": "Calibri",
+    "font_size": 16,
     "font_weight": "normal",
-    "font_color": "#000000",
     "skip_login": true,
-    "auto_connect": false,
+    "auto_connect": true,
     "arduino_instance_id": 1,
     "debug": true,
     "firmware_folder": "",
-    "firmware_location": "./firmware",
+    "auto_logoff_delay": 15,
+    "bg_color": "#000000",
+    "fg_color": "#ff5500",
+    "arduino_wait": 2,
     "shutdown_on_exception": true,
     "auto_find": true,
     "sleep_tune": 1e-06,
-    "arduino_wait": 2,
+    "full_screen": false,
+    "firmware_location": "./firmware"
 }
-
 ```
 
 ### `users.db`
