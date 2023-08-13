@@ -1,5 +1,55 @@
 <RCC>
   <qresource prefix="/resources/icons">
+    <file>images/icons/light/gear.png</file>
+    <file>images/icons/dark/gear.png</file>
+    <file>images/icons/dark/folder.png</file>
+    <file>images/icons/light/folder.png</file>
+    <file>images/icons/light/ps.png</file>
+    <file>images/icons/dark/ps.png</file>
+    <file>images/icons/light/automation.png</file>
+    <file>images/icons/light/bar-chart.png</file>
+    <file>images/icons/light/chip.png</file>
+    <file>images/icons/light/connecting.png</file>
+    <file>images/icons/light/files.png</file>
+    <file>images/icons/light/follow.png</file>
+    <file>images/icons/dark/follow.png</file>
+    <file>images/icons/light/forward-button.png</file>
+    <file>images/icons/light/help.png</file>
+    <file>images/icons/light/hex.png</file>
+    <file>images/icons/light/information.png</file>
+    <file>images/icons/light/logout.png</file>
+    <file>images/icons/light/logout2.png</file>
+    <file>images/icons/light/micro.png</file>
+    <file>images/icons/light/plug.png</file>
+    <file>images/icons/light/prog-button.png</file>
+    <file>images/icons/light/radio-off-button.png</file>
+    <file>images/icons/light/radio-on-button.png</file>
+    <file>images/icons/light/remove-user.png</file>
+    <file>images/icons/light/settings.ico</file>
+    <file>images/icons/light/size.png</file>
+    <file>images/icons/light/test-button.png</file>
+    <file>images/icons/light/usb2.png</file>
+    <file>images/icons/light/usb3.png</file>
+    <file>images/icons/light/usb4.png</file>
+    <file>images/icons/dark/bar-chart.png</file>
+    <file>images/icons/dark/chip.png</file>
+    <file>images/icons/dark/connecting.png</file>
+    <file>images/icons/dark/files.png</file>
+    <file>images/icons/dark/forward-button.png</file>
+    <file>images/icons/dark/help.png</file>
+    <file>images/icons/dark/information.png</file>
+    <file>images/icons/dark/logout.png</file>
+    <file>images/icons/dark/logout2.png</file>
+    <file>images/icons/dark/plug.png</file>
+    <file>images/icons/dark/prog-button.png</file>
+    <file>images/icons/dark/radio-off-button.png</file>
+    <file>images/icons/dark/radio-on-button.png</file>
+    <file>images/icons/dark/remove-user.png</file>
+    <file>images/icons/dark/settings.ico</file>
+    <file>images/icons/dark/size.png</file>
+    <file>images/icons/dark/test-button.png</file>
+    <file>images/icons/dark/usb2.png</file>
+    <file>images/icons/dark/usb3.png</file>
     <file>images/icons/bar-chart.png</file>
     <file>images/icons/radio-off-button.png</file>
     <file>images/icons/radio-on-button.png</file>
@@ -61,8 +111,6 @@
     <file>images/icons/connecting.png</file>
     <file>images/icons/disconnected.png</file>
     <file>images/icons/disconnected2.png</file>
-    <file>images/icons/test-button.png</file>
-    <file>images/icons/prog-button.png</file>
     <file>images/icons/forward-button.png</file>
     <file>images/icons/help.png</file>
     <file>images/FirmwareUpdate.png</file>
@@ -81,8 +129,12 @@
   </qresource>
   <qresource prefix="resources/images">
     <file>images/ManualControl.png</file>
+    <file>firmware_update.gif</file>
+    <file>animation.gif</file>
+    <file>animation2.gif</file>
     <file>images/DeviceMenu.png</file>
     <file>images/SettingsMenu.png</file>
+    <file>setting.gif</file>
     <file>images/FirmwareUpdate.png</file>
   </qresource>
 </RCC>
