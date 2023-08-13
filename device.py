@@ -19,6 +19,9 @@ class Device:
 
     def get_name(self):
         return self.selected_device
+    
+    def is_selected(self):
+        return self.selected_device is not None
 
     def set_version(self):
         for firmware in FIRMWARES:
