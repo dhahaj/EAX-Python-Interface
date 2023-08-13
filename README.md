@@ -13,13 +13,27 @@ This is a Python version of the EAX Test Fixture Interface. It is a GUI built on
 
 This application uses the telemetrix Arduino library to communicate with the fixture. It can be compilled and uploaded via the Arduino IDE. This installation of the firmware can be automated using the [Install.ps1](Scripts/Install.ps1) script. This script will download the `arduino-cli` tool, install the required libraries, compile the firmware, and upload it to the Arduino. It prompts for the COM port of the Arduino before uploading the firmware. Modify the file [Telemetrix4Arduino.ino](https://github.com/dhahaj/EAX-Python-Interface/blob/main/sketches/Telemetrix4Arduino/Telemetrix4Arduino.ino) to make modifications to the firmware, such as changing the `arduino_instance_id`. See [The Telemetrix Project](https://mryslab.github.io/telemetrix/) for more information.
 
+## Key Bindings
+
+| Key | Function |
+| --- | --- |
+| `Esc` | Close Window |
+| `Ctrl+Q` | Exit |
+| `Ctrl+L` | Login |
+| `F12` | Show Stats |
+| `F11` | Toggle Fullscreen |
+| `F10` | Show Logs |
+| `F6` | Toggle Dark Mode |
+| `F4` | Open Settings |
+| `F3` | Open Manual Control |
+| `F2` | Take Screenshot |
+| `F1` | Open Help |
+| `T` | Run Test |
+| `?` | Open About |
+
 ## Screenshots
 
-![alt images](animation.gif)
-
-![alt text](images/MainWindow.png)
-
-![alt text](images/SettingsDialog.png)
+![alt text](testing.gif)
 
 ## Usage
 
