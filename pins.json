@@ -69,7 +69,7 @@
         {
             "pin_number": 13,
             "io_mode": "output",
-            "function": "testing indicator",
+            "function": "test indicator",
             "pullup_enabled": false
         }
     ]

@@ -73,6 +73,8 @@
 #include "Telemetrix4Arduino.h"
 #include "Telemetrix4Arduino_config.h"
 
+// #define TELEMETRIX4ARDUINO_DEBUG
+
 #ifdef SERVO_ENABLED
 #include <Servo.h>
 #endif
@@ -114,13 +116,11 @@
 
 #define ARDUINO_ID TELEMETRIX4ARDUINO_ID
 
-
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /*         Client Command Related Defines and Support               */
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 // Commands Sent By The Client
-
 
 // Add commands retaining the sequential numbering.
 // The order of commands here must be maintained in the command_table.
@@ -181,6 +181,10 @@
 #define GET_FEATURES 54
 #define SONAR_SCAN_OFF 55
 #define SONAR_SCAN_ON 56
+#define BATTERY_ON 57
+#define BATTERY_OFF 58
+#define LOW_BATTERY_ON 59
+#define LOW_BATTERY_OFF 60
 
 
 /* Command Forward References*/
@@ -189,120 +193,69 @@
 // here as well.
 
 extern void serial_loopback();
-
 extern void set_pin_mode();
-
 extern void digital_write();
-
 extern void analog_write();
-
 extern void modify_reporting();
-
 extern void get_firmware_version();
-
 extern void are_you_there();
-
 extern void servo_attach();
-
 extern void servo_write();
-
 extern void servo_detach();
-
 extern void i2c_begin();
-
 extern void i2c_read();
-
 extern void i2c_write();
-
 extern void sonar_new();
-
 extern void dht_new();
-
 extern void stop_all_reports();
-
 extern void set_analog_scanning_interval();
-
 extern void enable_all_reports();
-
 extern void reset_data();
-
 extern void init_pin_structures();
-
 extern void init_spi();
-
 extern void write_blocking_spi();
-
 extern void read_blocking_spi();
-
 extern void set_format_spi();
-
 extern void spi_cs_control();
-
 extern void onewire_init();
-
 extern void onewire_reset();
-
 extern void onewire_select();
-
 extern void onewire_skip();
-
 extern void onewire_write();
-
 extern void onewire_read();
-
 extern void onewire_reset_search();
-
 extern void onewire_search();
-
 extern void onewire_crc8();
-
 extern void set_pin_mode_stepper();
-
 extern void stepper_move_to();
-
 extern void stepper_move();
-
 extern void stepper_run();
-
 extern void stepper_run_speed();
-
 extern void stepper_set_max_speed();
-
 extern void stepper_set_acceleration();
-
 extern void stepper_set_speed();
-
 extern void stepper_get_distance_to_go();
-
 extern void stepper_get_target_position();
-
 extern void stepper_get_current_position();
-
 extern void stepper_set_current_position();
-
 extern void stepper_run_speed_to_position();
-
 extern void stepper_stop();
-
 extern void stepper_disable_outputs();
-
 extern void stepper_enable_outputs();
-
 extern void stepper_set_minimum_pulse_width();
-
 extern void stepper_set_3_pins_inverted();
-
 extern void stepper_set_4_pins_inverted();
-
 extern void stepper_set_enable_pin();
-
 extern void stepper_is_running();
-
 extern void get_features();
-
 extern void sonar_disable();
-
 extern void sonar_enable();
+extern void battery_on();
+extern void battery_off();
+extern void low_battery_on();
+extern void low_battery_off();
+extern void indicator_on();
+extern void indicator_off();
 
 // When adding a new command update the command_table.
 // The command length is the number of bytes that follow
@@ -379,8 +332,13 @@ command_descriptor command_table[] =
   (&get_features),
   (&sonar_disable),
   (&sonar_enable),
+  (&battery_on),
+  (&battery_off),
+  (&low_battery_on),
+  (&low_battery_off),
+  (&indicator_on),
+  (&indicator_off),
 };
-
 
 
 // maximum length of a command in bytes
@@ -395,7 +353,6 @@ byte command_buffer[MAX_COMMAND_LENGTH];
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
 // Reports sent to the client
-
 #define DIGITAL_REPORT DIGITAL_WRITE
 #define ANALOG_REPORT ANALOG_WRITE
 #define FIRMWARE_REPORT 5
@@ -429,7 +386,6 @@ byte spi_report_message[64];
 #endif
 
 bool stop_reports = false; // a flag to stop sending all report messages
-
 bool sonar_reporting_enabled = true; // flag to start and stop sonar reporing
 
 // Input pin reporting control sub commands (modify_reporting)
@@ -438,7 +394,6 @@ bool sonar_reporting_enabled = true; // flag to start and stop sonar reporing
 #define REPORTING_DIGITAL_ENABLE 2
 #define REPORTING_ANALOG_DISABLE 3
 #define REPORTING_DIGITAL_DISABLE 4
-
 
 // DHT Report sub-types
 #define DHT_DATA 0
@@ -450,9 +405,7 @@ bool sonar_reporting_enabled = true; // flag to start and stop sonar reporing
 #define FIRMWARE_PATCH 1
 
 
-
 // Feature Masks And Storage
-
 #define ONEWIRE_FEATURE 0x01
 #define DHT_FEATURE 0x02
 #define STEPPERS_FEATURE 0x04
@@ -460,6 +413,7 @@ bool sonar_reporting_enabled = true; // flag to start and stop sonar reporing
 #define SERVO_FEATURE 0x10
 #define SONAR_FEATURE 0x20
 #define I2C_FEATURE 0x40
+#define BATTERY_FEATURE 0x80
 
 // a byte to hold the enabled features
 // the masks are OR'ed into the features byte
@@ -818,7 +772,6 @@ void modify_reporting()
 void get_features() {
   byte report_message[3] = {2, FEATURES, features};
   Serial.write(report_message, 3);
-
 }
 
 // Return the firmware version number
@@ -1094,6 +1047,30 @@ void sonar_enable(){
     sonar_reporting_enabled = true;
 }
 
+void battery_on(){
+    digitalWrite(command_buffer[0], HIGH);
+}
+
+void battery_off(){
+    digitalWrite(command_buffer[0], LOW);
+}
+
+void low_battery_on(){
+    digitalWrite(command_buffer[0], HIGH);
+}
+
+void low_battery_off(){
+    digitalWrite(command_buffer[0], LOW);
+}
+
+void indicator_on(){
+    digitalWrite(command_buffer[0], HIGH);
+}
+
+void indicator_off(){
+    digitalWrite(command_buffer[0], LOW);
+}
+
 /***********************************
    DHT adding a new device
  **********************************/
@@ -1342,7 +1319,6 @@ void stepper_move_to() {
   steppers[command_buffer[0]]->moveTo(position);
 #endif
 }
-
 void stepper_move() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1366,14 +1342,12 @@ void stepper_move() {
   steppers[command_buffer[0]]->move(position);
 #endif
 }
-
 void stepper_run() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
   stepper_run_modes[command_buffer[0]] = STEPPER_RUN;
 #endif
 }
-
 void stepper_run_speed() {
   // motor_id = command_buffer[0]
   //#if !defined (__AVR_ATmega328P__)
@@ -1382,7 +1356,6 @@ void stepper_run_speed() {
   stepper_run_modes[command_buffer[0]] = STEPPER_RUN_SPEED;
 #endif
 }
-
 void stepper_set_max_speed() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1395,7 +1368,6 @@ void stepper_set_max_speed() {
   steppers[command_buffer[0]]->setMaxSpeed(max_speed);
 #endif
 }
-
 void stepper_set_acceleration() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1408,7 +1380,6 @@ void stepper_set_acceleration() {
   steppers[command_buffer[0]]->setAcceleration(acceleration);
 #endif
 }
-
 void stepper_set_speed() {
 
   // motor_id = command_buffer[0]
@@ -1421,7 +1392,6 @@ void stepper_set_speed() {
   steppers[command_buffer[0]]->setSpeed(speed);
 #endif
 }
-
 void stepper_get_distance_to_go() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1445,7 +1415,6 @@ void stepper_get_distance_to_go() {
   Serial.write(report_message, 7);
 #endif
 }
-
 void stepper_get_target_position() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1469,7 +1438,6 @@ void stepper_get_target_position() {
   Serial.write(report_message, 7);
 #endif
 }
-
 void stepper_get_current_position() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1493,7 +1461,6 @@ void stepper_get_current_position() {
   Serial.write(report_message, 7);
 #endif
 }
-
 void stepper_set_current_position() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1512,15 +1479,12 @@ void stepper_set_current_position() {
   steppers[command_buffer[0]]->setCurrentPosition(position);
 #endif
 }
-
 void stepper_run_speed_to_position() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
   stepper_run_modes[command_buffer[0]] = STEPPER_RUN_SPEED_TO_POSITION;
-
 #endif
 }
-
 void stepper_stop() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1531,21 +1495,18 @@ void stepper_stop() {
 
 #endif
 }
-
 void stepper_disable_outputs() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
   steppers[command_buffer[0]]->disableOutputs();
 #endif
 }
-
 void stepper_enable_outputs() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
   steppers[command_buffer[0]]->enableOutputs();
 #endif
 }
-
 void stepper_set_minimum_pulse_width() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1553,14 +1514,12 @@ void stepper_set_minimum_pulse_width() {
   steppers[command_buffer[0]]->setMinPulseWidth(pulse_width);
 #endif
 }
-
 void stepper_set_enable_pin() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
   steppers[command_buffer[0]]->setEnablePin((uint8_t) command_buffer[1]);
 #endif
 }
-
 void stepper_set_3_pins_inverted() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1572,7 +1531,6 @@ void stepper_set_3_pins_inverted() {
       (bool) command_buffer[3]);
 #endif
 }
-
 void stepper_set_4_pins_inverted() {
   // command_buffer[1] = pin1
   // command_buffer[2] = pin2
@@ -1588,7 +1546,6 @@ void stepper_set_4_pins_inverted() {
       (bool) command_buffer[5]);
 #endif
 }
-
 void stepper_is_running() {
   //#if !defined (__AVR_ATmega328P__)
 #ifdef STEPPERS_ENABLED
@@ -1607,7 +1564,6 @@ void stepper_is_running() {
 }
 
 // stop all reports from being generated
-
 void stop_all_reports()
 {
   stop_reports = true;
@@ -1743,7 +1699,6 @@ void init_pin_structures() {
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 /*    Scanning Inputs, Generating Reports And Running Steppers      */
 /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-
 
 // scan the digital input pins for changes
 void scan_digital_inputs()
@@ -1959,7 +1914,6 @@ void scan_dhts()
 }
 
 
-
 void run_steppers() {
 #ifdef STEPPERS_ENABLED
   boolean running;
@@ -2044,6 +1998,8 @@ void setup()
     stepper_run_modes[i] = STEPPER_STOP ;
   }
 #endif
+
+  features |= BATTERY_FEATURE;
 
   init_pin_structures();
 

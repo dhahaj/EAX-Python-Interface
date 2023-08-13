@@ -9,14 +9,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>788</height>
+    <width>700</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>900</width>
-    <height>700</height>
+    <width>700</width>
+    <height>500</height>
    </size>
   </property>
   <property name="font">
@@ -82,7 +82,7 @@
        <bool>true</bool>
       </property>
       <property name="textInteractionFlags">
-       <set>Qt::NoTextInteraction</set>
+       <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
       </property>
       <property name="placeholderText">
        <string>Text Area</string>
@@ -120,8 +120,9 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../icons.qrc">
-          <normaloff>:/resources/icons/images/icons/prog-button.png</normaloff>:/resources/icons/images/icons/prog-button.png</iconset>
+         <iconset>
+          <normaloff>:/resources/icons/images/icons/prog-button-light.png</normaloff>
+          <normalon>:/resources/icons/images/icons/dark/prog-button.png</normalon>:/resources/icons/images/icons/prog-button-light.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -420,8 +421,8 @@ font-weight: bold;</string>
          <string/>
         </property>
         <property name="icon">
-         <iconset theme="document-print">
-          <normalon>:/resources/icons/images/icons/test-button.png</normalon>
+         <iconset>
+          <normalon>:/resources/icons/images/icons/dark/test-button.png</normalon>
          </iconset>
         </property>
         <property name="iconSize">
@@ -450,7 +451,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>700</width>
      <height>26</height>
     </rect>
    </property>
@@ -472,7 +473,7 @@ font-weight: bold;</string>
     <addaction name="actionConnect"/>
     <addaction name="actionLogout"/>
     <addaction name="separator"/>
-    <addaction name="actionExit_2"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuDevice">
     <property name="title">
@@ -529,9 +530,9 @@ font-weight: bold;</string>
   <action name="actionConnect">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/usb3.png</normaloff>
-     <normalon>:/resources/icons/images/icons/usb.png</normalon>
-     <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/resources/icons/images/icons/usb3.png</iconset>
+     <normaloff>:/resources/icons/images/icons/dark/usb3.png</normaloff>
+     <normalon>:/resources/icons/images/icons/dark/usb2.png</normalon>
+     <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/resources/icons/images/icons/dark/usb3.png</iconset>
    </property>
    <property name="text">
     <string>Connect</string>
@@ -550,9 +551,9 @@ font-weight: bold;</string>
   </action>
   <action name="actionLogout">
    <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>
-     <normalon>:/resources/icons/images/icons/remove-user.png</normalon>:/resources/icons/images/icons/remove-user.png</iconset>
+    <iconset>
+     <normalon>:/resources/icons/images/icons/dark/logout.png</normalon>
+    </iconset>
    </property>
    <property name="text">
     <string>Logout</string>
@@ -563,7 +564,7 @@ font-weight: bold;</string>
     </font>
    </property>
   </action>
-  <action name="actionExit_2">
+  <action name="actionExit">
    <property name="icon">
     <iconset resource="../icons.qrc">
      <normaloff>:/resources/icons/images/icons/logout2.png</normaloff>
@@ -886,7 +887,7 @@ font-weight: bold;</string>
   <action name="actionModify_Settings">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/settings.ico</normaloff>:/resources/icons/images/icons/settings.ico</iconset>
+     <normaloff>:/resources/icons/images/icons/dark/settings.ico</normaloff>:/resources/icons/images/icons/dark/settings.ico</iconset>
    </property>
    <property name="text">
     <string>Modify Settings</string>
@@ -899,9 +900,9 @@ font-weight: bold;</string>
   </action>
   <action name="actionAdd_User">
    <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/follow.png</normaloff>
-     <normalon>:/resources/icons/images/icons/follow.png</normalon>:/resources/icons/images/icons/follow.png</iconset>
+    <iconset>
+     <normalon>:/resources/icons/images/icons/dark/follow.png</normalon>
+    </iconset>
    </property>
    <property name="text">
     <string>Add User</string>
@@ -929,7 +930,7 @@ font-weight: bold;</string>
   <action name="actionShow_Logs">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/files.png</normaloff>:/resources/icons/images/icons/files.png</iconset>
+     <normaloff>:/resources/icons/images/icons/light/files.png</normaloff>:/resources/icons/images/icons/light/files.png</iconset>
    </property>
    <property name="text">
     <string>Show Logs</string>
@@ -942,8 +943,9 @@ font-weight: bold;</string>
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/information.png</normaloff>:/resources/icons/images/icons/information.png</iconset>
+    <iconset>
+     <normalon>:/resources/icons/images/icons/light/information.png</normalon>
+    </iconset>
    </property>
    <property name="text">
     <string>About</string>
@@ -963,7 +965,7 @@ font-weight: bold;</string>
   <action name="actionManual_Control">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/gear.png</normaloff>:/resources/icons/images/icons/gear.png</iconset>
+     <normaloff>:/resources/icons/images/icons/dark/gear.png</normaloff>:/resources/icons/images/icons/dark/gear.png</iconset>
    </property>
    <property name="text">
     <string>Manual Control</string>
@@ -991,7 +993,7 @@ font-weight: bold;</string>
   <action name="actionUpdate_Firmware">
    <property name="icon">
     <iconset>
-     <normalon>:/resources/icons/images/icons/ps.png</normalon>
+     <normalon>:/resources/icons/images/icons/dark/ps.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -1006,7 +1008,7 @@ font-weight: bold;</string>
   <action name="actionExplore_Directory">
    <property name="icon">
     <iconset>
-     <normalon>:/resources/icons/images/icons/icons8-folder.png</normalon>
+     <normalon>:/resources/icons/images/icons/dark/folder.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -1021,7 +1023,7 @@ font-weight: bold;</string>
   <action name="actionHelp">
    <property name="icon">
     <iconset>
-     <normalon>:/resources/icons/images/icons/help.png</normalon>
+     <normalon>:/resources/icons/images/icons/dark/help.png</normalon>
     </iconset>
    </property>
    <property name="text">
@@ -1080,7 +1082,7 @@ font-weight: bold;</string>
  </resources>
  <connections>
   <connection>
-   <sender>actionExit_2</sender>
+   <sender>actionExit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>

@@ -20,7 +20,7 @@
    <string>Log Viewer</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="icons.qrc">
+   <iconset resource="../icons.qrc">
     <normaloff>:/resources/icons/images/icons/files.png</normaloff>:/resources/icons/images/icons/files.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -151,7 +151,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="icons.qrc"/>
+  <include location="../icons.qrc"/>
  </resources>
  <connections/>
 </ui>
