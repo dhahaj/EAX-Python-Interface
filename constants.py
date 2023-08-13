@@ -49,20 +49,6 @@ CHIP_PARTS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
 
 
 """
-States for the application.
-"""
-ST_LOGGED_IN = "Logged In"
-ST_LOGGED_OUT = "Logged Out"
-ST_LOGGING_IN = "Logging In"
-ST_LOGGING_OUT = "Logging Out"
-ST_TESTING = "Testing"
-ST_TESTING_COMPLETE = "Testing Complete"
-ST_TESTING_FAILED = "Testing Failed"
-ST_PROGRAMMING = "Programming"
-ST_EXITING = "Exiting"
-ST_INIT = "Initializing"
-
-"""
 Keys for the settings file.
 """
 KEY_DEBUG = "debug"
@@ -87,13 +73,15 @@ KEY_SHUTDOWN_ON_EXCEPTION = "shutdown_on_exception"
 KEY_AUTO_FIND = "auto_find"
 KEY_SLEEP_TUNE = "sleep_tune"
 KEY_FULLSCREEN = "full_screen"
+
+KEY_DARK_THEME = "dark_mode"
 """
 Default settings for the application.
 """
 DEFAULT_SETTINGS = {
     KEY_COM_PORT: "COM30",
     KEY_PROGRAMMER_SERIAL_NUMBER: "1E660",
-    KEY_CHIP_PART: "PIC16F627A",
+    KEY_CHIP_PART: "PIC16F628A",
     KEY_LAST_USER: "dmh",
     KEY_TESTING_SPEED: 2100,
     KEY_AUTO_TEST: True,
@@ -105,9 +93,9 @@ DEFAULT_SETTINGS = {
     KEY_ARDUINO_INSTANCE_ID: 1,
     KEY_DEBUG: False,
     KEY_FIRMWARE_FOLDER: "firmware",
-    KEY_LOGOFF_DELAY: 10,
+    KEY_LOGOFF_DELAY: 15,
     KEY_BACKGROUND_COLOR: "#000000",
-    KEY_FOREGROUND_COLOR: "#ffffff",
+    KEY_FOREGROUND_COLOR: "#ff5500",
     KEY_ARDUINO_WAIT: 4,
     KEY_SHUTDOWN_ON_EXCEPTION: True,
     KEY_AUTO_FIND: True,
