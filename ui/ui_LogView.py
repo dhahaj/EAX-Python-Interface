@@ -31,8 +31,8 @@ class Ui_LogView(object):
         self.verticalLayout = QVBoxLayout(LogView)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.tableWidget = QTableWidget(LogView)
-        if (self.tableWidget.columnCount() < 3):
-            self.tableWidget.setColumnCount(3)
+        if (self.tableWidget.columnCount() < 4):
+            self.tableWidget.setColumnCount(4)
         font = QFont()
         font.setPointSize(11)
         font.setBold(True)
@@ -45,6 +45,9 @@ class Ui_LogView(object):
         __qtablewidgetitem2 = QTableWidgetItem()
         __qtablewidgetitem2.setFont(font);
         self.tableWidget.setHorizontalHeaderItem(2, __qtablewidgetitem2)
+        __qtablewidgetitem3 = QTableWidgetItem()
+        __qtablewidgetitem3.setFont(font);
+        self.tableWidget.setHorizontalHeaderItem(3, __qtablewidgetitem3)
         if (self.tableWidget.rowCount() < 40):
             self.tableWidget.setRowCount(40)
         self.tableWidget.setObjectName(u"tableWidget")
@@ -58,7 +61,7 @@ class Ui_LogView(object):
         self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableWidget.setGridStyle(Qt.SolidLine)
         self.tableWidget.setRowCount(40)
-        self.tableWidget.setColumnCount(3)
+        self.tableWidget.setColumnCount(4)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(True)
         self.tableWidget.horizontalHeader().setDefaultSectionSize(170)
         self.tableWidget.horizontalHeader().setProperty("showSortIndicator", True)
@@ -77,10 +80,12 @@ class Ui_LogView(object):
     def retranslateUi(self, LogView):
         LogView.setWindowTitle(QCoreApplication.translate("LogView", u"Log Viewer", None))
         ___qtablewidgetitem = self.tableWidget.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("LogView", u"Date", None));
+        ___qtablewidgetitem.setText(QCoreApplication.translate("LogView", u"ID", None));
         ___qtablewidgetitem1 = self.tableWidget.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("LogView", u"Level", None));
+        ___qtablewidgetitem1.setText(QCoreApplication.translate("LogView", u"Date", None));
         ___qtablewidgetitem2 = self.tableWidget.horizontalHeaderItem(2)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("LogView", u"Message", None));
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("LogView", u"Level", None));
+        ___qtablewidgetitem3 = self.tableWidget.horizontalHeaderItem(3)
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("LogView", u"Message", None));
     # retranslateUi
 

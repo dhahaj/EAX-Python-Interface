@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
+ <author>DMH</author>
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
   <property name="enabled">
@@ -9,13 +10,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>700</width>
-    <height>500</height>
+    <width>797</width>
+    <height>638</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>700</width>
+    <width>650</width>
     <height>500</height>
    </size>
   </property>
@@ -44,7 +45,22 @@
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonTextBesideIcon</enum>
   </property>
+  <property name="tabShape">
+   <enum>QTabWidget::Rounded</enum>
+  </property>
+  <property name="dockOptions">
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="maximumSize">
+    <size>
+     <width>16777208</width>
+     <height>16777215</height>
+    </size>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTextEdit" name="text_edit">
@@ -451,7 +467,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>700</width>
+     <width>797</width>
      <height>26</height>
     </rect>
    </property>
@@ -467,6 +483,9 @@ font-weight: bold;</string>
     <bool>false</bool>
    </property>
    <widget class="QMenu" name="menuFile">
+    <property name="tearOffEnabled">
+     <bool>false</bool>
+    </property>
     <property name="title">
      <string>File</string>
     </property>
@@ -511,6 +530,7 @@ font-weight: bold;</string>
     <addaction name="actionExplore_Directory"/>
     <addaction name="actionDark_Theme"/>
     <addaction name="actionFullscreen"/>
+    <addaction name="actionScreenshot"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -887,7 +907,7 @@ font-weight: bold;</string>
   <action name="actionModify_Settings">
    <property name="icon">
     <iconset resource="../icons.qrc">
-     <normaloff>:/resources/icons/images/icons/dark/settings.ico</normaloff>:/resources/icons/images/icons/dark/settings.ico</iconset>
+     <normaloff>:/resources/icons/images/icons/light/settings.ico</normaloff>:/resources/icons/images/icons/light/settings.ico</iconset>
    </property>
    <property name="text">
     <string>Modify Settings</string>
@@ -940,6 +960,9 @@ font-weight: bold;</string>
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="shortcut">
+    <string>F9</string>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="icon">
@@ -974,6 +997,9 @@ font-weight: bold;</string>
     <font>
      <pointsize>11</pointsize>
     </font>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
    </property>
   </action>
   <action name="actionChip_Select">
@@ -1034,6 +1060,9 @@ font-weight: bold;</string>
      <pointsize>11</pointsize>
     </font>
    </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
   </action>
   <action name="actionStatisitics">
    <property name="icon">
@@ -1068,6 +1097,29 @@ font-weight: bold;</string>
    </property>
    <property name="text">
     <string>Fullscreen</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionAdvanced">
+   <property name="text">
+    <string>Advanced</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::PreferencesRole</enum>
+   </property>
+   <property name="Advanced" stdset="0">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/resources/icons/images/icons/dark/bar-chart.png</normaloff>
+     <normalon>:/resources/icons/images/icons/light/bar-chart.png</normalon>:/resources/icons/images/icons/dark/bar-chart.png</iconset>
+   </property>
+  </action>
+  <action name="actionScreenshot">
+   <property name="text">
+    <string>Screenshot</string>
    </property>
    <property name="font">
     <font>

@@ -20,7 +20,7 @@
    <string>Dialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="resource.qrc">
+   <iconset resource="../resource.qrc">
     <normaloff>:/resources/images/icons/meshroom.ico</normaloff>:/resources/images/icons/meshroom.ico</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -94,7 +94,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
+  <include location="../resource.qrc"/>
  </resources>
  <connections>
   <connection>

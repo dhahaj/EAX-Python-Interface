@@ -117,9 +117,14 @@
     <file>main.qml</file>
   </qresource>
   <qresource prefix="/resources">
-    <file>README.html</file>
     <file>docs/Settings.html</file>
     <file>docs/USAGE.html</file>
+    <file>animation.gif</file>
+    <file>animation2.gif</file>
+    <file>firmware_update.gif</file>
+    <file>setting.gif</file>
+    <file>testing.gif</file>
+    <file>README.html</file>
     <file>images/DeviceMenu.png</file>
     <file>images/MainWindow.png</file>
     <file>images/SettingsMenu.png</file>
@@ -129,12 +134,8 @@
   </qresource>
   <qresource prefix="resources/images">
     <file>images/ManualControl.png</file>
-    <file>firmware_update.gif</file>
-    <file>animation.gif</file>
-    <file>animation2.gif</file>
     <file>images/DeviceMenu.png</file>
     <file>images/SettingsMenu.png</file>
-    <file>setting.gif</file>
     <file>images/FirmwareUpdate.png</file>
   </qresource>
 </RCC>
