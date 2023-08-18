@@ -188,5 +188,4 @@ class UserDatabase:
 
     def close(self) -> None:
         self.conn.close()
-        self.lock.release()
         log.info('Database connection closed...')

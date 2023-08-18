@@ -454,7 +454,6 @@ class LogManager:
     def close(self) -> None:
         """Close the database connection."""
         log.info("Closing database connection.")
-        self.lock.release()
         self.conn.close()
 
 
