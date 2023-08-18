@@ -73,6 +73,8 @@ KEY_SHUTDOWN_ON_EXCEPTION = "shutdown_on_exception"
 KEY_AUTO_FIND = "auto_find"
 KEY_SLEEP_TUNE = "sleep_tune"
 KEY_FULLSCREEN = "full_screen"
+KEY_TOUCHSCREEN_ENABLED = "touchscreen_enabled"
+KEY_FRAMELESS = "frameless"
 
 KEY_DARK_THEME = "dark_mode"
 """
@@ -101,6 +103,8 @@ DEFAULT_SETTINGS = {
     KEY_AUTO_FIND: True,
     KEY_SLEEP_TUNE: 0.000001,
     KEY_FULLSCREEN: False,
+    KEY_TOUCHSCREEN_ENABLED: False,
+    KEY_FRAMELESS: False,
 }
 
 """
@@ -182,28 +186,102 @@ Keys for the firmware dictionary.
 """
 FIRMWARE_NAME = "name"
 FIRMWARE_VERSION = "version"
+KEY_FIRMWARE = "firmware"
+KEY_FIRMWARE_NAME = "filename"
+KEY_FIRMWARE_BASENAME = "basename"
+KEY_FIRMWARE_VERSION = "version"
+KEY_PATH = "path"
 
 """
 Firmware names and versions for the application.
 
 This is used for locating the firmware binaries. The hex files are
 stored in a folder named "firmware" in the same folder as the application.
+
+[{
+    "filename": "EAX300_591.hex",
+    "basename": "EAX300",
+    "version": "591"
+},
+{
+    "filename": "EAX300_591.hex",
+    "basename": "EAX300",
+    "version": "591"
+}]
 """
-FIRMWARES = [
-    {FIRMWARE_NAME: "EAX300", FIRMWARE_VERSION: "59"},
-    {FIRMWARE_NAME: "EAX500", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX503", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX504", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX505", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX510", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX513", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX514", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX515", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX520", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX523", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX524", FIRMWARE_VERSION: "591"},
-    {FIRMWARE_NAME: "EAX525", FIRMWARE_VERSION: "591"},
-]
+
+FIRMWARES = {
+    "firmware":
+    [
+        {
+            KEY_FIRMWARE_NAME: "EAX300_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX300",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX500_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX500",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX503_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX503",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX504_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX504",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX505_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX505",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX510_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX510",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX513_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX513",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX514_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX514",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX515_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX515",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX520_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX520",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX523_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX523",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX524_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX524",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+        {
+            KEY_FIRMWARE_NAME: "EAX525_591.hex",
+            KEY_FIRMWARE_BASENAME: "EAX525",
+            KEY_FIRMWARE_VERSION: "591"
+        },
+    ],
+    "path": "firmware"
+}
+
 
 INSTRUCTIONS = """# EAX-500 Testing Software
 
