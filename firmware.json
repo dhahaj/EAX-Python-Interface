@@ -1,67 +1,71 @@
-[
-    {
-        "filename": "EAX300_59.hex",
-        "basename": "EAX300",
-        "version": "59"
-    },
-    {
-        "filename": "EAX500_591.hex",
-        "basename": "EAX500",
-        "version": "591"
-    },
-    {
-        "filename": "EAX503_591.hex",
-        "basename": "EAX503",
-        "version": "591"
-    },
-    {
-        "filename": "EAX504_591.hex",
-        "basename": "EAX504",
-        "version": "591"
-    },
-    {
-        "filename": "EAX505_591.hex",
-        "basename": "EAX505",
-        "version": "591"
-    },
-    {
-        "filename": "EAX510_591.hex",
-        "basename": "EAX510",
-        "version": "591"
-    },
-    {
-        "filename": "EAX513_591.hex",
-        "basename": "EAX513",
-        "version": "591"
-    },
-    {
-        "filename": "EAX514_591.hex",
-        "basename": "EAX514",
-        "version": "591"
-    },
-    {
-        "filename": "EAX515_591.hex",
-        "basename": "EAX515",
-        "version": "591"
-    },
-    {
-        "filename": "EAX520_591.hex",
-        "basename": "EAX520",
-        "version": "591"
-    },
-    {
-        "filename": "EAX523_591.hex",
-        "basename": "EAX523",
-        "version": "591"
-    },
-    {
-        "filename": "EAX524_591.hex",
-        "basename": "EAX524",
-        "version": "591"
-    },
-    {
-        "filename": "EAX525_591.hex",
-        "basename": "EAX525",
-        "version": "591"
-    }
-]
+{
+    "firmware" :
+    [
+        {
+            "filename": "EAX300_591.hex",
+            "basename": "EAX300",
+            "version": "591"
+        },
+        {
+            "filename": "EAX500_591.hex",
+            "basename": "EAX500",
+            "version": "591"
+        },
+        {
+            "filename": "EAX503_591.hex",
+            "basename": "EAX503",
+            "version": "591"
+        },
+        {
+            "filename": "EAX504_591.hex",
+            "basename": "EAX504",
+            "version": "591"
+        },
+        {
+            "filename": "EAX505_591.hex",
+            "basename": "EAX505",
+            "version": "591"
+        },
+        {
+            "filename": "EAX510_591.hex",
+            "basename": "EAX510",
+            "version": "591"
+        },
+        {
+            "filename": "EAX513_591.hex",
+            "basename": "EAX513",
+            "version": "591"
+        },
+        {
+            "filename": "EAX514_591.hex",
+            "basename": "EAX514",
+            "version": "591"
+        },
+        {
+            "filename": "EAX515_591.hex",
+            "basename": "EAX515",
+            "version": "591"
+        },
+        {
+            "filename": "EAX520_591.hex",
+            "basename": "EAX520",
+            "version": "591"
+        },
+        {
+            "filename": "EAX523_591.hex",
+            "basename": "EAX523",
+            "version": "591"
+        },
+        {
+            "filename": "EAX524_591.hex",
+            "basename": "EAX524",
+            "version": "591"
+        },
+        {
+            "filename": "EAX525_591.hex",
+            "basename": "EAX525",
+            "version": "591"
+        }
+    ],
+    "path" : "./firmware"
+}
