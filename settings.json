@@ -5,9 +5,9 @@
     "last_user": "dmh",
     "testing_speed": 1752,
     "auto_test": true,
-    "font_family": "Calibri",
-    "font_size": 14,
-    "font_weight": "normal",
+    "font_family": "Microsoft YaHei UI",
+    "font_size": 12,
+    "font_weight": 400,
     "skip_login": true,
     "auto_connect": false,
     "arduino_instance_id": 99,
@@ -21,5 +21,7 @@
     "auto_find": true,
     "sleep_tune": 1e-06,
     "full_screen": false,
+    "touchscreen_enabled": false,
+    "frameless": false,
     "firmware_location": "./firmware"
 }

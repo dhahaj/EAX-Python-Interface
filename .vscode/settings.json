@@ -33,12 +33,10 @@
     "autoDocstring.startOnNewLine": true,
     "[python]": {
       "editor.defaultFormatter": "ms-python.autopep8"
-      // "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "black",
     "python.languageServer": "Default",
     "multiFormatter.formatterList": [
-      "black"
+      "autopep8"
     ],
     "python.analysis.autoFormatStrings": true,
     "python.analysis.completeFunctionParens": true,
@@ -52,6 +50,15 @@
     "black-formatter.args": [
       "--skip-string-normalization",
       "--line-length=150",
-      "--max-line-length=150"
-    ]
+      "--max-line-length=150",
+    ],
+    "python.analysis.extraPaths": [],
+    "files.associations": {
+      "*.src": "pic-assembly",
+      "*.py": "python",
+      "*.v": "verilog",
+      "ostream": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled",
+    "python.formatting.provider": "yapf"
 }

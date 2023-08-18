@@ -1,6 +1,6 @@
 # EAX-500 Testing Software  
 
- *[Click Here for instructions.](https://)*
+ *[Click Here for help.](https://)*
 
 ## Equipment Needed
 
@@ -23,7 +23,7 @@
 - Select the appropriate device from the Device drop down menu. *(e.g. EAX500, EAX505, etc.)*
 - Press the *Program* button to program the board. 
 - If auto test is enabled and programming was successful, testing will begin automatically.
-- If auto test is disabled, press the *Test* button to begin testing.
+- If auto test is disabled, press the *Test* button or press anywhere on the screen to begin testing.
 
 ----------------------------------------------------------------------------------------
 
