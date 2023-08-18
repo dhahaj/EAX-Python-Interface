@@ -1,6 +1,8 @@
 # Settings
 
-## Descriptions of the settings in the `settings.json` file.
+The settings for this application are stored in the windows registry under the key `Computer\Hkey_Current_User\Software\Detex Corp\EAX Interface`. The settings can be modified by clicking on the settings menu item in the main window. The settings can also be edited by opening the registry editor and navigating to the key mentioned above.
+
+### Descriptions for the settings
 
 - serial_port: The serial port that is connected to the device. Example: "COM8".
 - programmer_serial_number: The serial number of the programmer. Example: "1E660".
