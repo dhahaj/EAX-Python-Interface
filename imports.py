@@ -21,6 +21,8 @@ from qtpy.QtGui import (
     QKeyEvent,
 )
 from qtpy.QtCore import (
+    QCoreApplication,
+    QMetaObject,
     QTimer,
     QEvent,
     Qt,
@@ -38,10 +40,13 @@ from qtpy.QtCore import (
     QJsonDocument,
     QPropertyAnimation,
     QRect,
-    QFileInfo, 
-    QDir, 
-    QFile, 
+    QFileInfo,
+    QDir,
+    QFile,
     QDateTime,
+    QTime,
+    QRunnable,
+    Slot,
 )
 from qtpy.QtWidgets import (
     QApplication,
@@ -70,10 +75,8 @@ from ui import (
     Ui_Settings,
     Ui_LoginDialog,
     Ui_ManualControlDialog,
-    ui_ProgressBar,
+    Ui_ProgressBar,
 )
-import qtpy.QtCore
-from qtpy.QtCore import QCoreApplication, QMetaObject, Qt, Slot
 import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
 from device import Device
@@ -99,7 +102,7 @@ import send2trash
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
 """
-os.environ["QT_API"] = ''
+os.environ["QT_API"] = 'pyside6'
 
 
 """
@@ -154,27 +157,31 @@ def get_font(attr: Union[QFont, List]) -> Tuple[bool, QFont]:
 
 def clean_backups(directory: str, days: int = 7) -> None:
     """
-    Removes files from the given directory (and its subdirectories) that are older than the specified number of days by moving them to the trash.
+    Removes files from the given directory (and its subdirectories) that are
+    older than the specified number of days by moving them to the trash.
+
+    Args:
+        directory (str): The directory to clean.
+        days (int, optional): The number of days to keep files. Defaults to 7.
     """
     cutoff = datetime.now() - timedelta(days=days)
 
     for dirpath, dirnames, filenames in os.walk(directory):
         for file in filenames:
             filepath = os.path.join(dirpath, file)
-            fileInfo = QFileInfo(filepath)
-            
+
             # Get modified time and compare with cutoff
-            file_modified_time = datetime.fromtimestamp(os.path.getmtime(filepath))
+            file_modified_time = datetime.fromtimestamp(
+                os.path.getmtime(filepath))
 
             if file_modified_time < cutoff:
                 # Send to trash
                 try:
                     send2trash.send2trash(filepath)
-                    print(f"Moved to trash: {filepath}")
+                    logg.info(f"Moved to trash: {filepath}")
                 except Exception as e:
-                    print(f"Failed to move to trash: {filepath}. Error: {e}")
-
-
+                    logg.critical(
+                        f"Failed to move to trash: {filepath}. Error: {e}")
 
 
 def take_screenshot() -> None:
@@ -202,6 +209,7 @@ def take_screenshot() -> None:
         subprocess.run(['cmd', '/C', f'"{fileName}"'], shell=False)
         print(path, fileName)
 
+
 def print_window_flags(widget: QWidget) -> None:
     flags = widget.windowFlags()
 
@@ -225,20 +233,16 @@ def print_window_flags(widget: QWidget) -> None:
         if flags & flag:
             print(name)
 
+
 def get_theme() -> str:
     """ Returns the current theme. """
-    settings = QSettings("Detex Corp", "EAX Interface")
-    value = settings.value(KEY_DARK_THEME)
-    if not str_to_bool(value):
-        return 'light'
-    return 'dark'
+    return 'dark' if str_to_bool(QSettings("Detex Corp", "EAX Interface").value(KEY_DARK_THEME)) else 'light'
 
 
 def get_stylesheet() -> str:
     """ Returns the stylesheet for the current theme. """
-    if get_theme() == 'dark':
-        return qdarkstyle.load_stylesheet(palette=DarkPalette)
-    return qdarkstyle.load_stylesheet(palette=LightPalette)
+    palette = DarkPalette if get_theme() == 'dark' else LightPalette
+    return qdarkstyle.load_stylesheet(palette)
 
 
 def debug(msg: str) -> None:
@@ -269,7 +273,7 @@ def str_to_bool(s: str) -> bool:
     """ Converts a string to a boolean value. """
     if s is None:
         return False
-    return s.lower().strip(' ') in ['true', 'yes', '1']
+    return s.lower().strip(' ') in ['true', 'yes', '1'] if type(s) == str else bool(s)
 
 
 def browse_directory() -> None:
@@ -289,9 +293,9 @@ def check_requirements() -> tuple:
     return (True, None)
 
 
-def warning(parent, message: str, title: str="Error") -> QtWidgets.QMessageBox.StandardButton:
+def warning(parent, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
     return QMessageBox.warning(parent, "Error", message, Ok)
 
 
-def critical(parent: QWidget, message: str, title: str="Error") -> QtWidgets.QMessageBox.StandardButton:
+def critical(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
     return QMessageBox.critical(parent, title, message, Ok)
