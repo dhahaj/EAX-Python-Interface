@@ -2,46 +2,68 @@ import os
 import json
 from constants import *
 from loguru import logger as log
+from typing import List
+from pathlib import Path
 
 
 class Device:
     """ A class that contains the device information and maintains the current selected device. """
-    def __init__(self, selected_device=None):
-        self.selected_device = selected_device
-        self.version = None
-        self.firmware = None
-        self.set_version()
-        self.data = []
-        self.load_from_file()
 
-    def set_name(self, name):
-        self.selected_device = name
+    def __init__(self, selected_device: str = None):
+        self._selected_device = selected_device
+        self.data = self.load_from_file()
 
-    def get_name(self):
-        return self.selected_device
-    
-    def is_selected(self):
-        return self.selected_device is not None
+    @property
+    def selected_device(self) -> str:
+        return self._selected_device
 
-    def set_version(self):
-        for firmware in FIRMWARES:
-            if firmware[FIRMWARE_NAME] == self.selected_device:
-                self.version = firmware[FIRMWARE_VERSION]
-                break
+    @selected_device.setter
+    def selected_device(self, value: str) -> None:
+        self._selected_device = value
 
-    def get_firmware(self):
-        """ Returns the firmware file name for the current device. """
-        for firmware in self.data:
-            if firmware['basename'] == self.selected_device:
-                filename = firmware['filename']
-                return f'firmware/{filename}'
+    @property
+    def version(self) -> str:
+        return self.version
+
+    @property
+    def firmware(self) -> str:
+        for firmware in self.data.get(KEY_FIRMWARE):
+            if firmware.get(KEY_FIRMWARE_BASENAME) == self.selected_device:
+                return f'{self.data.get(KEY_PATH)}/{firmware.get(KEY_FIRMWARE_NAME)}'
         return None
 
-    def get_names(self):
-        """ Returns a list of all the device names. """
-        return [firmware['basename'] for firmware in self.data]
+    @firmware.setter
+    def firmware(self, value: str) -> None:
+        self.firmware = value
 
-    def __str__(self):
+    @property
+    def name(self) -> str:
+        return self.selected_device
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.selected_device = value
+
+    @property
+    def names(self) -> List[str]:
+        return [firmware.get(KEY_FIRMWARE_BASENAME) for firmware in self.data.get(KEY_FIRMWARE)]
+
+    @property
+    def selected(self) -> bool:
+        return self.selected_device is not None
+
+    @property
+    def path(self) -> str:
+        return self.get_firmware()
+
+    def get_firmware(self) -> str:
+        """ Returns the path to the firmware file for the current device. """
+        for firmware in self.data.get(KEY_FIRMWARE):
+            if firmware.get(KEY_FIRMWARE_BASENAME) == self.selected_device:
+                return f'{self.data.get(KEY_PATH)}/{firmware.get(KEY_FIRMWARE_NAME)}'
+        return None
+
+    def __str__(self) -> str:
         return f'{self.selected_device}_{self.version}.hex'
 
     def __repr__(self):
@@ -62,13 +84,12 @@ class Device:
     )
     def load_from_file(self, filename='firmware.json'):
         """Load the settings from a JSON file."""
-        with open(filename, 'r') as file:
-            self.data = json.load(file)
+        return json.loads(Path(filename).read_text())
 
-    def verify_firmware(self):
+    def verify_firmware(self) -> bool:
         """Verify the firmware is valid."""
-        for firmware in self.data:
-            filename = firmware['filename']
-            if not os.path.isfile(f'firmware/{filename}'):
+        for firmware in self.data.get(KEY_FIRMWARE):
+            filename = firmware.get(KEY_FIRMWARE_NAME)
+            if not os.path.isfile(f'{self.data.get(KEY_PATH)}/{filename}'):
                 return False
         return True
