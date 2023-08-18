@@ -1,6 +1,5 @@
 from telemetrix.telemetrix import Telemetrix
 from settings import ApplicationSettings
-import signal
 import threading
 import json
 import os
@@ -11,7 +10,7 @@ from time import time
 from serial.serialutil import SerialException
 from serial.tools import list_ports
 from rich import print_json
-
+from typing import List
 
 def debug(msg):
     log.debug(msg)
@@ -28,10 +27,10 @@ class USBDeviceHandler(Telemetrix):
     def __init__(
         self,
         device_connected_callback=None,
-        wait=4,
-        shutdown_on_exception=True,
-        sleep_tune=1e-6,
-        debug=True,
+        wait: int=4,
+        shutdown_on_exception: bool=True,
+        sleep_tune: float=1e-6,
+        debug: bool=True,
     ):
         """Initialize the USBHandler class.
 
@@ -39,15 +38,14 @@ class USBDeviceHandler(Telemetrix):
         :param device_connected_callback: The callback function to call when the device is connected.
         :param arduino_instance_id: The instance ID of the Arduino board.
         """
-        self.port = None
+        self.port: str = None
         self.settings = ApplicationSettings()
 
         # determine how to connect to the arduino
         if self.settings.get(KEY_AUTO_FIND):
             # If auto find is enabled, only specify the arduino ID
             self.port = None
-            self.arduino_instance_id = self.settings.get(
-                KEY_ARDUINO_INSTANCE_ID)
+            self.arduino_instance_id: int = self.settings.get_int(KEY_ARDUINO_INSTANCE_ID)
         else:
             # otherwise, only specify the port
             self.port = self.settings.get(KEY_COM_PORT)
@@ -56,25 +54,30 @@ class USBDeviceHandler(Telemetrix):
         log.info(f'port is set to {self.port}')
 
         self.device_connected_callback = device_connected_callback
-        self.shutdown_on_exception = shutdown_on_exception
-        self.arduino_wait = wait
-        self.sleep_tune = sleep_tune
+        self.shutdown_on_exception: bool = shutdown_on_exception
+        self.arduino_wait: int = wait
+        self.sleep_tune: float = sleep_tune
 
-        self.board = None
+        self.board: Telemetrix = None
 
         self.device_connected = False
-        self.debug = debug
+        self.debug: bool = debug
 
-        self.pins = {}
-        self.inputs = []
-        self.last_input_times = {}
+        self.pins: dict = {}
+        self.inputs: List = []
+        self.last_input_times: dict = {}
         self.callback = None
 
         print(
-            f"[bold green]USBDeviceHandler[/bold green] initialized with port: {self.port}\narduino_instance_id: {self.arduino_instance_id}\ndebug: {self.debug} \nshutdown_on_exception: {self.shutdown_on_exception} \narduino_wait: {self.arduino_wait} \nsleep_tune: {self.sleep_tune} \ndevice_connected: {self.device_connected}"
+            f"[bold green]USBDeviceHandler[/bold green]"
+            f"initialized with port: {self.port}"
+            f"arduino_instance_id: {self.arduino_instance_id}"
+            f"debug: {self.debug}"
+            f"shutdown_on_exception: {self.shutdown_on_exception}"
+            f"arduino_wait: {self.arduino_wait}"
+            f"sleep_tune: {self.sleep_tune}"
+            f"device_connected: {self.device_connected}"
         )
-
-        values = []
 
     def input_callback(self, message):
         pin_number = message[0]
@@ -162,46 +165,25 @@ class USBDeviceHandler(Telemetrix):
         self.write_pin_by_func('battery', 1)
 
     def battery_off(self):
-        try:
-            self.write_pin_by_func('battery', 0)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('battery', 0)
 
     def low_battery_on(self):
-        try:
-            self.write_pin_by_func('low battery', 1)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('low battery', 1)
 
     def low_battery_off(self):
-        try:
-            self.write_pin_by_func('low battery', 0)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('low battery', 0)
 
     def indicator_on(self):
-        try:
-            self.write_pin_by_func('indicator', 1)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('indicator', 1)
 
     def indicator_off(self):
-        try:
-            self.write_pin_by_func('indicator', 0)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('indicator', 0)
         
     def test_indicator_on(self):
-        try:
-            self.write_pin_by_func('test indicator', 1)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('test indicator', 1)
 
     def test_indicator_off(self):
-        try:
-            self.write_pin_by_func('test indicator', 0)
-        except SerialException as e:
-            log.exception(f'Exception occurred while writing to pin: {e}')
+        self.write_pin_by_func('test indicator', 0)
 
     def configure_pin_modes(self):
         """Configures the pin modes of the Arduino board."""
@@ -222,9 +204,13 @@ class USBDeviceHandler(Telemetrix):
                     self.set_pin_mode_digital_input(
                         pin['pin_number'], self.input_callback)
 
-    def is_connected(self):
-        """Check if the Arduino board is connected."""
+    @property
+    def connected(self) -> bool:
         return self.device_connected
+    
+    @connected.setter
+    def connected(self, value: bool) -> None:
+        self.device_connected = value        
 
     def load_pin_configuration(self, filename='pins.json'):
         """
@@ -295,7 +281,7 @@ class USBDeviceHandler(Telemetrix):
         if self.debug:
             log.debug(f'Method: {self.read_pin.__name__}, Pin: {pin_number}')
             # print(f'[bold red]Method[/bold red]: {self.read_pin.__name__}, [bold'f' green]Pin[/bold green]: {pin_number}')
-        if self.is_connected() and pin_number is not None:
+        if self.connected and pin_number is not None:
             if isinstance(pin_number, str):
                 # pin = int(pin_number)
                 pin = self.get_pin_by_function(pin_number)
@@ -304,7 +290,7 @@ class USBDeviceHandler(Telemetrix):
             return self.board.digital_read(pin)[0]
         else:
             if self.debug:
-                if not self.is_connected():
+                if not self.connected:
                     print('Device not connected.')
                 if pin_number is None:
                     print('Pin number not specified.')
@@ -346,7 +332,7 @@ class USBDeviceHandler(Telemetrix):
         if self.debug:
             log.debug(f'Method: {self.cleanup.__name__}')
 
-        if self.is_connected():
+        if self.connected:
             for pin in self.pins:
                 self.digital_write(pin['pin_number'], 0)
                 self.set_pin_mode_digital_input(pin['pin_number'])
@@ -394,15 +380,15 @@ def get_usb_ports():
     return USBDeviceHandler.get_usb_ports()
 
 
-def configuration(filename='pins.json'):
-    pins = []
+def configuration(filename='pins.json') -> List[dict]:
+    pins: dict = None
     if os.path.exists(filename):
         with open(filename, 'r') as file:
             pins = json.load(file)['pins']
     return pins
 
 
-def get_pin_by_function(function, pins=None):
+def get_pin_by_function(function, pins: List[dict]=None) -> int:
     """
     Fetch a pin by its function.
 
