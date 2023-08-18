@@ -2,15 +2,15 @@ import atexit
 import os
 import shutil
 import logging
-from turtle import st
 import zipfile
 from datetime import datetime
-import time
 from rich import print
 import re
 import sqlite3
 import os
-from logging import _levelToName, _nameToLevel 
+from logging import _nameToLevel
+from loguru import logger as log
+from threading import Lock
 
 
 class AppLogger:
@@ -30,7 +30,7 @@ class AppLogger:
     """
     database = 'logs.db'
 
-    def __init__(self, name, file_name="debug.log"):
+    def __init__(self, name: str, file_name="debug.log"):
         """
         Initialize the AppLogger class.
 
@@ -77,7 +77,7 @@ class AppLogger:
         return logging.getLogger("logger")
 
     @staticmethod
-    def info(message):
+    def info(message: str) -> None:
         """
         Log an info message.
 
@@ -106,7 +106,7 @@ class AppLogger:
         return log_list
 
     @staticmethod
-    def shutdown():
+    def shutdown() -> None:
         """Shutdown the logging system."""
         logging.shutdown()
 
@@ -165,7 +165,7 @@ class AppLogger:
         shutil.make_archive(archive_name, "zip", "logs")
 
     @staticmethod
-    def add_to_archive(archive_name, file_name) -> None:
+    def add_to_archive(archive_name: str, file_name: str) -> None:
         """
         Add a file to an existing zip archive
 
@@ -175,7 +175,7 @@ class AppLogger:
         with zipfile.ZipFile(archive_name, "a") as myzip:
             myzip.write(file_name)
 
-    def log(self, level, message):
+    def log(self, level: str, message: str) -> None:
         """
         Log a message.
 
@@ -188,7 +188,7 @@ class AppLogger:
         # print(f"entry: {entry}")
         # self.store_log_entry_to_db(entry)
 
-    def create_entry(self, level, message):
+    def create_entry(self, level: str, message: str) -> str:
         """
         Create a log entry.
 
@@ -214,7 +214,7 @@ class AppLogger:
                 message TEXT
             )''')
 
-    def store_log_entry_to_db(self, entry):
+    def store_log_entry_to_db(self, entry: str) -> None:
         with sqlite3.connect(self.database) as connection:
             cursor = connection.cursor()
 
@@ -222,52 +222,134 @@ class AppLogger:
             pattern = r'(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?P<logger>\w+) - (?P<level>[A-Z]+) - (?P<message>.+)'
             match = re.match(pattern, entry)
             print(f"pattern {pattern}, match: {match}")
-            # if match:
-            # data = match.groupdict()
-            # print(f"data: {data}")
-            cursor.execute('''
-                INSERT INTO logs (timestamp, logger_name, log_level, message)
-                VALUES (?, ?, ?, ?)
-                ''', 
-                (data['timestamp'], data['logger'], data['level'], data['message'])
-            )
+            if match:
+                data = match.groupdict()
+                # print(f"data: {data}")
+                cursor.execute('INSERT INTO logs (timestamp, logger_name, log_level, message) VALUES (?, ?, ?, ?)',
+                               (data['timestamp'], data['logger'], data['level'], data['message']))
 
 # SQLite Database Management
+
+
 class LogManager:
+    """
+    LogManager class
+
+    This class is used to manage the SQLite database. It can be used to insert
+    log entries into the database, update existing log entries, clear all logs
+    from the database, get logs from the database and exporting logs to a file.
+    """
+    lock = Lock()
 
     def __init__(self, db_name="logs.db"):
-        self.conn = sqlite3.connect(db_name, check_same_thread=False)  # Connect to the SQLite database
+        # Connect to the SQLite database
+        self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.create_table()
         atexit.register(self.close)
+        self.db_name = db_name
+        log.debug("LogManager initialized.")
 
-    def log(self, level, message):
-        entry=self.create_entry(level, message)
-        print(f"entry: {entry}")
+    def log(self, level: str, message: str) -> None:
+        """Log a message."""
+        entry = self.create_entry(level, message)
         parse_and_insert_log(self, entry)
-        # self.insert_log(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "logger", level, message)
 
-    def create_table(self):
-        """Create a new table for logs if it doesn't exist yet."""
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS logs (
-                id INTEGER PRIMARY KEY,
-                timestamp TEXT NOT NULL,
-                logger TEXT NOT NULL,
-                level TEXT NOT NULL,
-                message TEXT NOT NULL
+    def success(self, message: str) -> None:
+        """Log a success message."""
+        self.log("SUCCESS", message)
+
+    def info(self, message: str) -> None:
+        """Log an info message."""
+        self.log("INFO", message)
+
+    def warning(self, message: str) -> None:
+        """Log a warning message."""
+        self.log("WARNING", message)
+
+    def error(self, message: str) -> None:
+        """Log an error message."""
+        self.log("ERROR", message)
+
+    def critical(self, message: str) -> None:
+        """Log a critical message."""
+        self.log("CRITICAL", message)
+
+    def save_logs(self, log_data: list) -> None:
+        """Save a list of logs to the database after clearing the current logs."""
+        self.backup_database()
+        self.clear_all_logs()
+        for entry in log_data:
+            log_entry = f"{ entry['timestamp']} - logger - {entry['level']} - {entry['message']}"
+            log.info(log_entry)
+            self.insert_log(
+                entry['timestamp'],
+                "logger",
+                entry['level'],
+                entry['message']
             )
-        """)
-        self.conn.commit()
 
-    def insert_log(self, timestamp, logger, level, message):
+    def clear_all_logs(self) -> None:
+        """Remove all log entries from the database."""
+        with self.lock:
+            self.cursor.execute("DELETE FROM logs")
+            self.conn.commit()
+            log.debug("All logs cleared from database.")
+
+    def update_log(self, log_id: str, timestamp=None, logger=None, level=None, message=None) -> None:
+        """Update a log entry based on its id."""
+        columns_to_update = []
+        values_to_update = []
+
+        if timestamp:
+            columns_to_update.append("timestamp = ?")
+            values_to_update.append(timestamp)
+
+        if logger:
+            columns_to_update.append("logger = ?")
+            values_to_update.append(logger)
+
+        if level:
+            columns_to_update.append("level = ?")
+            values_to_update.append(level)
+
+        if message:
+            columns_to_update.append("message = ?")
+            values_to_update.append(message)
+
+        with self.lock:
+            if columns_to_update:
+                # Add id at the end to use in the WHERE clause
+                values_to_update.append(log_id)
+                sql_update = f"UPDATE logs SET {', '.join(columns_to_update)} WHERE id = ?"
+                self.cursor.execute(sql_update, values_to_update)
+                self.conn.commit()
+                log.debug(f"Updated log with ID: {log_id}")
+            else:
+                log.debug(f"No changes provided for log with ID: {log_id}")
+
+    def create_table(self) -> None:
+        with self.lock:
+            """Create a new table for logs if it doesn't exist yet."""
+            self.cursor.execute("""
+                CREATE TABLE IF NOT EXISTS logs (
+                    id INTEGER PRIMARY KEY,
+                    timestamp TEXT NOT NULL,
+                    logger TEXT NOT NULL,
+                    level TEXT NOT NULL,
+                    message TEXT NOT NULL
+                )
+            """)
+            self.conn.commit()
+
+    def insert_log(self, timestamp: str, logger: str, level: str, message: str) -> None:
         """Insert a log entry into the database."""
-        print(f"inserting log: {timestamp}, {logger}, {level}, {message}")
-        self.cursor.execute("INSERT INTO logs (timestamp, logger, level, message) VALUES (?, ?, ?, ?)",
-                            (timestamp, logger, level, message))
-        self.conn.commit()
+        with self.lock:
+            self.cursor.execute("INSERT INTO logs (timestamp, logger, level, message) VALUES (?, ?, ?, ?)",
+                                (timestamp, logger, level, message))
+            self.conn.commit()
 
-    def create_entry(self, level, message) -> str:
+    def create_entry(self, level: str, message: str) -> str:
         """
         Create a log entry.
 
@@ -282,13 +364,14 @@ class LogManager:
         }
 
     def get_all_logs(self) -> list:
+        """Get all logs from the database."""
         self.cursor.execute("SELECT * FROM logs")
         logs = []
         for row in self.cursor.fetchall():
             log_entry = {
-                # "id": row[0],
+                "id": row[0],
                 "timestamp": row[1],
-                # "logger": row[2],
+                "logger": row[2],
                 "level": row[3],
                 "message": row[4]
             }
@@ -296,37 +379,101 @@ class LogManager:
         return list(logs)
 
     def count_programming_errors(self) -> int:
-        self.cursor.execute("SELECT COUNT(*) FROM logs WHERE level='ERROR' AND message LIKE '%program%'")
-        count = self.cursor.fetchone()[0]
-        return count
-    
-    def count_programming_successes(self) -> int:
-        self.cursor.execute("""
-        SELECT COUNT(*) 
-        FROM logs 
-        WHERE level='INFO' 
-        AND message LIKE '%Programming%'
-        """)
+        """Count the number of programming errors."""
+        self.cursor.execute(
+            "SELECT COUNT(*) FROM logs WHERE level='ERROR' AND message LIKE '%program%'")
         count = self.cursor.fetchone()[0]
         return count
 
-    def close(self):
+    def count_programming_successes(self) -> int:
+        """Count the number of programming successes."""
+        self.cursor.execute(
+            """SELECT COUNT(*) 
+               FROM logs 
+               WHERE level='SUCCESS' 
+               AND message LIKE '%Programming%'"""
+        )
+        count = self.cursor.fetchone()[0]
+        return count
+
+    def count_devices_tested(self) -> int:
+        """Count the number of tests passed."""
+        self.cursor.execute(
+            "SELECT COUNT(*) FROM logs WHERE level='INFO' AND message LIKE '%Testing%'")
+        count = self.cursor.fetchone()[0]
+        return count
+
+    def import_logs(self, file_name: str) -> None:
+        """Import logs from a text file."""
+        with self.lock:
+            with open(file_name, "r") as file:
+                for line in file:
+                    parse_and_insert_log(self, line)
+            log.debug(f"Logs imported from {file_name}")
+
+    def export_logs(self, file_name="debug.log") -> None:
+        """Export all logs to a text file."""
+        with open(file_name, "w") as file:
+            for this_log in self.get_all_logs():
+                file.write(
+                    f"{this_log['timestamp']} - {this_log['logger']} - {this_log['level']} - {this_log['message']}\n")
+        log.debug(f"Logs exported to {file_name}")
+
+    def backup_database(self) -> None:
+        with self.lock:
+            # Append a timestamp as a unique identifier to the backup name
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            backup_filename = f"{self.db_name.replace('.db','')}_{timestamp}.db"
+
+            # Connect to the backup database
+            backup_conn = sqlite3.connect(backup_filename)
+
+            # Use the SQLite backup API to backup an active database
+            with backup_conn:
+                self.conn.backup(backup_conn)
+            backup_conn.close()
+
+            self.create_dir('backups')
+            self.create_dir('backups/logs')
+
+            os.system(f'attrib +h {backup_filename}')
+            shutil.move(backup_filename, f'backups/logs/{backup_filename}')
+            log.info(f'Database backed up to {backup_filename}')
+
+    def create_dir(self, path: str) -> None:
+        if os.path.exists(path) == False:
+            os.mkdir(path)
+            os.system(f'attrib +h {path}')
+
+    def check_integrity(self) -> bool:
+        self.cursor.execute("PRAGMA integrity_check")
+        result = self.cursor.fetchone()
+        log.info(result)
+        return result[0] == 'ok'
+
+    def close(self) -> None:
         """Close the database connection."""
-        print("Closing database connection.")
+        log.info("Closing database connection.")
+        self.lock.release()
         self.conn.close()
 
-# Regular Expression for Log Parsing
-pattern = r'(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - (?P<logger>[\w\.]+) - (?P<level>[A-Z]+) - (?P<message>.+)'
 
-def parse_and_insert_log(log_manager, log_entry):
+# Regular Expression for Log Parsing
+pattern = r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:,\d{3})?) - (?: ?(?P<logger>[\w\.]+) - )?(?P<level>[A-Z]+) - (?P<message>.+)"
+
+
+def parse_and_insert_log(log_manager: LogManager, log_entry: str) -> None:
     """Parse a log entry and insert it into the database."""
     match = re.match(pattern, log_entry)
+    print(log_entry)
     if match:
         data = match.groupdict()
-        log_manager.insert_log(data['timestamp'], data['logger'], data['level'], data['message'])
-        print(f"Inserted log: {data}")
+        log_manager.insert_log(
+            data['timestamp'], data['logger'], data['level'], data['message'])
+        log.debug(f"Inserted log: {data}")
     else:
-        print("Log format didn't match. Entry skipped.")
+        log.debug("Log format didn't match. Entry skipped.")
+
 
 class Log:
     """
@@ -350,12 +497,12 @@ class Log:
             self.message = message
 
     @staticmethod
-    def parse(value):
+    def parse(value) -> tuple:
         value = value.split(" - ")
         value = [v.strip() for v in value]
         return (value[0], value[2], value[3])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.date} {self.level} {self.message}"
 
 
