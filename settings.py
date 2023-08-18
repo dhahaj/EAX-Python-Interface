@@ -3,6 +3,7 @@ import os
 
 from PySide6.QtCore import QJsonDocument
 from PySide6.QtCore import QSettings
+from typing import Any
 from loguru import logger as log
 
 from constants import *
@@ -27,7 +28,7 @@ class ApplicationSettings:
         # Load settings from file
         self.load_settings()
 
-    def get(self, key, default_value=None):
+    def get(self, key: str, default_value=None) -> Any:
         """
         Get a setting.
 
@@ -44,10 +45,23 @@ class ApplicationSettings:
             elif return_val == "false":
                 return_val = False
         return return_val
+    
+    def get_str(self, key: str) -> str:
+        return_val = self.app_settings.value(key)
+        if not return_val:
+            return ""
+        return str(return_val) if type(return_val) != str else return_val
+    
+    def get_int(self, key: str) -> int:
+        return_val = self.app_settings.value(key)
+        if not return_val:
+            return 0
+        return int(return_val) if type(return_val) != int else return_val
 
     def get_bool(self, key) -> bool:
+        """ Get a boolean setting. """
         return_val = self.app_settings.value(key)
-        if return_val is None:
+        if not return_val:
             return False
         elif type(return_val) == str:
             return return_val.lower().strip(" ") in ["true", "yes", "1"]
@@ -121,6 +135,14 @@ class ApplicationSettings:
         else:
             log.warning(f"Settings file {filename} does not exist.")
         return values
+
+    def print_settings(self):
+        """Print the settings."""
+        self.app_settings.sync()
+        for key in self.app_settings.allKeys():
+            value = self.app_settings.value(key)
+            if self.get_bool(KEY_DEBUG):
+                log.debug(f"{key}: {value}, type={type(value)}")
 
 
 def signal(obj):
