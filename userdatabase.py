@@ -5,8 +5,9 @@ import bcrypt
 import os
 import datetime
 import shutil
-from typing import List
+from typing import List, Dict, Any
 from threading import Lock
+from constants import Files
 
 
 class UserDatabase:
@@ -45,12 +46,12 @@ class UserDatabase:
     close()
         Closes the connection to the database.
     """
-    db_name = 'users.db'
+    db_name = Files.Users.value
     lock = Lock()
 
-    def __init__(self, db_name='users.db'):
-        self.db_name = db_name
-        self.conn = sqlite3.connect(db_name)
+    def __init__(self, db_name=Files.Users.value):
+        # self.db_name = db_name
+        self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
         self.create_users_table()
 
@@ -63,24 +64,20 @@ class UserDatabase:
     @property
     def users(self) -> List[str]:
         return self.get_users()
-
+    
     @property
     def database_file(self) -> str:
         return self.db_name
 
-    def load_from_database(self) -> list:
-        '''Returns a list of dictionaries containing all users in the database.'''
+    def load_from_database(self) -> List[Dict[str, Any]]:
+        """Returns a list of dictionaries containing all users in the database."""
         self.cursor.execute('SELECT * FROM users')
-        rows = self.cursor.fetchall()
-        users = []
-        [users.append({
+        return [{
             'id': row[0],
             'username': row[1],
             'password': row[2],
             'is_admin': row[3],
-        }) for row in rows]
-
-        return users
+        } for row in self.cursor.fetchall()]
 
     def __str__(self) -> str:
         return f'UserDatabase: {self.db_name}'

@@ -18,7 +18,7 @@
 - Flip both slide switches to the OFF position.
 - Press the connect button to establish a connection with the fixture
 
-## Usage instructions:
+## Usage instructions
 
 - Select the appropriate device from the Device drop down menu. *(e.g. EAX500, EAX505, etc.)*
 - Press the *Program* button to program the board. 
@@ -27,4 +27,4 @@
 
 ----------------------------------------------------------------------------------------
 
-#### 
+####

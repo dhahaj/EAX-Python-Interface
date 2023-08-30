@@ -19,6 +19,7 @@ from qtpy.QtGui import (
     QCursor,
     QAction,
     QKeyEvent,
+    QShowEvent,
 )
 from qtpy.QtCore import (
     QCoreApplication,
@@ -82,7 +83,7 @@ from qdarkstyle import DarkPalette, LightPalette
 from device import Device
 from userdatabase import UserDatabase
 from settings import ApplicationSettings
-from usbhandler import USBDeviceHandler
+from usbhandler import USBDevice
 from applogger import AppLogger, Log, LogManager
 from stats import *
 from constants import *
@@ -98,6 +99,7 @@ from pathlib import Path
 from enum import Enum
 from state import State
 import send2trash
+
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
@@ -118,8 +120,8 @@ ControlModifier = Qt.KeyboardModifier.ControlModifier
 Global variables
 """
 app_logger = AppLogger.get_logger()
-settings = ApplicationSettings("settings.json")
-db = UserDatabase("users.db")
+settings = ApplicationSettings(Files.Settings.value)
+db = UserDatabase(Files.Users.value)
 logg = LogManager()
 
 
@@ -143,15 +145,6 @@ def get_font(attr: Union[QFont, List]) -> Tuple[bool, QFont]:
     else:
         return (False, None)
 
-    return QFontDialog.getFont(font)
-
-    font = QFont(font_name, int(font_size))
-    if font_style == "Bold":
-        font.setBold(True)
-    elif font_style == "Italic":
-        font.setItalic(True)
-    elif font_style == "Underline":
-        font.setUnderline(True)
     return QFontDialog.getFont(font)
 
 
@@ -284,7 +277,7 @@ def browse_directory() -> None:
 def check_requirements() -> tuple:
     """ Checks if all the required files are present. """
     missing = ""
-    for file in FILES:
+    for file in Files.all_files():
         if not os.path.exists(file):
             missing += file + "\n"
     if missing != "":
@@ -292,10 +285,30 @@ def check_requirements() -> tuple:
         return (False, missing)
     return (True, None)
 
+@overload
+def warning(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
 
-def warning(parent, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
-    return QMessageBox.warning(parent, "Error", message, Ok)
+@overload
+def warning(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton: ...
 
 
-def critical(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
-    return QMessageBox.critical(parent, title, message, Ok)
+def warning(attr: Union[str, QWidget], message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
+    """ Displays a warning message box. """
+    if isinstance(attr, str):
+        return QMessageBox.warning(None, title, message, Ok)
+    return QMessageBox.warning(attr, title, message, Ok)
+
+
+@overload
+def critical(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
+
+@overload
+def critical(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton: ...
+
+
+def critical(attr: Union[str, QWidget], message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
+    """ Displays a critical message box. """
+    if isinstance(attr, str):
+        return QMessageBox.critical(None, title, message, Ok)
+    return QMessageBox.critical(attr, title, message, Ok)
+

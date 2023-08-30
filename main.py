@@ -1,7 +1,7 @@
 from math import ceil
 from psutil import Popen
 from imports import *
-
+from rich import print
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -68,12 +68,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.installEventFilter(self)
         for widget in QApplication.instance().allWidgets():
             widget.installEventFilter(self)
-
+        print(self.settings.get(KEY_FONT_FAMILY))
         # Setup the text area
         self.text_edit.setFont(
             QFont(
                 self.settings.get(KEY_FONT_FAMILY),
-                self.settings.get(KEY_FONT_SIZE),
+                self.settings.get_int(KEY_FONT_SIZE),
             )
         )
         self.text_edit.setStyleSheet(
@@ -130,7 +130,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             app_logger.critical("Missing firmware!")
 
         # USB device
-        self.arduino: USBDeviceHandler = None
+        self.arduino: USBDevice = None
 
         # Set the theme
         self.set_theme(get_theme())
@@ -308,11 +308,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if is_frameless:
                 self.setWindowFlags(self.windowFlags() & ~
                                     Qt.FramelessWindowHint)
-                self.settings.set(KEY_FRAMELESS, False)
+                self.settings.setValue(KEY_FRAMELESS, False)
             else:
                 self.setWindowFlags(self.windowFlags() |
                                     Qt.FramelessWindowHint)
-                self.settings.set(KEY_FRAMELESS, True)
+                self.settings.setValue(KEY_FRAMELESS, True)
             QTimer.singleShot(10, self.show)
         elif key == Qt.Key.Key_1 and event.modifiers() & ControlModifier:
             log.warning(f"State: {self.state}")
@@ -321,6 +321,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             event.modifiers() & ControlModifier
         ):
             log.warning(f"Device: {self.eax_device.name}")
+        elif key == Qt.Key.Key_A and event.modifiers() & ControlModifier:
+            print(vars(self))
+            print(vars(self.settings))
+            print(vars(app_logger))
+            print(vars(self.arduino))
+            print(vars(db))
+            print(vars(logg))
+
 
     def on_device_changed(self, device: str) -> None:
         """ Called when the device is changed. """
@@ -376,28 +384,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ok:
             debug(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
-            self.settings.set(KEY_FONT_FAMILY, QFontInfo(font).family())
+            self.settings.setValue(KEY_FONT_FAMILY, QFontInfo(font).family())
             self.app_settings.setValue(
                 KEY_FONT_FAMILY, QFontInfo(font).family())
-            self.settings.set(KEY_FONT_SIZE, font.pointSize())
+            self.settings.setValue(KEY_FONT_SIZE, font.pointSize())
             self.app_settings.setValue(KEY_FONT_SIZE, font.pointSize())
 
     def get_chip_part(self) -> None:
         self.settings.load_settings()
         current_chip = self.settings.get(KEY_CHIP_PART)
-        current_selection = CHIP_PARTS.index(current_chip)
+        current_selection = CHIP_OPTIONS.index(current_chip)
         item, okPressed = QInputDialog.getItem(
-            self, "Get item", "Chip Select:", CHIP_PARTS, current_selection, False
+            self, "Get item", "Chip Select:", CHIP_OPTIONS, current_selection, False
         )
         if okPressed and item:
             self.settings_dialog.comboBox_chip.setCurrentText(
                 item
             )  # update the combo box
-            self.settings.set(KEY_CHIP_PART, item)
+            self.settings.setValue(KEY_CHIP_PART, item)
             self.app_settings.setValue(KEY_CHIP_PART, item)
             log.debug(f"saved chip settings: {item}")
 
-    def eventFilter(self, watched, event) -> bool:
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         # Handle mouse clicks on the scroll area
         # if watched.objectName() == "qt_scrollarea_viewport":
         #     if event.type() == QEvent.MouseButtonPress:
@@ -410,16 +418,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Reset the inactivity timer if a mouse movement or key press event is detected
         if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
             self.inactivityTimer.start(
-                self.settings.get(KEY_LOGOFF_DELAY) * 60 * 1000
+                self.settings.get_int(KEY_LOGOFF_DELAY) * 60 * 1000
             )  # 60 seconds of inactivity before timeout
         return super(MainWindow, self).eventFilter(watched, event)
 
-    def showEvent(self, event):
+    def showEvent(self, event: QShowEvent) -> None:
         super().showEvent(event)
         self.activateWindow()
         self.setFocus()
 
     def _pass(self):
+        """Dummy function."""
         pass
 
     def handle_inactivity_timeout(self) -> None:
@@ -437,7 +446,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.eax_device.name = None  # reset the device
         [self.perform_login() if not self.settings.get_bool(KEY_AUTO_LOGIN) else self._pass()]
 
-    def input_callback(self, msg) -> None:
+    def input_callback(self, msg: str) -> None:
         pin = msg[0]
         value = msg[1]
         log.debug(f"Pin: {pin} Value: {value}")
@@ -458,7 +467,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.remove = UserRemovalDialog()
         self.remove.show()
 
-    def insert_text(self, text) -> None:
+    def insert_text(self, text: str) -> None:
         """Add text to the text console."""
         self.text_edit.append("\n" + text)
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
@@ -482,7 +491,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         if not self.arduino:
-            self.arduino = USBDeviceHandler(
+            self.arduino = USBDevice(
                 device_connected_callback=self.notify_device_connected,
                 wait=self.settings.get(KEY_ARDUINO_WAIT),
                 shutdown_on_exception=self.settings.get(
@@ -500,7 +509,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.arduino.connect(self.notify_device_connected)
             self.arduino.attach_callback(self.input_callback)
 
-    def notify_device_connected(self, connected, message=None) -> None:
+    def notify_device_connected(self, connected: bool, message: str=None) -> None:
         """Callback for the USB device."""
         if connected:  # device is connected
             self.label_usb_icon.setText(ICON_USB_GREEN)
@@ -523,7 +532,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.state = State.CONNECTED
 
             # Save this port to the settings
-            self.settings.set(KEY_COM_PORT, self.arduino.serial_port.port)
+            self.settings.setValue(KEY_COM_PORT, self.arduino.serial_port.port)
             self.app_settings.setValue(
                 KEY_COM_PORT, self.arduino.serial_port.port)
 
@@ -566,7 +575,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def execute_test(self) -> None:
         """Start testing the device."""
-        print(self.state)
+
         if self.state == State.WAITING_FOR_BUTTON:
             self.button_pressed = True
             return
@@ -583,7 +592,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.test_queue = []
 
-        speed = int(self.settings.get(KEY_TESTING_SPEED))
+        speed = self.settings.get_int(KEY_TESTING_SPEED)
 
         self.text_edit.setMarkdown(
             f"# Starting test for {self.eax_device._selected_device}... "
@@ -696,7 +705,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.loginDialog.exec() == QDialog.Accepted:
             success, username = self.loginDialog.ok()
             if success:
-                self.settings.set(KEY_LAST_USER, username)
+                self.settings.setValue(KEY_LAST_USER, username)
                 self.app_settings.setValue(KEY_LAST_USER, username)
             else:
                 critical(
@@ -816,7 +825,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.log_view = LogView(logs, self.save_logs)
         self.log_view.show()
 
-    def save_logs(self, log_data) -> None:
+    def save_logs(self, log_data: List[Dict[str, str]]) -> None:
         """Save the logs."""
         # Create a progress bar to show the progress of the save operation
         self.progress_bar = ProgressBar()
@@ -830,7 +839,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.save_worker.start()
 
     def on_save_finished(self) -> None:
-        print("Save finished.")
+        log.info("Save finished.")
         self.progress_bar.close()
 
     def perform_login(self) -> None:
@@ -863,7 +872,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionRemove_User.setEnabled(db.is_admin(username))
             self.actionUpdate_Firmware.setEnabled(db.is_admin(username))
             # save the last user to the settings
-            self.settings.set(KEY_LAST_USER, username)
+            self.settings.setValue(KEY_LAST_USER, username)
         else:
             sys.exit(0)
 
@@ -926,7 +935,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             ["-ExecutionPolicy", "ByPass", "-File", script_path, id, port],
         )
 
-    def on_error(self, error) -> None:
+    def on_error(self, error: QProcess.ProcessError) -> None:
         log.error("An error occurred: ", error)
         log.error("System reported: ", self.update_process.errorString())
         app_logger.error("Firmware update failed: ", error)
@@ -966,7 +975,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
     :param usb_handler: The USB connection handler.
     """
 
-    def __init__(self, usb_handler: USBDeviceHandler = None):
+    def __init__(self, usb_handler: USBDevice = None):
         super().__init__()
         self.setWindowFlags(self.windowFlags() |
                             QtCore.Qt.WindowStaysOnTopHint)
@@ -1074,8 +1083,6 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.setupUi(self)
         self.app_settings = QSettings("Detex Corp", "EAX Interface")
         self.settings: ApplicationSettings = parent.settings
-        # self.settings = settings
-        # self.settings.load_settings()
 
         self.background_color = None
         self.foreground_color = None
@@ -1098,52 +1105,47 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.lineEdit_serial.setText(
             self.app_settings.value(KEY_PROGRAMMER_SERIAL_NUMBER)
         )
-        for chip_part in CHIP_PARTS:
+        for chip_part in CHIP_OPTIONS:
             self.comboBox_chip.addItem(chip_part)
         self.comboBox_chip.setCurrentText(
-            self.app_settings.value(KEY_CHIP_PART, CHIP_PARTS[3])
+            self.app_settings.value(KEY_CHIP_PART, CHIP_OPTIONS[3])
         )
-        value = self.app_settings.value(KEY_TESTING_SPEED, 2200)
-        self.dial.setValue(int(value))
+        value = self.settings.get_int(KEY_TESTING_SPEED)
+        self.dial.setValue(value)
         self.comboBox_com_port.setCurrentText(
             self.app_settings.value(KEY_COM_PORT, "COM1")
         )
-        for port in USBDeviceHandler.get_usb_ports():
+        for port in USBDevice.get_usb_ports():
             self.comboBox_com_port.addItem(port)
         self.spinBox_autologoff_delay.setValue(
-            self.app_settings.value(KEY_LOGOFF_DELAY, 15, type=int)
+            self.settings.get_int(KEY_LOGOFF_DELAY)
         )
         self.spinBox_arduino_id.setValue(
-            self.app_settings.value(KEY_ARDUINO_INSTANCE_ID, 1, type=int)
+            self.settings.get_int(KEY_ARDUINO_INSTANCE_ID)
         )
         self.checkBox_test.setChecked(
-            str_to_bool(self.app_settings.value(KEY_AUTO_TEST, True))
-            # self.settings.get_bool(KEY_AUTO_TEST)
+            self.settings.get_bool(KEY_AUTO_TEST)
         )
         self.checkBox_connect.setChecked(
-            # str_to_bool(self.app_settings.value(KEY_AUTO_CONNECT, True))
             self.settings.get_bool(KEY_AUTO_CONNECT)
         )
         self.checkBox_debug.setChecked(self.settings.get_bool(KEY_DEBUG))
         self.checkBox_logon.setChecked(
-            # str_to_bool(self.app_settings.value(KEY_AUTO_LOGIN, True))
             self.settings.get_bool(KEY_AUTO_LOGIN)
         )
         self.checkBox_auto_find.setChecked(
-            # str_to_bool(self.app_settings.value(KEY_AUTO_FIND, True))
             self.settings.get_bool(KEY_AUTO_FIND)
         )
         self.checkBox_shutdown_on_exception.setChecked(
-            # str_to_bool(self.app_settings.value(KEY_SHUTDOWN_ON_EXCEPTION, True))
             self.settings.get_bool(KEY_SHUTDOWN_ON_EXCEPTION)
         )
         self.lineEdit_serial_sleep_tune.setText(
             str(self.app_settings.value(KEY_SLEEP_TUNE, 1.0))
         )
         self.spinBox_wait_time.setValue(
-            self.app_settings.value(KEY_ARDUINO_WAIT, 1))
+            self.settings.get_int(KEY_ARDUINO_WAIT)
+        )
         self.checkBox_fullscreen.setChecked(
-            # str_to_bool(self.app_settings.value(KEY_FULLSCREEN, False))
             self.settings.get_bool(KEY_FULLSCREEN)
         )
         self.checkBox_touchscreen.setChecked(
@@ -1155,7 +1157,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         defaults = [DEFAULT_SETTINGS[key] for key in DEFAULT_SETTINGS.keys()]
         self.comboBox_com_port.setCurrentIndex(0)
         self.lineEdit_serial.setText(defaults[1])
-        self.comboBox_chip.setCurrentIndex(CHIP_PARTS.index(defaults[2]))
+        self.comboBox_chip.setCurrentIndex(CHIP_OPTIONS.index(defaults[2]))
         self.dial.setValue(int(defaults[4]))
         self.checkBox_test.setChecked(defaults[5])
         self.checkBox_logon.setChecked(defaults[9])
@@ -1173,86 +1175,56 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def save_changes(self) -> None:
         if self.background_color:
-            self.settings.set(KEY_BACKGROUND_COLOR,
+            self.settings.setValue(KEY_BACKGROUND_COLOR,
                               self.background_color.name())
         if self.foreground_color:
-            self.settings.set(KEY_FOREGROUND_COLOR,
+            self.settings.setValue(KEY_FOREGROUND_COLOR,
                               self.foreground_color.name())
         if self.qfont:
-            self.settings.set(KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
-            self.settings.set(KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
-            self.settings.set(KEY_FONT_WEIGHT, QFontInfo(self.qfont).weight())
-        self.app_settings.setValue(
+            self.settings.setValue(KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
+            self.settings.setValue(KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
+            self.settings.setValue(KEY_FONT_WEIGHT, QFontInfo(self.qfont).weight())
+        self.settings.setValue(
             KEY_COM_PORT, self.comboBox_com_port.currentText())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_CHIP_PART, self.comboBox_chip.currentText())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_PROGRAMMER_SERIAL_NUMBER, self.lineEdit_serial.text()
         )
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_AUTO_TEST, self.checkBox_test.isChecked())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
-        self.app_settings.setValue(KEY_DEBUG, self.checkBox_debug.isChecked())
-        self.app_settings.setValue(
+        self.settings.setValue(KEY_DEBUG, self.checkBox_debug.isChecked())
+        self.settings.setValue(
             KEY_AUTO_LOGIN, self.checkBox_logon.isChecked())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_ARDUINO_INSTANCE_ID, self.spinBox_arduino_id.value()
         )
-        self.app_settings.setValue(KEY_TESTING_SPEED, self.dial.value())
-        self.app_settings.setValue(
+        self.settings.setValue(KEY_TESTING_SPEED, self.dial.value())
+        self.settings.setValue(
             KEY_LOGOFF_DELAY, self.spinBox_autologoff_delay.value()
         )
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_SHUTDOWN_ON_EXCEPTION, self.checkBox_shutdown_on_exception.isChecked()
         )
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_SLEEP_TUNE, float(self.lineEdit_serial_sleep_tune.text())
         )
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
-        self.app_settings.setValue(
+        self.settings.setValue(
             KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
-        self.settings.set(KEY_TOUCHSCREEN_ENABLED,
+        self.settings.setValue(KEY_TOUCHSCREEN_ENABLED,
                           self.checkBox_touchscreen.isChecked())
-        self.settings.set(KEY_FRAMELESS, self.checkBox_frameless.isChecked())
-        # self.settings.save_settings()
+        self.settings.setValue(KEY_FRAMELESS, self.checkBox_frameless.isChecked())
         self.saved.emit((0, self))
         self.close()
         return
-
-        self.settings.set(KEY_SLEEP_TUNE, float(
-            self.lineEdit_serial_sleep_tune.text()))
-        self.settings.set(KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
-        self.settings.set(KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
-
-        self.settings.set(KEY_COM_PORT, self.comboBox_com_port.currentText())
-        self.settings.set(KEY_CHIP_PART, self.comboBox_chip.currentText())
-        self.settings.set(KEY_PROGRAMMER_SERIAL_NUMBER,
-                          self.lineEdit_serial.text())
-        self.settings.set(KEY_AUTO_TEST, self.checkBox_test.isChecked())
-        self.settings.set(KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
-        self.settings.set(KEY_DEBUG, self.checkBox_debug.isChecked())
-        self.settings.set(KEY_AUTO_LOGIN, self.checkBox_logon.isChecked())
-        self.settings.set(KEY_ARDUINO_INSTANCE_ID,
-                          self.spinBox_arduino_id.value())
-        self.settings.set(KEY_TESTING_SPEED, self.dial.value())
-        self.settings.set(KEY_LOGOFF_DELAY,
-                          self.spinBox_autologoff_delay.value())
-        self.settings.set(KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
-        self.settings.set(
-            KEY_SHUTDOWN_ON_EXCEPTION, self.checkBox_shutdown_on_exception.isChecked()
-        )
-        self.settings.set(KEY_SLEEP_TUNE, float(
-            self.lineEdit_serial_sleep_tune.text()))
-        self.settings.set(KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
-        self.settings.set(KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
-        self.settings.save_settings()
-        self.close()
 
     def pick_color(self, *args) -> None:
         print(args)

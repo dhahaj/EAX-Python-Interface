@@ -2,7 +2,7 @@ import os
 import json
 from constants import *
 from loguru import logger as log
-from typing import List
+from typing import List, Dict, Any
 from pathlib import Path
 
 
@@ -82,7 +82,7 @@ class Device:
         reraise=True,
         exception=json.JSONDecodeError,
     )
-    def load_from_file(self, filename='firmware.json'):
+    def load_from_file(self, filename: str=Files.Firmware.value) -> Dict[str, Any]:
         """Load the settings from a JSON file."""
         return json.loads(Path(filename).read_text())
 

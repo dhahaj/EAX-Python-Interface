@@ -6,7 +6,9 @@ Author: Daniel Hahaj 2023-08-01
 This file contains many variables that are used throughout the application. Certian
 values can be adjusted here to make the application more modular. 
 """
-
+import enum
+from typing import List
+from os import PathLike
 
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
 
@@ -26,57 +28,125 @@ DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold;"
 RADIO_OFF_ICON = ":/resources/icons/images/icons/radio-off-button.png"
 RADIO_ON_ICON = ":/resources/icons/images/icons/radio-on-button.png"
 
-SETTINGS_FILE = "settings.json"
-USERS_FILE = "users.db"
-PINS_FILE = "pins.json"
 
-FILES = [SETTINGS_FILE, USERS_FILE, PINS_FILE]
+class Files(enum.Enum):
+    Settings: str = "settings.json"
+    Users: str = "users.db"
+    Pins: str = "pins.json"
+    Firmware: str = "firmware.json"
+    Logs: str = "logs.db"
+
+    @classmethod
+    def all_files(cls) -> List[str]:
+        return [f.value for f in cls]
+    
+    def __str__(self) -> str:
+        return self.value
+    
+
 
 # Default testing speed in ms. This is adjustable inside the application.
-DEFAULT_TESTING_SPEED = 2000
+DEFAULT_TESTING_SPEED: int = 2000
 
-APPLICATION_THEME = "dark"
 
 """
 Pin numbers for the Arduino board.
 """
-PIN_LOW_BATTERY = 2
-PIN_TESTING_INDICATOR = 4
-PIN_BATTERY = 12
-PIN_INDICATOR = 13
+PIN_LOW_BATTERY: int       = 2
+PIN_TESTING_INDICATOR: int = 4
+PIN_BATTERY: int           = 12
+PIN_INDICATOR: int         = 13
 
-CHIP_PARTS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
+CHIP_OPTIONS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
 
 
 """
 Keys for the settings file.
 """
-KEY_DEBUG = "debug"
-KEY_COM_PORT = "serial_port"
-KEY_PROGRAMMER_SERIAL_NUMBER = "programmer_serial_number"
-KEY_CHIP_PART = "chip_part"
-KEY_LAST_USER = "last_user"
-KEY_TESTING_SPEED = "testing_speed"
-KEY_AUTO_TEST = "auto_test"
-KEY_FONT_FAMILY = "font_family"
-KEY_FONT_SIZE = "font_size"
-KEY_FONT_WEIGHT = "font_weight"
-KEY_AUTO_LOGIN = "skip_login"
-KEY_AUTO_CONNECT = "auto_connect"
-KEY_ARDUINO_INSTANCE_ID = "arduino_instance_id"
-KEY_FIRMWARE_FOLDER = "firmware_folder"
-KEY_LOGOFF_DELAY = "auto_logoff_delay"
-KEY_BACKGROUND_COLOR = "bg_color"
-KEY_FOREGROUND_COLOR = "fg_color"
-KEY_ARDUINO_WAIT = "arduino_wait"
-KEY_SHUTDOWN_ON_EXCEPTION = "shutdown_on_exception"
-KEY_AUTO_FIND = "auto_find"
-KEY_SLEEP_TUNE = "sleep_tune"
-KEY_FULLSCREEN = "full_screen"
-KEY_TOUCHSCREEN_ENABLED = "touchscreen_enabled"
-KEY_FRAMELESS = "frameless"
+KEY_DEBUG: str                      = "debug"
+KEY_COM_PORT: str                   = "serial_port"
+KEY_PROGRAMMER_SERIAL_NUMBER: str   = "programmer_serial_number"
+KEY_CHIP_PART: str                  = "chip_part"
+KEY_LAST_USER: str                  = "last_user"
+KEY_TESTING_SPEED: str              = "testing_speed"
+KEY_AUTO_TEST: str                  = "auto_test"
+KEY_FONT_FAMILY: str                = "font_family"
+KEY_FONT_SIZE: str                  = "font_size"
+KEY_FONT_WEIGHT: str                = "font_weight"
+KEY_AUTO_LOGIN: str                 = "skip_login"
+KEY_AUTO_CONNECT: str               = "auto_connect"
+KEY_ARDUINO_INSTANCE_ID: str        = "arduino_instance_id"
+KEY_FIRMWARE_FOLDER: str            = "firmware_folder"
+KEY_LOGOFF_DELAY: str               = "auto_logoff_delay"
+KEY_BACKGROUND_COLOR: str           = "bg_color"
+KEY_FOREGROUND_COLOR: str           = "fg_color"
+KEY_ARDUINO_WAIT: str               = "arduino_wait"
+KEY_SHUTDOWN_ON_EXCEPTION: str      = "shutdown_on_exception"
+KEY_AUTO_FIND: str                  = "auto_find"
+KEY_SLEEP_TUNE: str                 = "sleep_tune"
+KEY_FULLSCREEN: str                 = "full_screen"
+KEY_TOUCHSCREEN_ENABLED: str        = "touchscreen_enabled"
+KEY_FRAMELESS: str                  = "frameless"
+KEY_DARK_THEME: str                 = "dark_mode"
 
-KEY_DARK_THEME = "dark_mode"
+class Key(enum.Enum):
+    debug: str = "debug"
+    com_port: str = "serial_port"
+    programmer_serial_number: str = "programmer_serial_number"
+    chip_part: str = "chip_part"
+    last_user: str = "last_user"
+    testing_speed: str = "testing_speed"
+    auto_test: str = "auto_test"
+    font_family: str = "font_family"
+    font_size: str = "font_size"
+    font_weight: str = "font_weight"
+    auto_login: str = "skip_login"
+    auto_connect: str = "auto_connect"
+    arduino_instance_id: str = "arduino_instance_id"
+    firmware_folder: str = "firmware_folder"
+    logoff_delay: str = "auto_logoff_delay"
+    background_color: str = "bg_color"
+    foreground_color: str = "fg_color"
+    arduino_wait: str = "arduino_wait"
+    shutdown_on_exception: str = "shutdown_on_exception"
+    auto_find: str = "auto_find"
+    sleep_tune: str = "sleep_tune"
+    fullscreen: str = "full_screen"
+    touchscreen_enabled: str = "touchscreen_enabled"
+    frameless: str = "frameless"
+    dark_theme: str = "dark_mode"
+    
+    pin_number: str     = "pin_number"
+    pin_function: str   = "function"
+    io_mode: str        = "io_mode"
+    pullup_enabled: str = "pullup_enabled"
+
+    firmware: str = "firmware"
+    firmware_name: str = "filename"
+    firmware_basename: str = "basename"
+    firmware_version: str = "version"
+    path: str = "path"
+
+    username: str = "username"
+    password: str = "password"
+    admin: str    = "admin"
+
+    @property
+    def value(self) -> str:
+        return super(Key, self).value
+
+    @property
+    def name(self) -> str:
+        return super(Key, self).name
+    
+    @classmethod
+    def all_files(cls) -> List[str]:
+        return [f.value for f in cls]
+    
+    def __str__(self) -> str:
+        return self.value
+
+
 """
 Default settings for the application.
 """
@@ -107,90 +177,73 @@ DEFAULT_SETTINGS = {
     KEY_FRAMELESS: False,
 }
 
-"""
-Keys for the pin dictionary.
-"""
-KEY_PIN_NUMBER = "pin_number"
-KEY_PIN_FUNCTION = "function"
-KEY_IO_MODE = "io_mode"
-KEY_PULLUP_ENABLED = "pullup_enabled"
 
-"""
-IO modes values.
-"""
-INPUT = "INPUT"
-OUTPUT = "OUTPUT"
+INPUT: str  = "INPUT"
+OUTPUT: str = "OUTPUT"
 
 DEF_PIN_SETTINGS = [
     {
-        KEY_PIN_NUMBER: PIN_LOW_BATTERY,
-        KEY_PIN_FUNCTION: "LOW BATTERY",
-        KEY_IO_MODE: OUTPUT,
-        KEY_PULLUP_ENABLED: False,
+        Key.pin_number: PIN_LOW_BATTERY,
+        Key.pin_function: "LOW BATTERY",
+        Key.io_mode: OUTPUT,
+        Key.pullup_enabled: False,
     },
     {
-        KEY_PIN_NUMBER: PIN_TESTING_INDICATOR,
-        KEY_PIN_FUNCTION: "TESTING INDICATOR",
-        KEY_IO_MODE: OUTPUT,
-        KEY_PULLUP_ENABLED: False,
+        Key.pin_number: PIN_TESTING_INDICATOR,
+        Key.pin_function: "TESTING INDICATOR",
+        Key.io_mode: OUTPUT,
+        Key.pullup_enabled: False,
     },
     {
-        KEY_PIN_NUMBER: PIN_BATTERY,
-        KEY_PIN_FUNCTION: "BATTERY",
-        KEY_IO_MODE: OUTPUT,
-        KEY_PULLUP_ENABLED: False,
+        Key.pin_number: PIN_BATTERY,
+        Key.pin_function: "BATTERY",
+        Key.io_mode: OUTPUT,
+        Key.pullup_enabled: False,
     },
     {
-        KEY_PIN_NUMBER: PIN_INDICATOR,
-        KEY_PIN_FUNCTION: "INDICATOR",
-        KEY_IO_MODE: OUTPUT,
-        KEY_PULLUP_ENABLED: False,
+        Key.pin_number: PIN_INDICATOR,
+        Key.pin_function: "INDICATOR",
+        Key.io_mode: OUTPUT,
+        Key.pullup_enabled: False,
     },
 ]
-
-"""
-Keys for the user dictionary.
-"""
-KEY_USERNAME = "username"
-KEY_PASSWORD = "password"
-KEY_ADMIN = "admin"
 
 """
 Default users for the application.
 """
 DEFAULT_USERS = [
     {
-        KEY_USERNAME: "dmh",
-        KEY_PASSWORD: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O",
-        KEY_ADMIN: True,
+        Key.username: "dmh",
+        Key.password: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O",
+        Key.admin: True,
     },
     {
-        KEY_USERNAME: "sm",
-        KEY_PASSWORD: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG",
-        KEY_ADMIN: True,
+        Key.username: "sm",
+        Key.password: "$2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG",
+        Key.admin: True,
     },
     {
-        KEY_USERNAME: "admin",
-        KEY_PASSWORD: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW",
-        KEY_ADMIN: True,
+        Key.username: "admin",
+        Key.password: "$2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW",
+        Key.admin: True,
     },
     {
-        KEY_USERNAME: "user",
-        KEY_PASSWORD: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm",
-        KEY_ADMIN: False,
+        Key.username: "user",
+        Key.password: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm",
+        Key.admin: False,
     },
 ]
 
 """
 Keys for the firmware dictionary.
 """
-FIRMWARE_NAME = "name"
-FIRMWARE_VERSION = "version"
-KEY_FIRMWARE = "firmware"
-KEY_FIRMWARE_NAME = "filename"
-KEY_FIRMWARE_BASENAME = "basename"
-KEY_FIRMWARE_VERSION = "version"
-KEY_PATH = "path"
+FIRMWARE_NAME: str = "name"
+FIRMWARE_VERSION: str = "version"
+KEY_FIRMWARE: str = "firmware"
+KEY_FIRMWARE_NAME: str = "filename"
+KEY_FIRMWARE_BASENAME: str = "basename"
+KEY_FIRMWARE_VERSION: str = "version"
+KEY_PATH: str = "path"
 
 """
 Firmware names and versions for the application.
@@ -214,69 +267,69 @@ FIRMWARES = {
     "firmware":
     [
         {
-            KEY_FIRMWARE_NAME: "EAX300_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX300",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX300_591.hex",
+            Key.firmware_basename: "EAX300",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX500_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX500",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX500_591.hex",
+            Key.firmware_basename: "EAX500",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX503_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX503",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX503_591.hex",
+            Key.firmware_basename: "EAX503",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX504_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX504",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX504_591.hex",
+            Key.firmware_basename: "EAX504",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX505_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX505",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX505_591.hex",
+            Key.firmware_basename: "EAX505",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX510_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX510",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX510_591.hex",
+            Key.firmware_basename: "EAX510",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX513_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX513",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX513_591.hex",
+            Key.firmware_basename: "EAX513",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX514_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX514",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX514_591.hex",
+            Key.firmware_basename: "EAX514",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX515_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX515",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX515_591.hex",
+            Key.firmware_basename: "EAX515",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX520_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX520",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX520_591.hex",
+            Key.firmware_basename: "EAX520",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX523_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX523",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX523_591.hex",
+            Key.firmware_basename: "EAX523",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX524_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX524",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX524_591.hex",
+            Key.firmware_basename: "EAX524",
+            Key.firmware_version: "591"
         },
         {
-            KEY_FIRMWARE_NAME: "EAX525_591.hex",
-            KEY_FIRMWARE_BASENAME: "EAX525",
-            KEY_FIRMWARE_VERSION: "591"
+            Key.firmware_name: "EAX525_591.hex",
+            Key.firmware_basename: "EAX525",
+            Key.firmware_version: "591"
         },
     ],
     "path": "firmware"

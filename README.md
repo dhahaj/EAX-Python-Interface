@@ -10,10 +10,11 @@ This is a Python version of the EAX Test Fixture Interface. It is a GUI built on
   - [Installation](#installation)
   - [Test Fixture Firmware](#test-fixture-firmware)
   - [Misc Files](#misc-files)
-    - [`logs.db`](#logsdb)
-    - [`pins.json`](#pinsjson)
-    - [`firmware.json`](#firmwarejson)
-    - [`users.db`](#usersdb)
+    - [Log Database](#log-database)
+    - [Pin Definitions](#pin-definitions)
+    - [Firmware Definitions](#firmware-definitions)
+    - [Log Database](#log-database-1)
+    - [User Database](#user-database)
 
 ## Key Bindings
 
@@ -47,21 +48,19 @@ This application uses the `Telemetrix4Arduino` Arduino library to communicate wi
 
 ## Misc Files
 
-### `logs.db`
+### Log Database
 
 Logging is handled by the `loguru` Python package and the data is stored in the `logs.db` file using the `sqlite3` Python package. The `logs.db` file is a SQLite database is used to store log data. Log data can be viewed by clicking on the `Logs` menu item located in the `Help` menu. The database uses the following schema:
 
 ```sql
-CREATE TABLE logs (
-                        id INTEGER PRIMARY KEY,
-                        timestamp TEXT NOT NULL,
-                        level TEXT NOT NULL,
-                        logger TEXT NOT NULL,
-                        message TEXT NOT NULL
-                    )
+CREATE TABLE logs (id INTEGER PRIMARY KEY,
+                   timestamp TEXT NOT NULL,
+                   level TEXT NOT NULL,
+                   logger TEXT NOT NULL,
+                   message TEXT NOT NULL)
 ```
 
-### `pins.json`
+### Pin Definitions
 
 The `pins.json` file contains the pin assignments for the application. The pin assignments are stored in a JSON object with the following format:
 
@@ -78,7 +77,7 @@ The `pins.json` file contains the pin assignments for the application. The pin a
 }
 ```
 
-### `firmware.json`
+### Firmware Definitions
 
 The `firmware.json` file contains information about the names, versions, and locations of the firmware. The firmware information is stored in a JSON object with the following format:
 
@@ -100,15 +99,25 @@ The `firmware.json` file contains information about the names, versions, and loc
 }
 ```
 
-### `users.db`
+### Log Database
+
+The `logs.db` file is a SQLite database is used to store log data. This database uses the following schema:
+
+```sql
+CREATE TABLE logs (id INTEGER PRIMARY KEY,
+                   timestamp TEXT NOT NULL,
+                   level TEXT NOT NULL,
+                   logger TEXT NOT NULL,
+                   message TEXT NOT NULL)
+```
+
+### User Database
 
 The `users.db` file is a SQLite database is used to store user data. This database uses the following schema:
 
 ```sql
-CREATE TABLE users (
-                        id INTEGER PRIMARY KEY,
-                        username TEXT NOT NULL UNIQUE,
-                        password TEXT NOT NULL,
-                        is_admin BOOLEAN NOT NULL
-                    )
+CREATE TABLE users (id INTEGER PRIMARY KEY,
+                    username TEXT NOT NULL UNIQUE,
+                    password TEXT NOT NULL,
+                    admin BOOLEAN NOT NULL DEFAULT 0)
 ```

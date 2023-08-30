@@ -11,7 +11,9 @@ import os
 from logging import _nameToLevel
 from loguru import logger as log
 from threading import Lock
-
+import json
+from typing import List
+from constants import Files
 
 class AppLogger:
     """
@@ -229,7 +231,24 @@ class AppLogger:
                                (data['timestamp'], data['logger'], data['level'], data['message']))
 
 # SQLite Database Management
+import enum
+class Names(enum.Enum):
+    Settings    : int = 0
+    Firmware    : int = 1
+    Pins        : int = 2
+    Users       : int = 3
+    Instructions: int = 4
 
+    def __str__(self) -> str:
+        return self.name
+    
+    def __repr__(self) -> str:
+        return str(self.value)
+    
+    def __int__(self) -> int:
+        return self.value
+    
+    
 
 class LogManager:
     """
@@ -240,8 +259,9 @@ class LogManager:
     from the database, get logs from the database and exporting logs to a file.
     """
     lock = Lock()
+    default_db_name = "sqlite.db"
 
-    def __init__(self, db_name="logs.db"):
+    def __init__(self, db_name: str=Files.Logs.value):
         # Connect to the SQLite database
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()
@@ -457,6 +477,20 @@ class LogManager:
         self.conn.close()
 
 
+    def get_default_settings(self, name: Names) -> str:
+        """Get the default settings."""
+        with sqlite3.connect(self.default_db_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM defaults")
+            data = cursor.fetchall()
+        text = data[name.value][3]
+        try:
+            print(json.loads(text))
+        except:
+            print(text)
+
+
+
 # Regular Expression for Log Parsing
 pattern = r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:,\d{3})?) - (?: ?(?P<logger>[\w\.]+) - )?(?P<level>[A-Z]+) - (?P<message>.+)"
 
@@ -474,6 +508,9 @@ def parse_and_insert_log(log_manager: LogManager, log_entry: str) -> None:
         log.debug("Log format didn't match. Entry skipped.")
 
 
+
+
+
 class Log:
     """
     Log class
@@ -483,7 +520,7 @@ class Log:
     individual attributes.
     """
 
-    def __init__(self, value=None, date=None, level=None, message=None):
+    def __init__(self, value: str=None, date: str=None, level: str=None, message: str=None):
         if value is not None:
             value = value.split(" - ")
             value = [v.strip() for v in value]
@@ -496,7 +533,7 @@ class Log:
             self.message = message
 
     @staticmethod
-    def parse(value) -> tuple:
+    def parse(value: str) -> tuple:
         value = value.split(" - ")
         value = [v.strip() for v in value]
         return (value[0], value[2], value[3])
@@ -505,8 +542,8 @@ class Log:
         return f"{self.date} {self.level} {self.message}"
 
 
-# if __name__ == "__main__":
-#     logger = AppLogger("logger")
-#     logger.info("test")
+if __name__ == "__main__":
+    logger = AppLogger("logger")
+    logger.info("test")
 
-#     print(AppLogger.get_logs())
+    print(AppLogger.get_logs())
