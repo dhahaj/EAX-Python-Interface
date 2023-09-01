@@ -13,7 +13,6 @@ from loguru import logger as log
 from threading import Lock
 import json
 from typing import List
-from constants import Files
 
 class AppLogger:
     """
@@ -261,7 +260,7 @@ class LogManager:
     lock = Lock()
     default_db_name = "sqlite.db"
 
-    def __init__(self, db_name: str=Files.Logs.value):
+    def __init__(self, db_name: str="logs.db"):
         # Connect to the SQLite database
         self.conn = sqlite3.connect(db_name, check_same_thread=False)
         self.cursor = self.conn.cursor()

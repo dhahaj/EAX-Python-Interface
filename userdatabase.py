@@ -7,7 +7,6 @@ import datetime
 import shutil
 from typing import List, Dict, Any
 from threading import Lock
-from constants import Files
 
 
 class UserDatabase:
@@ -46,10 +45,10 @@ class UserDatabase:
     close()
         Closes the connection to the database.
     """
-    db_name = Files.Users.value
+    db_name = 'users.db'
     lock = Lock()
 
-    def __init__(self, db_name=Files.Users.value):
+    def __init__(self, db_name='users.db'):
         # self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()

@@ -82,7 +82,7 @@ class Device:
         reraise=True,
         exception=json.JSONDecodeError,
     )
-    def load_from_file(self, filename: str=Files.Firmware.value) -> Dict[str, Any]:
+    def load_from_file(self, filename: str="firmware.json") -> Dict[str, Any]:
         """Load the settings from a JSON file."""
         return json.loads(Path(filename).read_text())
 

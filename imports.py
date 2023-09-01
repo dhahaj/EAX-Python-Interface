@@ -120,8 +120,8 @@ ControlModifier = Qt.KeyboardModifier.ControlModifier
 Global variables
 """
 app_logger = AppLogger.get_logger()
-settings = ApplicationSettings(Files.Settings.value)
-db = UserDatabase(Files.Users.value)
+settings = ApplicationSettings("settings.json")
+db = UserDatabase("users.db")
 logg = LogManager()
 
 
@@ -277,7 +277,7 @@ def browse_directory() -> None:
 def check_requirements() -> tuple:
     """ Checks if all the required files are present. """
     missing = ""
-    for file in Files.all_files():
+    for file in FILES:
         if not os.path.exists(file):
             missing += file + "\n"
     if missing != "":

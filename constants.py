@@ -29,21 +29,21 @@ RADIO_OFF_ICON = ":/resources/icons/images/icons/radio-off-button.png"
 RADIO_ON_ICON = ":/resources/icons/images/icons/radio-on-button.png"
 
 
-class Files(enum.Enum):
-    Settings: str = "settings.json"
-    Users: str = "users.db"
-    Pins: str = "pins.json"
-    Firmware: str = "firmware.json"
-    Logs: str = "logs.db"
+# class Files(enum.Enum):
+#     Settings: str = "settings.json"
+#     Users: str = "users.db"
+#     Pins: str = "pins.json"
+#     Firmware: str = "firmware.json"
+#     Logs: str = "logs.db"
 
-    @classmethod
-    def all_files(cls) -> List[str]:
-        return [f.value for f in cls]
+#     @classmethod
+#     def all_files(cls) -> List[str]:
+#         return [f.value for f in cls]
     
-    def __str__(self) -> str:
-        return self.value
+#     def __str__(self) -> str:
+#         return self.value
     
-
+FILES = ["settings.json", "users.db", "pins.json", "firmware.json", "logs.db"]
 
 # Default testing speed in ms. This is adjustable inside the application.
 DEFAULT_TESTING_SPEED: int = 2000
