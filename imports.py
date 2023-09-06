@@ -99,7 +99,11 @@ from pathlib import Path
 from enum import Enum
 from state import State
 import send2trash
-
+from main import (
+    LogView, 
+    HelpDialog, 
+    LoginDialog,
+)
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
@@ -274,17 +278,6 @@ def browse_directory() -> None:
     subprocess.Popen(f"explorer {os.getcwd()}")
 
 
-def check_requirements() -> tuple:
-    """ Checks if all the required files are present. """
-    missing = ""
-    for file in FILES:
-        if not os.path.exists(file):
-            missing += file + "\n"
-    if missing != "":
-        log.critical(f"Missing files:\n{missing}")
-        return (False, missing)
-    return (True, None)
-
 @overload
 def warning(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
 
@@ -309,6 +302,5 @@ def critical(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.Q
 def critical(attr: Union[str, QWidget], message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
     """ Displays a critical message box. """
     if isinstance(attr, str):
-        return QMessageBox.critical(None, title, message, Ok)
+        return QMessageBox.critical(None, title, attr, Ok)
     return QMessageBox.critical(attr, title, message, Ok)
-

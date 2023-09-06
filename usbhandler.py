@@ -1,4 +1,5 @@
 from telemetrix.telemetrix import Telemetrix
+from config_loader import ConfigLoader
 from settings import ApplicationSettings
 import threading
 import json
@@ -64,13 +65,13 @@ class USBDevice(Telemetrix):
 
         self.device_connected = False
         self.debug: bool = debug
-
+        self.input_pin: int = None
         self.pins: dict = {}
         self.inputs: List = []
         self.last_input_times: dict = {}
         self.callback = None
-        print(vars(self))
-        print(type(vars(self)))
+        # print(vars(self))
+        # print(type(vars(self)))
 
         print(
             f"[bold green]USBDeviceHandler[/bold green]\n"
@@ -88,17 +89,22 @@ class USBDevice(Telemetrix):
         value = message[2]
         current_time = time()
 
+        if pin_number != self.input_pin:
+            return
+
         # Debouncing: If the pin has not been read recently, process the value
         if pin_number not in self.last_input_times or current_time - self.last_input_times[pin_number] > self.DEBOUNCE_TIME:
             log.info(f'Pin {pin_number} changed to {value}')
             # Store the current time for this pin
             self.last_input_times[pin_number] = current_time
             # You can now handle the change in value as needed
-            # if self.callback is not None:
-            #     self.callback([pin_number, value])
+            if self.callback is not None:
+                self.callback([pin_number, value])
 
-    def attach_callback(self, callback):
+    def attach_callback(self, callback: callable, pin_number: int) -> None:
+        """Attach a callback function to a pin."""
         self.callback = callback
+        self.input_pin = pin_number
 
     def connect(self, callback=None):
         """
@@ -159,28 +165,52 @@ class USBDevice(Telemetrix):
         return None  # If no pin with the function is found, return None
 
     def battery_on(self):
-        self.write_pin_by_func('battery', 1)
+        self.set_battery(1)
 
     def battery_off(self):
-        self.write_pin_by_func('battery', 0)
+        self.set_battery(0)
+
+    def set_battery(self, value: int) -> None:
+        self.write_pin_by_func('battery', value)
 
     def low_battery_on(self):
-        self.write_pin_by_func('low battery', 1)
+        self.set_low_battery(1)
 
     def low_battery_off(self):
-        self.write_pin_by_func('low battery', 0)
+        self.set_low_battery(0)
+
+    def set_low_battery(self, value: int) -> None:
+        self.write_pin_by_func('low battery', value)
 
     def indicator_on(self):
-        self.write_pin_by_func('indicator', 1)
+        self.set_indicator(1)
 
     def indicator_off(self):
-        self.write_pin_by_func('indicator', 0)
-        
+        self.set_indicator(0)
+
+    def set_indicator(self, value: int) -> None:
+        self.write_pin_by_func('indicator', value)
+
     def test_indicator_on(self):
-        self.write_pin_by_func('test indicator', 1)
+        self.set_test_indicator(1)
 
     def test_indicator_off(self):
-        self.write_pin_by_func('test indicator', 0)
+        self.set_test_indicator(0)
+
+    def set_test_indicator(self, value: int) -> None:
+        self.write_pin_by_func('test indicator', value)
+
+    def set_remote(self, value: int) -> None:
+        self.write_pin_by_func('remote', value)
+
+    def set_pad(self, value: int) -> None:
+        self.write_pin_by_func('call', value)
+
+    def set_relay1(self, value: int) -> None:
+        self.write_pin_by_func('relay1', value)
+
+    def set_relay2(self, value: int) -> None:
+        self.write_pin_by_func('relay2', value)
 
     def configure_pin_modes(self):
         """Configures the pin modes of the Arduino board."""
@@ -214,7 +244,11 @@ class USBDevice(Telemetrix):
 
         :param filename: The filename to load the pins from. Defaults to pins.json.
         """
-        debug(self, f'Loading pin configuration from {filename}')
+        debug(self, f'Loading pin configuration from configuration.')
+
+        config = ConfigLoader()
+        self.pins = config.pins
+        return
 
         # Check if the pins.json file exists, and create it if it doesn't
         if not os.path.exists(filename):
@@ -227,7 +261,7 @@ class USBDevice(Telemetrix):
         with open(filename, 'r') as file:
             self.pins = json.load(file)['pins']
 
-        self.enable_digital_reporting(13)
+        # self.enable_digital_reporting(13)
 
     def write_pin(self, pin_number: int, value: int) -> None:
         """
@@ -260,25 +294,6 @@ class USBDevice(Telemetrix):
         else:
             log.error('Pin function not specified.')
 
-    def read_pin(self, pin_number) -> int:
-        """
-        Read the value of a pin by its number. Not currently implemented!
-
-        :param pin_number: The pin number to read from.
-        :return: The value of the pin.
-        """
-        debug(self, f'Method: {self.read_pin.__name__}, Pin: {pin_number}')
-        if pin_number and self.connected:
-            pin = self.get_pin_by_function(pin_number) if isinstance(pin_number, str) else pin_number
-            return self.board.digital_read(pin)[0]
-        else:
-            if self.debug:
-                if not self.connected:
-                    log.warning('Device not connected.')
-                if not pin_number:
-                    log.warning('Pin number not specified.')
-        return None
-
     def set_all_pins_to_value(self, value: int) -> None:
         """
         Set all pins to a value.
@@ -287,17 +302,9 @@ class USBDevice(Telemetrix):
         """
         debug(self, f'Method: {self.set_all_pins_to_value.__name__}, Value: {value}')
         for pin in self.pins:
-            if pin[Key.io_mode] == 'output':
-                self.write_pin(pin[Key.pin_number], value)
-
-    def toggle_pin(self, pin_number) -> None:
-        debug(self, f'Method: {self.toggle_pin.__name__}, Pin: {pin_number}')
-
-        pin = self.get_pin_by_function(pin_number) if isinstance(pin_number, str) else pin_number
-        if self.read_pin(pin):
-            self.write_pin(pin, 0)
-        else:
-            self.write_pin(pin, 1)
+            print(pin)
+            if pin.get('io_mode') == 'output':
+                self.write_pin(pin['pin_number'], value)
 
     def cleanup(self) -> None:
         """Cleanup the Arduino instance."""
@@ -321,7 +328,6 @@ class USBDevice(Telemetrix):
             with open(filename, 'r') as file:
                 pins = json.load(file)['pins']
         return pins
-
 
     @staticmethod
     def get_ports() -> List[ListPortInfo]:
@@ -347,26 +353,26 @@ def get_usb_ports():
     return USBDevice.get_usb_ports()
 
 
-def configuration(filename='pins.json') -> List[dict]:
-    pins: dict = None
-    if os.path.exists(filename):
-        with open(filename, 'r') as file:
-            pins = json.load(file)['pins']
-    return pins
+# def configuration(filename='pins.json') -> List[dict]:
+#     pins: dict = None
+#     if os.path.exists(filename):
+#         with open(filename, 'r') as file:
+#             pins = json.load(file)['pins']
+#     return pins
 
 
-def get_pin_by_function(function, pins: List[dict]=None) -> int:
-    """
-    Fetch a pin by its function.
+# def get_pin_by_function(function, pins: List[dict]=None) -> int:
+#     """
+#     Fetch a pin by its function.
 
-    :param pins: List of pin dictionaries.
-    :param function: The function to search for.
-    :return: The integer pin number, or None if not found.
-    """
-    if pins is None:
-        pins = configuration()
-    # Loop through the pins and find the pin with the specified function
-    for pin in pins:
-        if pin['function'] == function:
-            return pin['pin_number']
-    return None  # If no pin with the function is found, return None
+#     :param pins: List of pin dictionaries.
+#     :param function: The function to search for.
+#     :return: The integer pin number, or None if not found.
+#     """
+#     if pins is None:
+#         pins = configuration()
+#     # Loop through the pins and find the pin with the specified function
+#     for pin in pins:
+#         if pin['function'] == function:
+#             return pin['pin_number']
+#     return None  # If no pin with the function is found, return None

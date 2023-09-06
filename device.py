@@ -1,95 +1,92 @@
 import os
-import json
+import config_loader
 from constants import *
-from loguru import logger as log
 from typing import List, Dict, Any
-from pathlib import Path
 
 
 class Device:
     """ A class that contains the device information and maintains the current selected device. """
+    config = config_loader.ConfigLoader()
 
     def __init__(self, selected_device: str = None):
         self._selected_device = selected_device
-        self.data = self.load_from_file()
+        self.data: List[Dict[str, Any]] = None
+        self._path: str = None
+        self.load_from_config()
 
     @property
     def selected_device(self) -> str:
+        """ Returns the name of the current device."""
         return self._selected_device
+
+    @property
+    def name(self) -> str:
+        """ Returns the name of the current device."""
+        return self.selected_device
+
+    @name.setter
+    def name(self, value: str) -> None:
+        """ Sets the name of the current device."""
+        self.selected_device = value
 
     @selected_device.setter
     def selected_device(self, value: str) -> None:
         self._selected_device = value
 
     @property
-    def version(self) -> str:
-        return self.version
-
-    @property
     def firmware(self) -> str:
-        for firmware in self.data.get(KEY_FIRMWARE):
-            if firmware.get(KEY_FIRMWARE_BASENAME) == self.selected_device:
-                return f'{self.data.get(KEY_PATH)}/{firmware.get(KEY_FIRMWARE_NAME)}'
-        return None
+        """ Returns the path to the firmware file for the current device."""
+        return self.get_firmware()
 
     @firmware.setter
     def firmware(self, value: str) -> None:
         self.firmware = value
 
     @property
-    def name(self) -> str:
-        return self.selected_device
-
-    @name.setter
-    def name(self, value: str) -> None:
-        self.selected_device = value
-
-    @property
     def names(self) -> List[str]:
-        return [firmware.get(KEY_FIRMWARE_BASENAME) for firmware in self.data.get(KEY_FIRMWARE)]
+        """ Returns a list of all the device names."""
+        return self.config.devices
 
     @property
-    def selected(self) -> bool:
+    def is_selected(self) -> bool:
+        """ Returns True if a device is selected, False otherwise."""
         return self.selected_device is not None
 
     @property
-    def path(self) -> str:
+    def firmware_path(self) -> str:
+        """ Returns the path to the firmware file for the current device."""
         return self.get_firmware()
 
     def get_firmware(self) -> str:
         """ Returns the path to the firmware file for the current device. """
-        for firmware in self.data.get(KEY_FIRMWARE):
+        for firmware in self.data:
             if firmware.get(KEY_FIRMWARE_BASENAME) == self.selected_device:
-                return f'{self.data.get(KEY_PATH)}/{firmware.get(KEY_FIRMWARE_NAME)}'
+                name = firmware.get(KEY_FIRMWARE_NAME)
+                return f'{self._path}/{name}'
         return None
 
-    def __str__(self) -> str:
-        return f'{self.selected_device}_{self.version}.hex'
-
-    def __repr__(self):
-        return f"{self.selected_device}_{self.version}.hex"
-
-    def __eq__(self, other):
-        if not isinstance(other, Device):  # suggestion 1
-            return False
-        return (
-            self.selected_device == other.selected_device
-            and self.version == other.version
-        )
-
-    @log.catch(
-        message='Firmware json file is invalid, resetting to default.',
-        reraise=True,
-        exception=json.JSONDecodeError,
-    )
-    def load_from_file(self, filename: str="firmware.json") -> Dict[str, Any]:
+    def load_from_config(self) -> None:
         """Load the settings from a JSON file."""
-        return json.loads(Path(filename).read_text())
+        self.data = self.config.get_firmware()
+        self._path = self.config.firmware_path
 
     def verify_firmware(self) -> bool:
         """Verify the firmware is valid."""
-        for firmware in self.data.get(KEY_FIRMWARE):
+        for firmware in self.data:
             filename = firmware.get(KEY_FIRMWARE_NAME)
-            if not os.path.isfile(f'{self.data.get(KEY_PATH)}/{filename}'):
+            if not os.path.isfile(f'{self._path}/{filename}'):
                 return False
         return True
+
+
+if __name__ == '__main__':
+    dev = Device()
+    for d in dev.names:
+        dev.name = d
+        print(dev.name)
+        print(dev.firmware)
+        print(dev.firmware_path)
+        print(dev.is_selected)
+        print(dev.verify_firmware())
+    dev.name = None
+    print(dev.verify_firmware())

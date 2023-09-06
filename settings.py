@@ -13,8 +13,8 @@ class ApplicationSettings():
     """The settings class, used to store settings."""
 
     def __init__(self, filename="settings.json"):
-        QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, "./config")
-        self.app_settings = QSettings(QSettings.IniFormat, QSettings.UserScope, "Detex", "EAX Interface")
+        # QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, "./config")
+        self.app_settings = QSettings("Detex Corp", "EAX Interface")
         self.filename = filename
         self.default_settings = DEFAULT_SETTINGS.copy()
 
@@ -30,7 +30,7 @@ class ApplicationSettings():
         :param key: The key of the setting.
         :return: The value of the setting.
         """
-        return_val = self.app_settings.value(key)
+        return_val = self.app_settings.value(key, default_value)
         if not return_val:
             return None
         elif type(return_val) == str:
@@ -44,14 +44,17 @@ class ApplicationSettings():
         return_val = self.app_settings.value(key)
         return "" if not return_val else str(return_val) if type(return_val) != str else return_val
 
-    def get_int(self, key: str) -> int:
-        return_val = self.app_settings.value(key)
+    def get_int(self, key: str, default_value: int = None) -> int:
+        return_val = self.app_settings.value(key, default_value)
         return 0 if not return_val else int(return_val) if type(return_val) != int else return_val
 
-    def get_bool(self, key: str) -> bool:
+    def get_bool(self, key: str, default_value: bool = False) -> bool:
         """ Get a boolean setting. """
-        return_val = self.app_settings.value(key)
-        return False if not return_val else return_val.lower().strip(" ") in ["true", "yes", "1"]
+        return_val = self.app_settings.value(key, default_value)
+        if type(return_val) == str:
+            return return_val.lower().strip(" ") in ["true", "yes", "1"]
+        return return_val
+        # return False if not return_val else return_val.lower().strip(" ") in ["true", "yes", "1"]
 
     def setValue(self, key: str, value: Any) -> None:
         """ Set a setting. """

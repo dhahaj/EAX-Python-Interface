@@ -12,6 +12,7 @@ class State(Enum):
     CONNECTED           : int = 6
     DISCONNECTED        : int = 7
     UPDATING            : int = 8
+    WAITING_FOR_INPUT   : int = 9
 
     def __str__(self) -> str:
         return f'{self.name}'

@@ -1,0 +1,203 @@
+---
+app_name: EAX2500 Interface
+app_version: 1.0.0
+
+firmware:
+  default_device: EAX2500
+  files:
+    - basename: EAX2500
+      filename: EAX2500_73.OBJ
+      version: '73'
+    - basename: EAX2501
+      filename: EAX2501_73.OBJ
+      version: '73'
+    - basename: EAX2503
+      filename: EAX2503_73.OBJ
+      version: '73'
+    - basename: EAX2504
+      filename: EAX2504_73.OBJ
+      version: '73'
+    - basename: EAX2505
+      filename: EAX2505_73.OBJ
+      version: '73'
+    - basename: EAX2510
+      filename: EAX2510_73.OBJ
+      version: '73'
+    - basename: EAX2513
+      filename: EAX2513_73.OBJ
+      version: '73'
+    - basename: EAX2514
+      filename: EAX2514_73.OBJ
+      version: '73'
+    - basename: EAX2520
+      filename: EAX2520_73.OBJ
+      version: '73'
+    - basename: EAX2523
+      filename: EAX2523_73.OBJ
+      version: '73'
+    - basename: EAX2524
+      filename: EAX2524_73.OBJ
+      version: '73'
+    - basename: EAX2544
+      filename: EAX2544_73.OBJ
+      version: '73'
+    - basename: EAX2545
+      filename: EAX2545_73.OBJ
+      version: '73'
+  path: ./firmware
+
+pins:
+  - function: low battery
+    io_mode: output
+    pin_number: 2
+    pullup_enabled: false
+  - function: test mode
+    io_mode: output
+    pin_number: 3
+    pullup_enabled: false
+  - function: battery
+    io_mode: output
+    pin_number: 4
+    pullup_enabled: false
+  - function: remote
+    io_mode: output
+    pin_number: 5
+    pullup_enabled: false
+  - function: pad
+    io_mode: output
+    pin_number: 6
+    pullup_enabled: false
+  - function: relay in
+    io_mode: input
+    pin_number: 7
+    pullup_enabled: true
+  - function: okc
+    io_mode: output
+    pin_number: 8
+    pullup_enabled: false
+  - function: ac
+    io_mode: output
+    pin_number: 9
+    pullup_enabled: false
+  - function: indicator
+    io_mode: output
+    pin_number: 10
+    pullup_enabled: false
+  - function: relay1
+    io_mode: output
+    pin_number: 11
+    pullup_enabled: false
+  - function: relay2
+    io_mode: output
+    pin_number: 12
+    pullup_enabled: false
+  - function: test indicator
+    io_mode: output
+    pin_number: 13
+    pullup_enabled: false
+
+# defualt settings
+settings:
+  arduino_instance_id: 1
+  arduino_wait: 4
+  auto_connect: true
+  auto_find: true
+  auto_logoff_delay: 15
+  auto_test: true
+  bg_color: '#000000'
+  chip_part: PIC16F628A
+  debug: true
+  fg_color: '#ff5500'
+  firmware_folder: firmware
+  font_family: Consolas
+  font_size: 14
+  font_weight: normal
+  frameless: false
+  full_screen: false
+  last_user: dmh
+  programmer_serial_number: 1E660
+  serial_port: COM30
+  shutdown_on_exception: true
+  skip_login: false
+  sleep_tune: 0.000001
+  testing_speed: 2100
+  touchscreen_enabled: false
+# defines the test sequence
+
+testing:
+  - command: digital_write
+    delay: 1
+    description: Test Indicator On
+    params: [13, 1]
+  - command: insert_text
+    delay: 1
+    description: Show Text
+    params: ["\n • Battery power on → Siren chirps and both LEDs flash  \n"]
+  - command: digital_write
+    delay: 1
+    description: Battery On
+    params: [4, 1]
+  - command: insert_text
+    delay: null
+    description: Show Text
+    params: ["\n • Starting low battery test → LEDs flash alternating \n"]
+  - command: digital_write
+    delay: 1
+    description: Low Battery On
+    params: [2, 1]
+  - command: insert_text
+    delay: null
+    description: Show Text
+    params: ["\n • Low battery test off → LEDs turn off.\n"]
+  - command: digital_write
+    delay: 1
+    description: Low Battery Off
+    params: [2, 0]
+  - command: insert_text
+    delay: 500
+    description: Show Text
+    params: [" • Perform the following:\n \t1. Press the key switch → The siren sounds\n \t2. Press the cylinder switch → The LEDs turn on\n"]
+  - command: insert_text
+    delay: 200
+    description: Show Text
+    params: ["\n\nPress the Continue button to finish testing..."]
+  - command: wait_for_button
+    delay: 1
+    description: Wait for Button
+    params: [15000]
+  - command: insert_text
+    delay: 1
+    description: Show Text
+    params: ["\n Test complete.\n"]
+  - command: digital_write
+    delay: 1
+    description: Test Indicator Off
+    params: [13, 0]
+  - command: digital_write
+    delay: 1
+    description: Battery Off
+    params: [4, 0]
+  - command: load_instructions
+    delay: 10
+    description: Load Instructions
+    params: [instructions.md]
+
+users:
+  - admin: true
+    password: $2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O
+    username: dmh
+  - admin: true
+    password: $2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG
+    username: sm
+  - admin: true
+    password: $2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW
+    username: admin
+  - admin: false
+    password: $2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm
+    username: user
+
+chip_options:
+  - PIC16F627
+  - PIC16F627A
+  - PIC16F628
+  - PIC16F628A

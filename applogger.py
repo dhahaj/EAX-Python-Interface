@@ -475,7 +475,6 @@ class LogManager:
         log.info("Closing database connection.")
         self.conn.close()
 
-
     def get_default_settings(self, name: Names) -> str:
         """Get the default settings."""
         with sqlite3.connect(self.default_db_name) as conn:
@@ -488,11 +487,8 @@ class LogManager:
         except:
             print(text)
 
-
-
 # Regular Expression for Log Parsing
 pattern = r"(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:,\d{3})?) - (?: ?(?P<logger>[\w\.]+) - )?(?P<level>[A-Z]+) - (?P<message>.+)"
-
 
 def parse_and_insert_log(log_manager: LogManager, log_entry: str) -> None:
     """Parse a log entry and insert it into the database."""
@@ -505,9 +501,6 @@ def parse_and_insert_log(log_manager: LogManager, log_entry: str) -> None:
         log.debug(f"Inserted log: {data}")
     else:
         log.debug("Log format didn't match. Entry skipped.")
-
-
-
 
 
 class Log:
