@@ -1,59 +1,12 @@
 from math import ceil
 from psutil import Popen
+from arduino import AIODevice
 from config_loader import ConfigLoader
 import config_loader
 from imports import *
 from rich import print
-
-
-class LoginDialog(QDialog, Ui_LoginDialog):
-    """
-    Login dialog. This dialog allows the user to login to the application.
-
-    :param last_user: The last user that logged in.
-    """
-
-    def __init__(self, last_user=None):
-        super().__init__()
-        self.setupUi(self)
-
-        self.setStyleSheet(get_stylesheet())
-
-        self.app_settings = QSettings("Detex Corp", "Login Dialog")
-        self.restoreGeometry(self.app_settings.value("geometry", QByteArray()))
-
-        for username in db.get_users():
-            self.comboBox.addItem(username)
-        self.comboBox.setCurrentText(last_user)
-
-        self.buttonBox.accepted.connect(self.ok)
-        self.buttonBox.rejected.connect(self.cancel)
-
-    def ok(self) -> tuple:
-        self.app_settings.setValue("geometry", self.saveGeometry())
-        selected_username = self.comboBox.currentText()
-        selected_password = self.lineEdit_password.text()
-        validate = db.check_password(selected_username, selected_password)
-        return (validate, selected_username)
-
-    def cancel(self) -> None:
-        return (False, None)
-
-    def keyPressEvent(self, event) -> None:
-        key = event.key()
-        if key == Qt.Key_Escape:
-            self.close()
-            return
-        elif key == Qt.Key_F2:
-            screen = QtGui.QGuiApplication.primaryScreen()
-            QtCore.QCoreApplication.processEvents()
-            pixmap = screen.grabWindow(self.winId())
-            img = pixmap.toImage()
-            t = time.time()
-            img.save(f"screenshot-{t}.png")
-            QtCore.QCoreApplication.processEvents()
-            return
-        super().keyPressEvent(event)
+import asyncio
+from qasync import QEventLoop
 
 
 class LogView(QWidget, Ui_LogView):
@@ -74,8 +27,8 @@ class LogView(QWidget, Ui_LogView):
         self.callback = callback
         self.data_changed = False
 
-        self.app_settings = QSettings("Detex Corp", "Log View")
-        self.restoreGeometry(self.app_settings.value("geometry", QByteArray()))
+        self.app_settings = settings.app_settings
+        self.restoreGeometry(self.app_settings.value("logwindow/geometry", QByteArray()))
         self.setStyleSheet(get_stylesheet())
 
     def on_item_changed(self, item) -> None:
@@ -126,7 +79,7 @@ class LogView(QWidget, Ui_LogView):
         self.tableWidget.resizeRowsToContents()
 
     def closeEvent(self, event) -> None:
-        self.app_settings.setValue("geometry", self.saveGeometry())
+        self.app_settings.setValue("logwindow/geometry", self.saveGeometry())
         if self.data_changed and self.callback is not None:
             self.callback(self.extract_data())
         self.deleteLater()
@@ -164,8 +117,8 @@ class HelpDialog(QDialog, Ui_HelpDialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.app_settings = QSettings("Detex Corp", "Help Dialog")
-        self.restoreGeometry(self.app_settings.value("geometry", QByteArray()))
+        self.app_settings = settings.app_settings
+        self.restoreGeometry(self.app_settings.value("helpwindow/geometry", QByteArray()))
         # self.toolBox.currentChanged.connect(self.on_tab_clicked)
         self.label.installEventFilter(self)
         self.label_2.installEventFilter(self)
@@ -187,7 +140,7 @@ class HelpDialog(QDialog, Ui_HelpDialog):
         return super().eventFilter(obj, event)
 
     def closeEvent(self, event: QEvent) -> None:
-        self.app_settings.setValue("geometry", self.saveGeometry())
+        self.app_settings.setValue("helpwindow/geometry", self.saveGeometry())
         self.deleteLater()
         event.accept()
 
@@ -207,8 +160,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     connecting: bool = False
     log_view: LogView = None
     help_dialog: HelpDialog = None
-    loginDialog: LoginDialog = None
-    arduino: USBDevice = None
+    # loginDialog: LoginDialog = None
+    arduino: AIODevice = None
     _drag_pos: int = None
     eax_device = Device()
 
@@ -222,10 +175,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.settings: ApplicationSettings = settings
         self.settings_dialog = SettingsDialog(self)
         self.settings_dialog.saved.connect(self.on_settings_closed)
+
         # Restore the window geometry and state
-        self.app_settings = QSettings("Detex Corp", "EAX Interface")
-        self.restoreGeometry(self.app_settings.value("geometry", QByteArray()))
-        self.restoreState(self.app_settings.value("windowState", QByteArray()))
+        self.app_settings = settings.app_settings
+        self.restoreGeometry(self.app_settings.value(
+            "mainwindow/geometry", QByteArray()))
+        self.restoreState(self.app_settings.value(
+            "mainwindow/windowState", QByteArray()))
 
         print(f"Settings: {self.app_settings.allKeys()}")
 
@@ -265,6 +221,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for widget in QApplication.instance().allWidgets():
             widget.installEventFilter(self)
         print(self.settings.get(KEY_FONT_FAMILY))
+        
         # Setup the text area
         self.text_edit.setFont(
             QFont(
@@ -287,13 +244,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionChange_font.triggered.connect(self.choose_font)
         self.actionManual_Control.triggered.connect(self.control_manually)
         self.actionModify_Settings.triggered.connect(self.modify_settings)
-        self.actionAdd_User.triggered.connect(self.add_user)
-        self.actionRemove_User.triggered.connect(self.remove_user)
+        # self.actionAdd_User.triggered.connect(self.add_user)
+        # self.actionRemove_User.triggered.connect(self.remove_user)
         self.actionHelp.triggered.connect(self.show_help)
         self.actionStatisitics.triggered.connect(self.show_statistics)
         self.actionDark_Theme.triggered.connect(self.toggle_theme)
         self.actionScreenshot.triggered.connect(take_screenshot)
-        self.actionLogout.triggered.connect(self.perform_login)
+        # self.actionLogout.triggered.connect(self.perform_login)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.execute_test)
 
@@ -323,7 +280,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         print(logg.check_integrity())
         logg.backup_database()
-        db.backup_database()
+        # db.backup_database()
         clean_backups("backups", 5)
 
         # If auto login and auto connect are enabled, try to connect to the USB device
@@ -419,11 +376,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_icon(self.actionChange_font, 'size')
         self.set_icon(self.actionManual_Control, 'gear')
         self.set_icon(self.actionModify_Settings, 'settings', 'ico')
-        self.set_icon(self.actionAdd_User, 'follow')
-        self.set_icon(self.actionRemove_User, 'remove-user')
+        # self.set_icon(self.actionAdd_User, 'follow')
+        # self.set_icon(self.actionRemove_User, 'remove-user')
         self.set_icon(self.actionHelp, 'help')
         self.set_icon(self.actionStatisitics, 'bar-chart')
-        self.set_icon(self.actionLogout, 'logout')
+        # self.set_icon(self.actionLogout, 'logout')
 
     def toggle_theme(self) -> None:
         log.info("Toggle theme")
@@ -634,20 +591,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.eax_device.name = None  # reset the device
         [self.perform_login() if not self.settings.get_bool(KEY_AUTO_LOGIN) else self._pass()]
 
-    def add_user(self) -> None:
-        if self.settings.get_bool(KEY_AUTO_LOGIN):
-            if not self.authenticate():
-                return
-        self.add = UserAdditionDialog()
-        self.add.show()
-
-    def remove_user(self) -> None:
-        # force the user to login if auto login is enabled
-        if self.settings.get(KEY_AUTO_LOGIN):
-            if not self.authenticate():
-                return
-        self.remove = UserRemovalDialog()
-        self.remove.show()
 
     def insert_text(self, text: str) -> None:
         """Add text to the text console."""
@@ -668,88 +611,57 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def aboutQt(self) -> None:
         QApplication.aboutQt()
 
+    async def connect_task(self) -> None:
+        """Setup the USB device."""
+        # if self.usb_device is None:
+        self.usb_device = AIODevice(
+            wait=self.settings.get(KEY_ARDUINO_WAIT),
+            shutdown_on_exception=self.settings.get(
+                KEY_SHUTDOWN_ON_EXCEPTION),
+            sleep_tune=self.settings.get(KEY_SLEEP_TUNE),
+            debug=self.settings.get(KEY_DEBUG),
+        )
+        await self.usb_device.async_connect(
+            self.notify_device_connected
+        )
+
     def connect_device(self) -> None:
         if self.state == State.CONNECTING:
             return
-
-        if not self.arduino:
-            self.arduino = USBDevice(
-                device_connected_callback=self.notify_device_connected,
-                wait=self.settings.get(KEY_ARDUINO_WAIT),
-                shutdown_on_exception=self.settings.get(
-                    KEY_SHUTDOWN_ON_EXCEPTION),
-                sleep_tune=self.settings.get(KEY_SLEEP_TUNE),
-                debug=self.settings.get(KEY_DEBUG),
-            )
-
-        if not self.arduino.connected:
-            self.connecting = True
+        elif self.state == State.CONNECTED:
+            asyncio.create_task(self.disconnect_device())
+        elif self.state == State.IDLE:
             self.state = State.CONNECTING
-            self.label_usb_icon.setText(ICON_USB_YELLOW)
-            self.usb_label.setStyleSheet(YELLOW)
-            self.usb_label.setText("Connecting...")
-            self.arduino.connect(self.notify_device_connected)
-            self.arduino.attach_callback(self.input_callback, 7)
+            asyncio.create_task(self.connect_task())
 
-    def notify_device_connected(self, connected: bool, message: str=None) -> None:
+    def notify_device_connected(self, connected: bool, message: str = None) -> None:
         """Callback for the USB device."""
+        debug(f"notify_device_connected: {connected}, message: {message}")
         if connected:  # device is connected
-            self.label_usb_icon.setText(ICON_USB_GREEN)
-            self.usb_label.setStyleSheet(GREEN)
-            self.usb_label.setText(f"USB: {self.arduino.serial_port.port}")
+            self.usb_label.setText(f"USB: {message}")
             self.actionConnect.setText("Disconnect")
-            self.actionConnect.triggered.disconnect(
-                self.connect_device
-            )  # disconnect the connect action
-            self.actionConnect.triggered.connect(
-                self.disconnect_device
-            )  # connect the disconnect action
-            self.connect_menu.triggered.disconnect(
-                self.connect_device
-            )
-            self.connect_menu.triggered.connect(
-                self.disconnect_device
-            )
-            atexit.register(self.arduino.cleanup)
             self.state = State.CONNECTED
-
-            # Save this port to the settings
-            self.settings.setValue(KEY_COM_PORT, self.arduino.serial_port.port)
-            self.app_settings.setValue(
-                KEY_COM_PORT, self.arduino.serial_port.port)
-
-            log_info(f"USB: connected to {self.arduino.serial_port.port}")
-            log.success(f"USB: connected to {self.arduino.serial_port.port}")
 
         else:  # device is not connected
             error(f"USB: connection failed. Error: {message}")
             if message is not None and str.__contains__(
                 message, "Incorrect Arduino ID"
             ):
-                self.insert_text(f"Connection Failed. {message}")
-            self.label_usb_icon.setText(ICON_USB_RED)
-            self.actionConnect.setText("Connect")
-            self.usb_label.setStyleSheet(RED)
-            self.usb_label.setText("USB: connection failed")
-            self.arduino = None
+                self.append_text(f"Connection Failed. {message}")
+
             self.state = State.IDLE
 
-    def disconnect_device(self) -> None:
-        if self.arduino:
-            atexit.unregister(self.arduino.cleanup)
-            self.arduino.set_all_pins_to_value(0)
-            self.actionConnect.setText("Connect")
-            self.actionConnect.triggered.connect(self.connect_device)
-            self.actionConnect.triggered.disconnect(self.disconnect_device)
-            self.connect_menu.triggered.connect(self.connect_device)
-            self.connect_menu.triggered.disconnect(self.disconnect_device)
-            self.label_usb_icon.setText(ICON_USB_RED)
-            self.usb_label.setStyleSheet(RED)
-            self.usb_label.setText("USB: disconnected")
-            debug("USB: disconnected.")
-            self.arduino.cleanup()
-            self.arduino = None
-            self.state = State.IDLE
+    async def disconnect_device(self):
+        # Await the asynchronous disconnect on your device.
+        # if self.usb_device is None:
+        #     return
+        await self.usb_device.async_disconnect()
+        self.device_connected = False
+        log.info("Device disconnected successfully.")
+        self.actionConnect.setText("Connect")
+        # self.usb_device = None
+        self.state = State.IDLE
+
 
     def control_manually(self) -> None:
         self.manual = ManualWidget(self.arduino)
@@ -953,31 +865,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.process_queue()
 
     def modify_settings(self) -> None:
-        # if auto login is enabled, force the user to login
-        if self.settings.get(KEY_AUTO_LOGIN):
-            if self.authenticate():
-                self.settings_dialog.show()
-        else:
-            self.settings_dialog.show()
+        self.settings_dialog.show()
 
-    def authenticate(self) -> bool:
-        """Authenticate via the login dialog."""
-        self.loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
-        if self.loginDialog.exec() == QDialog.Accepted:
-            success, username = self.loginDialog.ok()
-            if success:
-                self.settings.setValue(KEY_LAST_USER, username)
-                self.app_settings.setValue(KEY_LAST_USER, username)
-            else:
-                critical(
-                    self.loginDialog,
-                    title="Invalid credentials",
-                    message="The username or password you entered is incorrect. Please try again.",
-                )
-            return success
-        else:
-            return False
-    
+
     # @Slot(Tuple[int, QObject])
     def on_settings_closed(self, result: Tuple) -> None:
         return_val, settings = result
@@ -1104,39 +994,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log.info("Save finished.")
         self.progress_bar.close()
 
-    def perform_login(self) -> None:
-        """Show the login dialog."""
-        success, username = False, None
-        # Block until the user is logged in
-        while not success and self.window().isVisible():
-            self.loginDialog = LoginDialog(self.settings.get(KEY_LAST_USER))
-            if self.loginDialog.exec() == QDialog.Accepted:
-                success, username = self.loginDialog.ok()
-                if not success:
-                    critical(
-                        self.loginDialog,
-                        "The username or password you entered is incorrect. Please try again.",
-                        "Invalid credentials",
-                    )
-            else:
-                self.close()
-        if success:
-            if self.settings.get_bool(KEY_AUTO_CONNECT):
-                # Auto Connect
-                QTimer.singleShot(1000, self.connect_device)
-            log.success(f"Logged in as: {username}")
-            logg.success(f"Logged in as: {username}")
-            app_logger.info(f"Logged in as: {username}")
-
-            # Block if the user is not an admin
-            self.actionModify_Settings.setEnabled(db.is_admin(username))
-            self.actionAdd_User.setEnabled(db.is_admin(username))
-            self.actionRemove_User.setEnabled(db.is_admin(username))
-            self.actionUpdate_Firmware.setEnabled(db.is_admin(username))
-            # save the last user to the settings
-            self.settings.setValue(KEY_LAST_USER, username)
-        else:
-            sys.exit(0)
 
     def closeEvent(self, event) -> None:
         log.debug(event.isAccepted())
@@ -1152,20 +1009,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.info("Application closed.")
             logg.info("Application closed.")
             app_logger.info("Application closed.")
-            self.app_settings.setValue("geometry", self.saveGeometry())
-            self.app_settings.setValue("windowState", self.saveState())
-            self.app_settings.setValue("full_screen", self.isFullScreen())
+            self.app_settings.setValue("mainwindow/geometry", self.saveGeometry())
+            self.app_settings.setValue(
+                "mainwindow/windowState", self.saveState())
+            self.app_settings.setValue("mainwindow/full_screen", self.isFullScreen())
+            self.app_settings.sync()
             event.accept()
         else:
             event.ignore()
 
-    def show(self) -> None:
-
-        super().show()
-        if not self.settings.get(KEY_AUTO_LOGIN):
-            self.perform_login()
-        else:
-            self.actionLogout.setEnabled(False)
 
     def update_firmware(self) -> None:
         """Update the firmware on the test fixture."""
@@ -1237,7 +1089,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
     :param usb_handler: The USB connection handler.
     """
 
-    def __init__(self, usb_handler: USBDevice = None):
+    def __init__(self, usb_handler: AIODevice = None):
         super().__init__()
         self.setWindowFlags(self.windowFlags() |
                             QtCore.Qt.WindowStaysOnTopHint)
@@ -1343,7 +1195,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         super().__init__()
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
-        self.app_settings = QSettings("Detex Corp", "EAX Interface")
+        # self.app_settings = settings.app_settings
         self.settings: ApplicationSettings = parent.settings
         self._parent = parent
 
@@ -1368,7 +1220,8 @@ class SettingsDialog(QWidget, Ui_Settings):
         config = ConfigLoader()
         
         self.lineEdit_serial.setText(
-            self.app_settings.value(KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(KEY_PROGRAMMER_SERIAL_NUMBER))
+            self.settings.app_settings.value(
+                KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(KEY_PROGRAMMER_SERIAL_NUMBER))
         )
         
         chip_options = config.chip_options
@@ -1376,17 +1229,19 @@ class SettingsDialog(QWidget, Ui_Settings):
             self.comboBox_chip.addItem(chip_part)
 
         self.comboBox_chip.setCurrentText(
-            self.app_settings.value(KEY_CHIP_PART, config.get_default_setting(KEY_CHIP_PART))
+            self.settings.app_settings.value(
+                KEY_CHIP_PART, config.get_default_setting(KEY_CHIP_PART))
         )
 
         value = self.settings.get_int(KEY_TESTING_SPEED, config.get_default_setting(KEY_TESTING_SPEED))
         self.dial.setValue(value)
 
         self.comboBox_com_port.setCurrentText(
-            self.app_settings.value(KEY_COM_PORT, config.get_default_setting(KEY_COM_PORT))
+            self.settings.app_settings.value(
+                KEY_COM_PORT, config.get_default_setting(KEY_COM_PORT))
         )
 
-        for port in USBDevice.get_usb_ports():
+        for port in AIODevice.get_usb_ports():
             self.comboBox_com_port.addItem(port)
         
         self.spinBox_autologoff_delay.setValue(
@@ -1420,7 +1275,8 @@ class SettingsDialog(QWidget, Ui_Settings):
         )
 
         self.lineEdit_serial_sleep_tune.setText(
-            str(self.app_settings.value(KEY_SLEEP_TUNE, config.get_default_setting(KEY_SLEEP_TUNE)))
+            str(self.settings.app_settings.value(KEY_SLEEP_TUNE,
+                config.get_default_setting(KEY_SLEEP_TUNE)))
         )
 
         self.spinBox_wait_time.setValue(
@@ -1486,7 +1342,7 @@ class SettingsDialog(QWidget, Ui_Settings):
             self.settings.setValue(KEY_BACKGROUND_COLOR,
                               self.background_color.name())
         if self.foreground_color:
-            self.app_settings.setValue(KEY_FOREGROUND_COLOR,
+            self.settings.app_settings.setValue(KEY_FOREGROUND_COLOR,
                               self.foreground_color.name())
         if self.qfont:
             self.settings.setValue(KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
@@ -1581,60 +1437,6 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.activateWindow()
         self.setFocus()
 
-
-class UserAdditionDialog(QDialog, Ui_AddUserDialog):
-    def __init__(self):
-        super().__init__()
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowStaysOnTopHint)
-        self.setupUi(self)
-        self.setStyleSheet(get_stylesheet())
-
-        self.lineEdit_password.setEchoMode(QLineEdit.Password)
-        self.buttonBox.accepted.connect(self.save)
-        self.buttonBox.rejected.connect(self.close)
-
-        self.users = db.get_users()
-
-    def save(self) -> None:
-        username = self.lineEdit_username.text()
-        password = self.lineEdit_password.text()
-        admin = self.checkBox.isChecked()
-        if not db.insert_user(username=username, password=password, is_admin=admin):
-            warning(self, "Error adding user.")
-        self.close()
-
-
-class UserRemovalDialog(QDialog, Ui_RemoveUserDialog):
-    def __init__(self, title="Remove User"):
-        super().__init__()
-        self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
-        self.setupUi(self)
-        self.setWindowTitle(title)
-
-        if get_theme() == "dark":
-            self.setStyleSheet(qdarkstyle.load_stylesheet(palette=DarkPalette))
-        else:
-            self.setStyleSheet(
-                qdarkstyle.load_stylesheet(palette=LightPalette))
-
-        self.us = db.get_users()
-        for username in self.us:
-            self.comboBox.addItem(username)
-
-        self.buttonBox.accepted.connect(self.save)
-        self.buttonBox.rejected.connect(self.close)
-
-    def save(self):
-        selected_username = self.comboBox.currentText()
-        if selected_username == "dmh":
-            critical(
-                self,
-                f"Cannot remove user: {selected_username}",
-            )
-            self.close()
-            return
-        db.remove_user(selected_username)
 
 
 class SaveWorker(QThread):
@@ -1754,7 +1556,10 @@ if __name__ == "__main__":
             critical(None, f"Missing the following keys in config file:\n  {', '.join(missing_keys)}")
             sys.exit(1)
             
+        loop = QEventLoop(app)
+        asyncio.set_event_loop(loop)
         window = MainWindow(app)
         window.show()
         info("Application started.")
-        app.exec()
+        with loop:
+            loop.run_forever()
