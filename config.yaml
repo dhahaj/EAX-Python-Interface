@@ -1,49 +1,49 @@
 ---
-app_name: EAX2500 Interface
+app_name: EAX500 Interface
 app_version: 1.0.0
 
 firmware:
-  default_device: EAX2500
+  default_device: EAX500
   files:
-    - basename: EAX2500
-      filename: EAX2500_73.OBJ
-      version: '73'
-    - basename: EAX2501
-      filename: EAX2501_73.OBJ
-      version: '73'
-    - basename: EAX2503
-      filename: EAX2503_73.OBJ
-      version: '73'
-    - basename: EAX2504
-      filename: EAX2504_73.OBJ
-      version: '73'
-    - basename: EAX2505
-      filename: EAX2505_73.OBJ
-      version: '73'
-    - basename: EAX2510
-      filename: EAX2510_73.OBJ
-      version: '73'
-    - basename: EAX2513
-      filename: EAX2513_73.OBJ
-      version: '73'
-    - basename: EAX2514
-      filename: EAX2514_73.OBJ
-      version: '73'
-    - basename: EAX2520
-      filename: EAX2520_73.OBJ
-      version: '73'
-    - basename: EAX2523
-      filename: EAX2523_73.OBJ
-      version: '73'
-    - basename: EAX2524
-      filename: EAX2524_73.OBJ
-      version: '73'
-    - basename: EAX2544
-      filename: EAX2544_73.OBJ
-      version: '73'
-    - basename: EAX2545
-      filename: EAX2545_73.OBJ
-      version: '73'
+    - basename: EAX300
+      filename: EAX300_59.hex
+      version: '59'
+    - basename: EAX500
+      filename: EAX500_591.hex
+      version: '591'
+    - basename: EAX503
+      filename: EAX503_591.hex
+      version: '591'
+    - basename: EAX504
+      filename: EAX504_591.hex
+      version: '591'
+    - basename: EAX505
+      filename: EAX505_591.hex
+      version: '591'
+    - basename: EAX510
+      filename: EAX510_591.hex
+      version: '591'
+    - basename: EAX513
+      filename: EAX513_591.hex
+      version: '591'
+    - basename: EAX514
+      filename: EAX514_591.hex
+      version: '591'
+    - basename: EAX515
+      filename: EAX515_591.hex
+      version: '591'
+    - basename: EAX520
+      filename: EAX520_591.hex
+      version: '591'
+    - basename: EAX523
+      filename: EAX523_591.hex
+      version: '591'
+    - basename: EAX524
+      filename: EAX524_591.hex
+      version: '591'
+    - basename: EAX525
+      filename: EAX525_591.hex
+      version: '591'
   path: ./firmware
 
 pins:
@@ -68,7 +68,7 @@ pins:
     pin_number: 6
     pullup_enabled: false
   - function: relay in
-    io_mode: input
+    io_mode: input_pullup
     pin_number: 7
     pullup_enabled: true
   - function: okc
