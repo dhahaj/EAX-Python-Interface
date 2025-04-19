@@ -5,19 +5,17 @@ from PySide6.QtCore import QSettings
 from PySide6.QtCore import QByteArray
 from typing import Any
 from loguru import logger as log
-from constants import *
+import constants
 # from imports import str_to_bool
 from pathlib import Path
 
 class ApplicationSettings():
     """The settings class, used to store settings."""
 
-    def __init__(self, filename="settings.json"):
-        # QSettings.setPath(QSettings.IniFormat, QSettings.UserScope, "./config")
-        self.app_settings = QSettings("Detex Corp", "EAX Interface")
+    def __init__(self, filename: str = "settings.ini"):
+        self.app_settings: QSettings = QSettings(filename, QSettings.Format.IniFormat)
         self.filename = filename
-        self.default_settings = DEFAULT_SETTINGS.copy()
-
+        self.default_settings = constants.DEFAULT_SETTINGS.copy()
 
     @property
     def path(self) -> str:
@@ -48,6 +46,11 @@ class ApplicationSettings():
         return_val = self.app_settings.value(key, default_value)
         return 0 if not return_val else int(return_val) if type(return_val) != int else return_val
 
+    def get_float(self, key: str, default_value: float = None) -> float:
+        return_val = self.app_settings.value(key, default_value)
+        print(f"get_float: {key} = {return_val}, type={type(return_val)}")
+        return 0.0 if not return_val else float(return_val) if type(return_val) != float else return_val
+
     def get_bool(self, key: str, default_value: bool = False) -> bool:
         """ Get a boolean setting. """
         return_val = self.app_settings.value(key, default_value)
@@ -61,74 +64,46 @@ class ApplicationSettings():
         self.app_settings.setValue(key, value)
         self.save_settings()
 
-    @log.catch(
-        message="Settings file is invalid, resetting to default.",
-        reraise=True,
-        exception=json.JSONDecodeError,
-    )
-    def load_settings(self) -> None:
-        """ Load the settings from a JSON file. """
-        # Check if the settings file exists, and create it if it doesn't
-        if not self.validate_settings():
-            # Convert the Python dictionary to a QJsonDocument
-            json_doc = QJsonDocument.fromVariant(DEFAULT_SETTINGS)
-
-            # Serialize the QJsonDocument to formatted string
-            json_data = json_doc.toJson(QJsonDocument.JsonFormat.Indented)
-
-            with open(os.path.join(".", self.filename), "w") as file:
-                file.write(json_data.decode("utf-8"))
-
-        # Load the settings from the settings file
-        with open(self.filename, "r") as file:
-            content = file.read()
-            doc_from_file = QJsonDocument.fromJson(content.encode())
-            s = doc_from_file.toVariant()
-            self.default_settings.update(s)
-
     def save_settings(self) -> None:
         """Save the settings to a file."""
         self.app_settings.sync()
-        # json.dumps(Path.read_text(self.filename), indent=4)
-        # with open(self.filename, "w") as file:
-        #     json.dump(self.default_settings, file, indent=4)
-        #     file.readlines()
-        #     json.loads()
 
     def validate_settings(self):
         """Check if the settings file exists."""
         return os.path.exists(self.filename)
 
-    @staticmethod
-    @log.catch(
-        message="Settings file is invalid, resetting to default.",
-        reraise=True,
-        exception=json.JSONDecodeError,
-    )
-    def read_settings_from_file(filename="settings.json") -> dict:
-        values = DEFAULT_SETTINGS.copy()
-        if os.path.exists(filename):
-            with open(os.path.join(".", filename), "r") as file:
-                values.update(json.load(file))
-        else:
-            log.warning(f"Settings file {filename} does not exist.")
-        return values
-
     def print_settings(self) -> None:
         """Print the settings."""
-        self.app_settings.sync()
         for key in self.app_settings.allKeys():
             value = self.app_settings.value(key)
-            if self.get_bool(KEY_DEBUG):
-                log.debug(f"{key}: {value}, type={type(value)}")
+            log.debug(f"{key}: {value}, type={type(value)}")
 
     def readArray(self) -> list:
         array = []
         return array.append(self.app_settings.value(key) for key in self.app_settings.allKeys())
-    
+
     def sync(self) -> None:
         self.app_settings.sync()
 
+    def copy_to_settings(self, settings: QSettings) -> None:
+        """Copy settings to another QSettings object."""
+        for key in self.app_settings.allKeys():
+            value = self.app_settings.value(key)
+            settings.setValue(key, value)
+
+    def copy_from_settings(self, settings: QSettings) -> None:
+        """Copy settings from another QSettings object."""
+        for key in settings.allKeys():
+            value = settings.value(key)
+            self.app_settings.setValue(key, value)
+
+    def __str__(self) -> str:
+        """Return a string representation of the settings."""
+        settings_str = ""
+        for key in self.app_settings.allKeys():
+            value = self.app_settings.value(key)
+            settings_str += f"{key}: {value}\n"
+        return settings_str
 
 from typing import List
 
@@ -136,7 +111,7 @@ def read_array() -> List:
     array = []
     settings = ApplicationSettings()
     app_settings = settings.app_settings
-    keys = list(DEFAULT_SETTINGS.keys())
+    keys = list(constants.DEFAULT_SETTINGS.keys())
     size = app_settings.beginReadArray("settings")
     for i in range(size):
         key = keys[i]
@@ -148,4 +123,5 @@ def read_array() -> List:
 
 if __name__ == "__main__":
     settings = ApplicationSettings()
-    app_settings = settings.app_settings
+    settings.print_settings()
+
