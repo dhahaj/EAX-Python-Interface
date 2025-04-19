@@ -72,11 +72,13 @@ class Device:
 
     def verify_firmware(self) -> bool:
         """Verify the firmware is valid."""
+        return_val = True
         for firmware in self.data:
             filename = firmware.get(KEY_FIRMWARE_NAME)
             if not os.path.isfile(f'{self._path}/{filename}'):
-                return False
-        return True
+                print(f"Firmware file {filename} not found in {self._path}.")
+                return_val = False
+        return return_val
 
 
 if __name__ == '__main__':
