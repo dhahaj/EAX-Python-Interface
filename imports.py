@@ -81,9 +81,9 @@ from ui import (
 import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
 from device import Device
-from userdatabase import UserDatabase
+# from userdatabase import UserDatabase
 from settings import ApplicationSettings
-from usbhandler import USBDevice
+# from usbhandler import USBDevice
 from applogger import AppLogger, Log, LogManager
 from stats import *
 from constants import *
@@ -102,7 +102,6 @@ import send2trash
 from main import (
     LogView, 
     HelpDialog, 
-    LoginDialog,
 )
 
 """
@@ -124,8 +123,8 @@ ControlModifier = Qt.KeyboardModifier.ControlModifier
 Global variables
 """
 app_logger = AppLogger.get_logger()
-settings = ApplicationSettings("settings.json")
-db = UserDatabase("users.db")
+settings = ApplicationSettings("settings.ini")
+# db = UserDatabase("users.db")
 logg = LogManager()
 
 
