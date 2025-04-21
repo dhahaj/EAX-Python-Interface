@@ -12,9 +12,9 @@ from os import PathLike
 
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
 
-ICON_USB_RED = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/disconnected2.png"/></p></body></html>'
-ICON_USB_GREEN = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/connected2.png"/></p></body></html>'
-ICON_USB_YELLOW = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/images/icons/connecting.png"/></p></body></html>'
+ICON_USB_RED = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/disconnected"/></p></body></html>'
+ICON_USB_GREEN = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/connected"/></p></body></html>'
+ICON_USB_YELLOW = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/connecting"/></p></body></html>'
 
 ICON_USB_BACKGROUND_GRN = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.284091 rgba(85, 170, 0, 80), stop:0.5 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
 ICON_USB_BACKGROUND_YLW = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
@@ -88,6 +88,9 @@ KEY_FULLSCREEN: str                 = "full_screen"
 KEY_TOUCHSCREEN_ENABLED: str        = "touchscreen_enabled"
 KEY_FRAMELESS: str                  = "frameless"
 KEY_DARK_THEME: str                 = "dark_mode"
+KEY_COUNTER_ENABLED: str           = "counter_enabled"
+KEY_TEST_COUNT: str              = "test_count" 
+KEY_BUTTON_TIMEOUT: str             = "button_timeout"
 
 class Key(enum.Enum):
     debug: str = "debug"
@@ -175,6 +178,9 @@ DEFAULT_SETTINGS = {
     KEY_FULLSCREEN: False,
     KEY_TOUCHSCREEN_ENABLED: False,
     KEY_FRAMELESS: False,
+    KEY_COUNTER_ENABLED: True,
+    KEY_TEST_COUNT: 0,
+    KEY_BUTTON_TIMEOUT: 15,
 }
 
 
