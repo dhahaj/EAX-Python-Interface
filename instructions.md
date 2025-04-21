@@ -2,6 +2,7 @@
 
  *[Click Here for help.](https://)*
 
+
 ## Equipment Needed
 
 - EAX-500 Test Fixture
@@ -25,6 +26,17 @@
 - If auto test is enabled and programming was successful, testing will begin automatically.
 - If auto test is disabled, press the *Test* button or press anywhere on the screen to begin testing.
 
-----------------------------------------------------------------------------------------
+<!-- <img src=":/resources/icons/disconnected" width="52" height="52"/> -->
+#
 
-####
+<html><head>
+<style type="text/css">
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+</style>
+</head>
+  <p><a href="test" class="button"><img src=":/resources/icons/images/icons/light/test-button.png" width="100" height="100" style="float:right;"/></a></p>
+  <a href="program" class="button"><img src=":/resources/icons/images/icons/light/prog-button.png" width="100" height="100"/></a>
+</html>                                                                                 
