@@ -8,3 +8,4 @@ from .ui_LogView import Ui_LogView
 from .ui_Settings import Ui_Settings
 from .ui_ManualControlDialog import Ui_ManualControlDialog
 from .ui_ProgressBar import Ui_ProgressBar
+from .ui_StatusBarWidget import Ui_StatusBarWidget
