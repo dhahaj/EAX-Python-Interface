@@ -1,13 +1,8 @@
-import json
 import os
-from PySide6.QtCore import QJsonDocument
 from PySide6.QtCore import QSettings
-from PySide6.QtCore import QByteArray
 from typing import Any
 from loguru import logger as log
 import constants
-# from imports import str_to_bool
-from pathlib import Path
 
 class ApplicationSettings():
     """The settings class, used to store settings."""
