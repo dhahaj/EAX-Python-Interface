@@ -66,6 +66,8 @@ from qtpy.QtWidgets import (
     QProgressBar,
     QLabel,
     QFileDialog,
+    QStatusBar,
+    QLCDNumber
 )
 from ui import (
     Ui_MainWindow,
@@ -77,6 +79,7 @@ from ui import (
     Ui_LoginDialog,
     Ui_ManualControlDialog,
     Ui_ProgressBar,
+    Ui_StatusBarWidget
 )
 import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
