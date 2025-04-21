@@ -283,13 +283,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # db.backup_database()
         clean_backups("backups", 5)
 
+        self.setStatusBar(CustomStatusBar())
+        self.set_status('Select a device to begin.')
+
         # If auto login and auto connect are enabled, try to connect to the USB device
-        if self.settings.get(KEY_AUTO_LOGIN) and self.settings.get(KEY_AUTO_CONNECT):
+        if self.settings.get(KEY_AUTO_CONNECT):
             QTimer.singleShot(2000, self.connect_device)
 
         self.timeout_timer = QTimer()
         self.timeout_timer.setSingleShot(True)
         self.timeout_timer.timeout.connect(self.on_timeout)
+
+    def set_status(self, message: str, timeout: int = 0) -> None:
+        """Set the status message in the status bar."""
+        sb = self.statusBar()
+        sb.showMessage(message, timeout)
 
     @property
     def state(self) -> State:
@@ -300,6 +308,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def state(self, value: State) -> None:
         log.debug(f"Setting state to {value}")
         self._state = value
+
+        if value == State.CONNECTING:
+            self.test_button.setEnabled(False)
+            self.program_button.setEnabled(False)
+            self.actionConnect.setEnabled(False)
+            self.label_usb_icon.setText(ICON_USB_YELLOW)
+        elif value == State.CONNECTED:
+            self.test_button.setEnabled(True)
+            self.program_button.setEnabled(True)
+            self.actionConnect.setEnabled(True)
+            self.label_usb_icon.setText(ICON_USB_GREEN)
+        elif value == State.IDLE:
+            self.test_button.setEnabled(False)
+            self.program_button.setEnabled(False)
+            self.actionConnect.setEnabled(True)
+            self.label_usb_icon.setText(ICON_USB_RED)
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
@@ -332,16 +356,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Check if the cursor is over a link."""
         cursor = self.text_edit.textCursor()
         current_position = cursor.position()
-        anchor = self.text_edit.anchorAt(
-            self.text_edit.mapFromGlobal(QCursor.pos()))
+        anchor = self.text_edit.anchorAt(self.text_edit.mapFromGlobal(QCursor.pos()))
         if anchor:
-            debug(current_position)
+            print(anchor)
+            # debug(current_position)
             # QDesktopServices.openUrl(QUrl(anchor))
             # reset the position to avoid cursor moving to the link start
             cursor.setPosition(current_position)
             self.text_edit.setTextCursor(cursor)
-            self.help_dialog = HelpDialog()
-            self.help_dialog.show()
+            # self.help_dialog = HelpDialog()
+            # self.help_dialog.show()
 
     def set_theme(self, theme: str) -> None:
         """Set the theme."""
@@ -467,12 +491,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ):
             log.warning(f"Device: {self.eax_device.name}")
         elif key == Qt.Key.Key_A and event.modifiers() & ControlModifier:
-            print(vars(self))
-            print(vars(self.settings))
-            print(vars(app_logger))
-            print(vars(self.arduino))
-            print(vars(db))
-            print(vars(logg))
+            # print(vars(self))
+            # print(vars(self.settings))
+            # print(vars(app_logger))
+            # print(vars(self.arduino))
+            # print(vars(db))
+            # print(vars(logg))
+            self.text_edit.setAcceptRichText(True)
+            self.load_file_text()
 
 
     def on_device_changed(self, device: str) -> None:
@@ -536,7 +562,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.app_settings.setValue(KEY_FONT_SIZE, font.pointSize())
 
     def get_chip_part(self) -> None:
-        self.settings.load_settings()
         current_chip = self.settings.get(KEY_CHIP_PART)
         current_selection = CHIP_OPTIONS.index(current_chip)
         item, okPressed = QInputDialog.getItem(
@@ -647,7 +672,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if message is not None and str.__contains__(
                 message, "Incorrect Arduino ID"
             ):
-                self.append_text(f"Connection Failed. {message}")
+                self.insert_text(f"Connection Failed. {message}")
 
             self.state = State.IDLE
 
@@ -669,7 +694,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def execute_test(self) -> None:
         """Start testing the device."""
-
+        asyncio.create_task(self.run_test())
+        return
         if self.state == State.WAITING_FOR_BUTTON:
             self.button_pressed = True
             return
@@ -912,15 +938,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     f"{self.eax_device.firmware_path} not found!")
                 return
 
-            self.settings.load_settings()  # reload the settings
+            # self.settings.load_settings()  # reload the settings
             chip = self.settings.get("chip_part")
-            serial = self.settings.get("programmer_serial_number")
+            # serial = self.settings.get("programmer_serial_number")
+            programmer_path = self.settings.get("programmer_path")
 
             command = [
-                "C:\\Program Files (x86)\\ASIX\\UP\\up.exe",
-                f"/part {chip}",
-                f"/s {serial}",
-                f"/p {self.eax_device.firmware_path}",
+                programmer_path,
+                "/part",
+                chip,
+                "/p",
+                self.eax_device.firmware_path,
                 "/q1",
             ]
 
@@ -1079,6 +1107,105 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.update_process.waitForFinished(3000):
             self.update_process.kill()
             log.error("Process did not terminate in time.")
+
+    def increment_counter(self) -> None:
+        """Set the progress value in the status bar."""
+        if settings.get_bool(KEY_COUNTER_ENABLED, False):
+            settings.setValue(
+                KEY_TEST_COUNT, settings.get_int(KEY_TEST_COUNT) + 1)
+        sb = self.statusBar()
+        sb.update_counter()
+
+
+    async def run_test(self) -> None:
+        """Run the test."""
+        if not self.eax_device.is_selected:
+            warning(self, "Please select a device.")
+            return
+        elif self.state == State.WAITING_FOR_BUTTON:
+            # notify the input event
+            if hasattr(self, 'input_event') and not self.input_event.is_set():
+                self.input_event.set()
+            return
+        elif self.state == State.IDLE:
+            warning(self, f"USB device not connected.")
+            return
+        elif self.state == State.WAITING_FOR_INPUT or self.state == State.TESTING:
+            return
+        elif self.state != State.CONNECTED:
+            warning(self, f"Cannot run test.")
+            return
+
+        self.increment_counter()
+
+        model = self.eax_device.name
+
+        # app_logger.info(f"Testing started for {model.name}")
+        log.info(f"Testing started for {model}")
+        logg.info(f"Testing started for {model}")
+
+        self.state = State.TESTING
+
+        speed = self.settings.get_int(
+            KEY_TESTING_SPEED, DEFAULT_SETTINGS[KEY_TESTING_SPEED]) / 1000
+
+        await self.usb_device.write_pin_by_func("test indicator", 1)
+
+        self.text_edit.setMarkdown(
+            f"# Starting test for {model}... \n\n"
+        )
+
+        self.insert_text(
+            "- Battery Power ON"
+            "- Testing Low battery function → The LED's blink alternately"
+        )
+        await self.usb_device.write_pin_by_func("battery", 1)
+        await self.usb_device.write_pin_by_func("low battery", 1)
+
+        await asyncio.sleep(speed)
+
+        self.insert_text(
+            "- Stopping Low Battery Test → Both LED's are OFF")
+        await self.usb_device.write_pin_by_func("low battery", 0)
+        await asyncio.sleep(speed)
+
+        self.input_event = asyncio.Event()  # Create a new Event.
+
+        self.insert_text(
+            "- Press the Pad switch (Blue Wires) - Both LEDs are ON solid\n"
+            "   *Press the Continue Button when finished*"
+        )
+
+        self.state = State.WAITING_FOR_BUTTON
+
+        # Wait for the button to be pressed
+        try:
+            timeout = self.settings.get_int(
+                KEY_BUTTON_TIMEOUT, DEFAULT_SETTINGS[KEY_BUTTON_TIMEOUT])
+            await asyncio.wait_for(self.input_event.wait(), timeout=timeout)
+        except asyncio.TimeoutError:
+            pass
+
+        self.insert_text("Test complete.")
+
+        if settings.get_bool(KEY_COUNTER_ENABLED, False):
+            logg.info(
+                f"Test complete for {model}. (Cycle count: {settings.get_int(KEY_TEST_COUNT, 0)})")
+        else:
+            logg.info(f"Test complete for {model}.")
+
+        await self.usb_device.write_pin_by_func("test indicator", 0)
+        await self.usb_device.write_pin_by_func("battery", 0)
+        await self.usb_device.write_pin_by_func("low battery", 0)
+
+        await asyncio.sleep(speed/3)
+
+        self.state = State.CONNECTED
+
+        self.load_file_text()
+
+
+
 
 
 class ManualWidget(QWidget, Ui_ManualControlDialog):
@@ -1531,6 +1658,74 @@ class SingleInstanceApp(QApplication):
             return
 
         self.semaphore.release()
+
+
+class StatusWidget(QWidget, Ui_StatusBarWidget):
+    """
+    A custom status bar widget that displays a message and a counter.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+
+
+class CustomStatusBar(QStatusBar):
+    """
+    A custom status bar that is able to display a persistant message.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.widget = StatusWidget()
+        self.addPermanentWidget(self.widget, 1)
+
+        self.widget.lcdNumber.setDigitCount(5)
+
+        if settings.get_bool(KEY_COUNTER_ENABLED, False):
+            self.widget.lcdNumber.display(settings.get_int(KEY_TEST_COUNT, 0))
+
+        self._persistent_message = ""
+
+        app = QApplication.instance()
+        if app:
+            app.installEventFilter(self)      # catch status‐tips anywhere
+
+    def eventFilter(self, watched, event):
+        # catch hover‐tips
+        if event.type() == QEvent.StatusTip:
+            tip = event.tip()
+            if tip:
+                # a new hover tip arrived → show it
+                self.widget.status.setText(tip)
+            else:
+                # tip="" means “clear the hover tip” → go back to real text
+                self.widget.status.setText(self._persistent_message)
+            return True
+        return super().eventFilter(watched, event)
+
+    def clearMessage(self):
+        self.widget.status.clear()
+        super().clearMessage()
+        if self._persistent_message:
+            self.widget.status.setText(self._persistent_message)
+
+    def showMessage(self, message: str, timeout: int = 0) -> None:
+        self._persistent_message = message
+        self.widget.status.setText(message)
+        if timeout > 0:
+            QTimer.singleShot(timeout, lambda: self.clearMessage())
+
+    def update_counter(self) -> None:
+        # IF the persistant counter is enabled, increment the counter in the settings
+        # so that it can be restored on the next run. Otherwise, just increment the counter in the widget.
+        if settings.get_bool(KEY_COUNTER_ENABLED, False):
+            self.widget.lcdNumber.display(settings.get_int(KEY_TEST_COUNT, 0))
+        else:
+            current_value = self.widget.lcdNumber.value()
+            self.widget.lcdNumber.display(current_value + 1)
+
+
 
 
 if __name__ == "__main__":
