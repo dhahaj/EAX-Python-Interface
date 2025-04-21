@@ -107,10 +107,10 @@
     <file>images/icons/ps.png</file>
     <file>images/icons/geometric.png</file>
     <file>images/icons/connected.png</file>
-    <file>images/icons/connected2.png</file>
-    <file>images/icons/connecting.png</file>
+    <file alias="connected">images/icons/connected2.png</file>
+    <file alias="connecting">images/icons/connecting.png</file>
     <file>images/icons/disconnected.png</file>
-    <file>images/icons/disconnected2.png</file>
+    <file alias="disconnected">images/icons/disconnected2.png</file>
     <file>images/icons/forward-button.png</file>
     <file>images/icons/help.png</file>
     <file>images/FirmwareUpdate.png</file>

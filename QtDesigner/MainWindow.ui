@@ -10,7 +10,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>797</width>
+    <width>1233</width>
     <height>638</height>
    </rect>
   </property>
@@ -43,13 +43,13 @@
    </size>
   </property>
   <property name="toolButtonStyle">
-   <enum>Qt::ToolButtonTextBesideIcon</enum>
+   <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
   </property>
   <property name="tabShape">
-   <enum>QTabWidget::Rounded</enum>
+   <enum>QTabWidget::TabShape::Rounded</enum>
   </property>
   <property name="dockOptions">
-   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
+   <set>QMainWindow::DockOption::AllowNestedDocks|QMainWindow::DockOption::AllowTabbedDocks|QMainWindow::DockOption::AnimatedDocks</set>
   </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>false</bool>
@@ -74,7 +74,7 @@
        <bool>true</bool>
       </property>
       <property name="focusPolicy">
-       <enum>Qt::NoFocus</enum>
+       <enum>Qt::FocusPolicy::NoFocus</enum>
       </property>
       <property name="autoFillBackground">
        <bool>false</bool>
@@ -83,13 +83,13 @@
        <string notr="true"/>
       </property>
       <property name="frameShape">
-       <enum>QFrame::WinPanel</enum>
+       <enum>QFrame::Shape::WinPanel</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
+       <enum>QFrame::Shadow::Sunken</enum>
       </property>
       <property name="autoFormatting">
-       <set>QTextEdit::AutoAll</set>
+       <set>QTextEdit::AutoFormattingFlag::AutoAll</set>
       </property>
       <property name="undoRedoEnabled">
        <bool>false</bool>
@@ -98,7 +98,7 @@
        <bool>true</bool>
       </property>
       <property name="textInteractionFlags">
-       <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse|Qt::TextBrowserInteraction|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+       <set>Qt::TextInteractionFlag::LinksAccessibleByKeyboard|Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextBrowserInteraction|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
       </property>
       <property name="placeholderText">
        <string>Text Area</string>
@@ -192,19 +192,19 @@
 font-weight: bold;</string>
            </property>
            <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
+            <enum>QFrame::Shape::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Sunken</enum>
+            <enum>QFrame::Shadow::Sunken</enum>
            </property>
            <property name="text">
-            <string/>
+            <string>Device not selected</string>
            </property>
            <property name="textFormat">
-            <enum>Qt::RichText</enum>
+            <enum>Qt::TextFormat::RichText</enum>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -223,6 +223,18 @@ font-weight: bold;</string>
          <string/>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="leftMargin">
+          <number>8</number>
+         </property>
+         <property name="topMargin">
+          <number>5</number>
+         </property>
+         <property name="rightMargin">
+          <number>4</number>
+         </property>
+         <property name="bottomMargin">
+          <number>5</number>
+         </property>
          <item>
           <widget class="QLabel" name="label_usb_icon">
            <property name="minimumSize">
@@ -251,26 +263,26 @@ font-weight: bold;</string>
             <string notr="true"/>
            </property>
            <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
+            <enum>QFrame::Shape::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Sunken</enum>
+            <enum>QFrame::Shadow::Sunken</enum>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img width=&quot;52&quot; height=&quot;52&quot; src=&quot;:/resources/icons/images/icons/disconnected2.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/resources/icons/disconnected&quot; width=&quot;52&quot; height=&quot;52&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
-            <enum>Qt::AutoText</enum>
+            <enum>Qt::TextFormat::RichText</enum>
            </property>
            <property name="scaledContents">
             <bool>false</bool>
            </property>
            <property name="alignment">
-            <set>Qt::AlignCenter</set>
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
          </item>
-         <item>
+         <item alignment="Qt::AlignmentFlag::AlignRight">
           <widget class="QLabel" name="usb_label">
            <property name="palette">
             <palette>
@@ -400,7 +412,7 @@ font-weight: bold;</string>
             <string>USB: Not Connected</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
            <property name="margin">
             <number>9</number>
@@ -467,8 +479,8 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>797</width>
-     <height>26</height>
+     <width>1233</width>
+     <height>33</height>
     </rect>
    </property>
    <property name="font">
@@ -566,7 +578,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::WidgetShortcut</enum>
+    <enum>Qt::ShortcutContext::WidgetShortcut</enum>
    </property>
   </action>
   <action name="actionLogout">
@@ -602,7 +614,7 @@ font-weight: bold;</string>
     <string>Esc</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::QuitRole</enum>
+    <enum>QAction::MenuRole::QuitRole</enum>
    </property>
   </action>
   <action name="actionEAX300">
@@ -644,7 +656,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX503">
@@ -666,7 +678,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX504">
@@ -688,7 +700,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX505">
@@ -710,7 +722,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX510">
@@ -732,7 +744,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX513">
@@ -754,7 +766,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX514">
@@ -776,7 +788,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX515">
@@ -798,7 +810,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX520">
@@ -820,7 +832,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX523">
@@ -842,7 +854,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX524">
@@ -864,7 +876,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionEAX525">
@@ -886,7 +898,7 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="menuRole">
-    <enum>QAction::TextHeuristicRole</enum>
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
   <action name="actionChange_font">
@@ -979,10 +991,10 @@ font-weight: bold;</string>
     </font>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
+    <enum>Qt::ShortcutContext::ApplicationShortcut</enum>
    </property>
    <property name="menuRole">
-    <enum>QAction::AboutQtRole</enum>
+    <enum>QAction::MenuRole::AboutQtRole</enum>
    </property>
   </action>
   <action name="actionManual_Control">
@@ -1109,7 +1121,7 @@ font-weight: bold;</string>
     <string>Advanced</string>
    </property>
    <property name="menuRole">
-    <enum>QAction::PreferencesRole</enum>
+    <enum>QAction::MenuRole::PreferencesRole</enum>
    </property>
    <property name="Advanced" stdset="0">
     <iconset resource="../icons.qrc">
