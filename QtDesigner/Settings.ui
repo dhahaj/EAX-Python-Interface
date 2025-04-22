@@ -103,7 +103,7 @@
       <item>
        <spacer name="horizontalSpacer_3">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -133,7 +133,7 @@
          <string>COM Port</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
         <property name="buddy">
          <cstring>comboBox_com_port</cstring>
@@ -220,7 +220,7 @@
          </font>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
+         <enum>Qt::FocusPolicy::NoFocus</enum>
         </property>
         <property name="toolTip">
          <string>Automatically connect using the Arduino ID instead of the specified COM port.</string>
@@ -241,7 +241,7 @@
          </font>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
+         <enum>Qt::FocusPolicy::NoFocus</enum>
         </property>
         <property name="toolTip">
          <string>Shutdown the Arduino upon encountering an exception.</string>
@@ -257,10 +257,10 @@
       <item row="2" column="0">
        <spacer name="verticalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Vertical</enum>
+         <enum>Qt::Orientation::Vertical</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
+         <enum>QSizePolicy::Policy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -273,10 +273,10 @@
       <item row="2" column="2">
        <spacer name="verticalSpacer">
         <property name="orientation">
-         <enum>Qt::Vertical</enum>
+         <enum>Qt::Orientation::Vertical</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
+         <enum>QSizePolicy::Policy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -366,7 +366,7 @@
          </font>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::ClickFocus</enum>
+         <enum>Qt::FocusPolicy::ClickFocus</enum>
         </property>
         <property name="toolTip">
          <string>This is the delay to allow the Arduino to reset itself upon connection.</string>
@@ -436,13 +436,13 @@
       <string/>
      </property>
      <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -466,7 +466,7 @@
          <string>Chip</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignCenter</set>
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
         <property name="buddy">
          <cstring>comboBox_chip</cstring>
@@ -578,10 +578,10 @@
       <item row="0" column="0">
        <spacer name="horizontalSpacer_4">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
+         <enum>QSizePolicy::Policy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -609,7 +609,7 @@
       <string/>
      </property>
      <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
      <layout class="QGridLayout" name="gridLayout_4">
       <item row="0" column="0">
@@ -623,10 +623,10 @@
          <string>In minutes. (Turning on Auto Login disables this)</string>
         </property>
         <property name="text">
-         <string>Auto Logoff Delay:</string>
+         <string>Inactivity Delay</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
         <property name="margin">
          <number>4</number>
@@ -669,6 +669,9 @@
         </property>
         <property name="minimum">
          <number>1</number>
+        </property>
+        <property name="value">
+         <number>15</number>
         </property>
        </widget>
       </item>
@@ -789,7 +792,7 @@
          <string>Arduino ID:</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
         <property name="margin">
          <number>5</number>
@@ -819,7 +822,7 @@
          </font>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::ClickFocus</enum>
+         <enum>Qt::FocusPolicy::ClickFocus</enum>
         </property>
         <property name="toolTip">
          <string>Allows multiple fixtures to connect to one computer</string>
@@ -926,7 +929,7 @@
       <string/>
      </property>
      <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
      <property name="flat">
       <bool>false</bool>
@@ -1389,10 +1392,10 @@
          <string>This is the # of sec that will be applied between testing steps</string>
         </property>
         <property name="frameShape">
-         <enum>QFrame::Box</enum>
+         <enum>QFrame::Shape::Box</enum>
         </property>
         <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
+         <enum>QFrame::Shadow::Raised</enum>
         </property>
         <property name="smallDecimalPoint">
          <bool>true</bool>
@@ -1401,7 +1404,7 @@
          <number>4</number>
         </property>
         <property name="segmentStyle">
-         <enum>QLCDNumber::Filled</enum>
+         <enum>QLCDNumber::SegmentStyle::Filled</enum>
         </property>
         <property name="value" stdset="0">
          <double>2240.000000000000000</double>
@@ -1543,7 +1546,7 @@
          </font>
         </property>
         <property name="focusPolicy">
-         <enum>Qt::ClickFocus</enum>
+         <enum>Qt::FocusPolicy::ClickFocus</enum>
         </property>
         <property name="toolTip">
          <string>Rotate CW for faster testing, CCW for slower testing</string>
@@ -1567,7 +1570,7 @@
          <number>1700</number>
         </property>
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="invertedAppearance">
          <bool>true</bool>
@@ -1589,10 +1592,10 @@
       <item row="1" column="1">
        <spacer name="horizontalSpacer">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
+         <enum>QSizePolicy::Policy::Fixed</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -1705,7 +1708,7 @@
       </size>
      </property>
      <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
+      <enum>Qt::LayoutDirection::LeftToRight</enum>
      </property>
      <property name="autoFillBackground">
       <bool>false</bool>
@@ -1723,27 +1726,6 @@
       <bool>false</bool>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QCheckBox" name="checkBox_logon">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>26</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>11</pointsize>
-         </font>
-        </property>
-        <property name="toolTip">
-         <string notr="true">This disables logging in</string>
-        </property>
-        <property name="text">
-         <string>Auto Login</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QCheckBox" name="checkBox_debug">
         <property name="minimumSize">
@@ -1783,6 +1765,9 @@
         </property>
         <property name="text">
          <string>Auto Connect</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -1849,7 +1834,7 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="0" column="0">
        <widget class="QCheckBox" name="checkBox_frameless">
         <property name="font">
          <font>
@@ -1887,7 +1872,7 @@
       </font>
      </property>
      <property name="focusPolicy">
-      <enum>Qt::NoFocus</enum>
+      <enum>Qt::FocusPolicy::NoFocus</enum>
      </property>
      <property name="toolTip">
       <string>Apply defaults to this window. Does not save until you press the save button.</string>
@@ -1976,13 +1961,11 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>checkBox_frameless</tabstop>
   <tabstop>checkBox_touchscreen</tabstop>
   <tabstop>checkBox_test</tabstop>
   <tabstop>checkBox_debug</tabstop>
   <tabstop>checkBox_fullscreen</tabstop>
   <tabstop>checkBox_connect</tabstop>
-  <tabstop>checkBox_logon</tabstop>
   <tabstop>spinBox_autologoff_delay</tabstop>
   <tabstop>lineEdit_serial</tabstop>
   <tabstop>comboBox_chip</tabstop>

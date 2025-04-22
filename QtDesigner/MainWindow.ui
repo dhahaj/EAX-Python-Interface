@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1233</width>
-    <height>638</height>
+    <width>1230</width>
+    <height>984</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -131,6 +131,9 @@
          <font>
           <pointsize>18</pointsize>
          </font>
+        </property>
+        <property name="statusTip">
+         <string>Program the device</string>
         </property>
         <property name="text">
          <string/>
@@ -269,7 +272,7 @@ font-weight: bold;</string>
             <enum>QFrame::Shadow::Sunken</enum>
            </property>
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/resources/icons/disconnected&quot; width=&quot;52&quot; height=&quot;52&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/resources/disconnected&quot; width=&quot;52&quot; height=&quot;52&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
             <enum>Qt::TextFormat::RichText</enum>
@@ -445,6 +448,9 @@ font-weight: bold;</string>
           <bold>false</bold>
          </font>
         </property>
+        <property name="statusTip">
+         <string>Test the device</string>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -479,7 +485,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1233</width>
+     <width>1230</width>
      <height>33</height>
     </rect>
    </property>
@@ -502,7 +508,6 @@ font-weight: bold;</string>
      <string>File</string>
     </property>
     <addaction name="actionConnect"/>
-    <addaction name="actionLogout"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -531,9 +536,6 @@ font-weight: bold;</string>
     </property>
     <addaction name="actionChange_font"/>
     <addaction name="actionModify_Settings"/>
-    <addaction name="separator"/>
-    <addaction name="actionAdd_User"/>
-    <addaction name="actionRemove_User"/>
     <addaction name="separator"/>
     <addaction name="actionManual_Control"/>
     <addaction name="actionChip_Select"/>
@@ -572,6 +574,9 @@ font-weight: bold;</string>
    <property name="toolTip">
     <string>Connect to the fixture.</string>
    </property>
+   <property name="statusTip">
+    <string>Connect or disconnect from the test fixture.</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
@@ -604,6 +609,9 @@ font-weight: bold;</string>
    </property>
    <property name="text">
     <string>Exit</string>
+   </property>
+   <property name="statusTip">
+    <string>Close the program</string>
    </property>
    <property name="font">
     <font>
@@ -910,6 +918,9 @@ font-weight: bold;</string>
    <property name="text">
     <string>Change Font</string>
    </property>
+   <property name="statusTip">
+    <string>Change the font</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
@@ -923,6 +934,9 @@ font-weight: bold;</string>
    </property>
    <property name="text">
     <string>Modify Settings</string>
+   </property>
+   <property name="statusTip">
+    <string>Modify software settings</string>
    </property>
    <property name="font">
     <font>
@@ -967,6 +981,9 @@ font-weight: bold;</string>
    <property name="text">
     <string>Show Logs</string>
    </property>
+   <property name="statusTip">
+    <string>Show software logs</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
@@ -1005,6 +1022,9 @@ font-weight: bold;</string>
    <property name="text">
     <string>Manual Control</string>
    </property>
+   <property name="statusTip">
+    <string>Manually control the test fixture</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
@@ -1022,6 +1042,9 @@ font-weight: bold;</string>
    <property name="text">
     <string>Chip Select</string>
    </property>
+   <property name="statusTip">
+    <string>Change the selected chip.</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
@@ -1037,6 +1060,9 @@ font-weight: bold;</string>
    <property name="text">
     <string>Update Firmware</string>
    </property>
+   <property name="statusTip">
+    <string>Update the test fixture firmware</string>
+   </property>
    <property name="font">
     <font>
      <pointsize>11</pointsize>
@@ -1051,6 +1077,9 @@ font-weight: bold;</string>
    </property>
    <property name="text">
     <string>Explore Directory</string>
+   </property>
+   <property name="statusTip">
+    <string>Open the program's directory</string>
    </property>
    <property name="font">
     <font>
@@ -1132,6 +1161,9 @@ font-weight: bold;</string>
   <action name="actionScreenshot">
    <property name="text">
     <string>Screenshot</string>
+   </property>
+   <property name="statusTip">
+    <string>Capture a screenshot </string>
    </property>
    <property name="font">
     <font>
