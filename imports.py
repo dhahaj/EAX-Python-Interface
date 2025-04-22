@@ -126,7 +126,7 @@ ControlModifier = Qt.KeyboardModifier.ControlModifier
 Global variables
 """
 app_logger = AppLogger.get_logger()
-settings = ApplicationSettings("settings.ini")
+settings = ApplicationSettings()
 # db = UserDatabase("users.db")
 logg = LogManager()
 
@@ -235,7 +235,7 @@ def print_window_flags(widget: QWidget) -> None:
 
 def get_theme() -> str:
     """ Returns the current theme. """
-    return 'dark' if str_to_bool(QSettings("Detex Corp", "EAX Interface").value(KEY_DARK_THEME)) else 'light'
+    return 'dark' if str_to_bool(settings.app_settings.value(KEY_DARK_THEME)) else 'light'
 
 
 def get_stylesheet() -> str:
