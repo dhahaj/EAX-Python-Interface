@@ -1,3 +1,5 @@
+<p><img src=":/resources/detex" width="300" style="float:right;"/></p>
+
 # EAX-500 Testing Software  
 
  *[Click Here for help.](https://)*
@@ -29,7 +31,7 @@
 <!-- <img src=":/resources/icons/disconnected" width="52" height="52"/> -->
 #
 
-<html><head>
+<!-- <html><head>
 <style type="text/css">
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
@@ -39,4 +41,4 @@ li.checked::marker { content: "\2612"; }
 </head>
   <p><a href="test" class="button"><img src=":/resources/icons/images/icons/light/test-button.png" width="100" height="100" style="float:right;"/></a></p>
   <a href="program" class="button"><img src=":/resources/icons/images/icons/light/prog-button.png" width="100" height="100"/></a>
-</html>                                                                                 
+</html>                                                                                  -->
