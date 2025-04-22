@@ -102,7 +102,7 @@ settings:
   arduino_wait: 4
   auto_connect: true
   auto_find: true
-  auto_logoff_delay: 15
+  inactivity_timeout: 15
   auto_test: true
   bg_color: '#000000'
   chip_part: PIC16F628A
