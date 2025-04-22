@@ -1,6 +1,10 @@
 <RCC>
   <qresource prefix="/resources">
+    <file alias="detex">images/detex.svg</file>
     <file>images/pcb.ico</file>
+    <file alias="connected">images/connected2.png</file>
+    <file alias="connecting">images/connecting.png</file>
+    <file alias="disconnected">images/disconnected2.png</file>
     <file>images/autodesk.ico</file>
     <file>images/logo_detex.png</file>
     <file>images/icons/ChatGPT.ico</file>
