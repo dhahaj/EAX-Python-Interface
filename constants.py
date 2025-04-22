@@ -77,7 +77,7 @@ KEY_AUTO_LOGIN: str                 = "skip_login"
 KEY_AUTO_CONNECT: str               = "auto_connect"
 KEY_ARDUINO_INSTANCE_ID: str        = "arduino_instance_id"
 KEY_FIRMWARE_FOLDER: str            = "firmware_folder"
-KEY_LOGOFF_DELAY: str               = "auto_logoff_delay"
+KEY_INACTIVITY_TIMEOUT: str         = "inactivity_timeout"
 KEY_BACKGROUND_COLOR: str           = "bg_color"
 KEY_FOREGROUND_COLOR: str           = "fg_color"
 KEY_ARDUINO_WAIT: str               = "arduino_wait"
@@ -107,7 +107,7 @@ class Key(enum.Enum):
     auto_connect: str = "auto_connect"
     arduino_instance_id: str = "arduino_instance_id"
     firmware_folder: str = "firmware_folder"
-    logoff_delay: str = "auto_logoff_delay"
+    logoff_delay: str = "inactivity_timeout"
     background_color: str = "bg_color"
     foreground_color: str = "fg_color"
     arduino_wait: str = "arduino_wait"
@@ -168,7 +168,7 @@ DEFAULT_SETTINGS = {
     KEY_ARDUINO_INSTANCE_ID: 1,
     KEY_DEBUG: False,
     KEY_FIRMWARE_FOLDER: "firmware",
-    KEY_LOGOFF_DELAY: 15,
+    KEY_INACTIVITY_TIMEOUT: 15,
     KEY_BACKGROUND_COLOR: "#000000",
     KEY_FOREGROUND_COLOR: "#ff5500",
     KEY_ARDUINO_WAIT: 4,
