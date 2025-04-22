@@ -163,7 +163,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # loginDialog: LoginDialog = None
     arduino: AIODevice | None = None
     _drag_pos: int = None
-    eax_device = Device()
+    eax_device: Device = Device()
 
     def __init__(self, app) -> None:
         super(MainWindow, self).__init__()
@@ -178,10 +178,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Restore the window geometry and state
         self.app_settings = settings.app_settings
-        self.restoreGeometry(self.app_settings.value(
-            "mainwindow/geometry", QByteArray()))
-        self.restoreState(self.app_settings.value(
-            "mainwindow/windowState", QByteArray()))
+        self.restoreGeometry(self.app_settings.value("mainwindow/geometry", QByteArray()))
+        self.restoreState(self.app_settings.value("mainwindow/windowState", QByteArray()))
 
         print(f"Settings: {self.app_settings.allKeys()}")
 
@@ -308,19 +306,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if value == State.CONNECTING:
             self.test_button.setEnabled(False)
-            self.program_button.setEnabled(False)
+            # self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.label_usb_icon.setText(ICON_USB_YELLOW)
+            self.set_status("Connecting to USB device...")
         elif value == State.CONNECTED:
             self.test_button.setEnabled(True)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
             self.label_usb_icon.setText(ICON_USB_GREEN)
+            self.set_status(f"Connected to {self.arduino.device.com_port}.")
         elif value == State.IDLE:
             self.test_button.setEnabled(False)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
             self.label_usb_icon.setText(ICON_USB_RED)
+            self.set_status("Disconnected.")
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
@@ -663,10 +664,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         else:  # device is not connected
             error(f"USB: connection failed. Error: {message}")
-            if message is not None and str.__contains__(
-                message, "Incorrect Arduino ID"
-            ):
-                self.insert_text(f"Connection Failed. {message}")
+            # if message is not None and str.__contains__(
+            #     message, "Incorrect Arduino ID"
+            # ):
+            self.insert_text(f"<p>Connection Failed. {message}</p>")
             self.state = State.IDLE
 
     async def disconnect_device(self):
@@ -852,8 +853,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logg.info("Application closed.")
             app_logger.info("Application closed.")
             self.app_settings.setValue("mainwindow/geometry", self.saveGeometry())
-            self.app_settings.setValue(
-                "mainwindow/windowState", self.saveState())
+            self.app_settings.setValue("mainwindow/windowState", self.saveState())
             self.app_settings.setValue("mainwindow/full_screen", self.isFullScreen())
             self.app_settings.sync()
             event.accept()
@@ -936,7 +936,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.eax_device.is_selected:
             warning(self, "Please select a device.")
             return
-        elif self.state == State.WAITING_FOR_BUTTON:
+        elif self.state is State.WAITING_FOR_BUTTON:
             # notify the input event
             if hasattr(self, 'input_event') and not self.input_event.is_set():
                 self.input_event.set()
@@ -944,9 +944,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.state == State.IDLE:
             warning(self, f"USB device not connected.")
             return
-        elif self.state == State.WAITING_FOR_INPUT or self.state == State.TESTING:
+        elif self.state is (State.WAITING_FOR_INPUT, self.state == State.TESTING):
             return
-        elif self.state != State.CONNECTED:
+        elif self.state is not State.CONNECTED:
             warning(self, f"Cannot run test.")
             return
 
