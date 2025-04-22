@@ -60,5 +60,9 @@
       "ostream": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
-    "python.formatting.provider": "yapf"
+    "python.formatting.provider": "yapf",
+    "qtForPython.uic.options": [
+      "-o",
+      "${resourceDirname}${pathSeparator}..${pathSeparator}ui${pathSeparator}ui_${resourceBasenameNoExtension}.py"
+    ]
 }
