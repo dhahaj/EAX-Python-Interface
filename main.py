@@ -161,7 +161,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     log_view: LogView = None
     help_dialog: HelpDialog = None
     # loginDialog: LoginDialog = None
-    arduino: AIODevice = None
+    arduino: AIODevice | None = None
     _drag_pos: int = None
     eax_device = Device()
 
@@ -244,15 +244,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionChange_font.triggered.connect(self.choose_font)
         self.actionManual_Control.triggered.connect(self.control_manually)
         self.actionModify_Settings.triggered.connect(self.modify_settings)
-        # self.actionAdd_User.triggered.connect(self.add_user)
-        # self.actionRemove_User.triggered.connect(self.remove_user)
         self.actionHelp.triggered.connect(self.show_help)
         self.actionStatisitics.triggered.connect(self.show_statistics)
         self.actionDark_Theme.triggered.connect(self.toggle_theme)
         self.actionScreenshot.triggered.connect(take_screenshot)
-        # self.actionLogout.triggered.connect(self.perform_login)
         self.program_button.clicked.connect(self.program)
-        self.test_button.clicked.connect(self.execute_test)
+        self.test_button.clicked.connect(lambda: asyncio.create_task(self.run_test()))
 
         # Remove the default actions from the device menu
         for action in self.menuDevice.actions():
@@ -321,7 +318,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_usb_icon.setText(ICON_USB_GREEN)
         elif value == State.IDLE:
             self.test_button.setEnabled(False)
-            self.program_button.setEnabled(False)
+            self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
             self.label_usb_icon.setText(ICON_USB_RED)
 
@@ -499,6 +496,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(vars(logg))
             self.text_edit.setAcceptRichText(True)
             self.load_file_text()
+            print(self.arduino)
 
 
     def on_device_changed(self, device: str) -> None:
@@ -588,7 +586,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Reset the inactivity timer if a mouse movement or key press event is detected
         if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
             self.inactivityTimer.start(
-                self.settings.get_int(KEY_LOGOFF_DELAY, 10) * 60 * 1000
+                self.settings.get_int(KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000
             )  # 60 seconds of inactivity before timeout
         return super(MainWindow, self).eventFilter(watched, event)
 
@@ -605,16 +603,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """ Called when the inactivity timer times out. """
         debug("Inactivity timeout.")
 
-        # if not self.settings.get_bool(KEY_AUTO_LOGIN):
-        #     self.perform_login()  # show the login dialog
-
         icon = QIcon()
         icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
         # Uncheck all menu actions
         [action.setIcon(icon) for action in self.menuDevice.actions()]
         self.device_label.setText("")  # clear the device label
         self.eax_device.name = None  # reset the device
-        [self.perform_login() if not self.settings.get_bool(KEY_AUTO_LOGIN) else self._pass()]
 
 
     def insert_text(self, text: str) -> None:
@@ -639,14 +633,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     async def connect_task(self) -> None:
         """Setup the USB device."""
         # if self.usb_device is None:
-        self.usb_device = AIODevice(
+        self.arduino = AIODevice(
             wait=self.settings.get(KEY_ARDUINO_WAIT),
             shutdown_on_exception=self.settings.get(
                 KEY_SHUTDOWN_ON_EXCEPTION),
             sleep_tune=self.settings.get(KEY_SLEEP_TUNE),
             debug=self.settings.get(KEY_DEBUG),
         )
-        await self.usb_device.async_connect(
+        await self.arduino.async_connect(
             self.notify_device_connected
         )
 
@@ -673,180 +667,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 message, "Incorrect Arduino ID"
             ):
                 self.insert_text(f"Connection Failed. {message}")
-
             self.state = State.IDLE
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
         # if self.usb_device is None:
         #     return
-        await self.usb_device.async_disconnect()
+        await self.arduino.async_disconnect()
         self.device_connected = False
         log.info("Device disconnected successfully.")
         self.actionConnect.setText("Connect")
         # self.usb_device = None
         self.state = State.IDLE
 
-
     def control_manually(self) -> None:
         self.manual = ManualWidget(self.arduino)
         self.manual.show()
-
-    def execute_test(self) -> None:
-        """Start testing the device."""
-        asyncio.create_task(self.run_test())
-        return
-        if self.state == State.WAITING_FOR_BUTTON:
-            self.button_pressed = True
-            return
-        elif self.state == State.IDLE:
-            warning(self, f"USB device not connected.")
-            return
-        elif self.state != State.CONNECTED:
-            warning(self, f"Cannot run test.")
-            return
-
-        self.state = State.TESTING
-
-        info(f"Testing started for {self.eax_device._selected_device}")
-
-        dispatch = {
-            "digital_write": self.arduino.digital_write,
-            "insert_text": self.insert_text,
-            "load_instructions": self.load_file_text,
-            "wait_for_button": self.wait_for_button,
-            "wait_for_input": self.wait_for_input,
-            "set_indicator": self.arduino.set_indicator,
-            "indicator_on": self.arduino.indicator_on,
-            "indicator_off": self.arduino.indicator_off,
-            "set_test_indicator": self.arduino.set_test_indicator,
-            "test_indicator_on": self.arduino.test_indicator_on,
-            "test_indicator_off": self.arduino.test_indicator_off,
-            "set_battery": self.arduino.set_battery,
-            "battery_on": self.arduino.battery_on,
-            "battery_off": self.arduino.battery_off,
-            "set_low_battery": self.arduino.set_low_battery,
-            "low_battery_on": self.arduino.low_battery_on,
-            "low_battery_off": self.arduino.low_battery_off,
-            "set_remote": self.arduino.set_remote,
-            "set_pad": self.arduino.set_pad,
-            "set_relay1": self.arduino.set_relay1,
-            "set_relay2": self.arduino.set_relay2,
-            "set_all_pins_to_value": self.arduino.set_all_pins_to_value,
-        }
-
-        self.test_queue = []
-
-        speed = self.settings.get_int(KEY_TESTING_SPEED)
-        
-        config = ConfigLoader()
-        
-        # Load the test instructions from the config file
-        for instruction in config.get_testing_config():
-            command_name = instruction["command"]
-            params = instruction["params"]
-            delay = instruction["delay"]
-
-            if not delay:
-                delay = speed
-
-            command_function = dispatch.get(command_name)
-            if command_function:
-                self.test_queue.append((delay, command_function, *params))
-                print(f"Added {command_name} to queue")
-            else:
-                error(f"Invalid command: {command_name}")
-
-        self.text_edit.setMarkdown(
-            f"# Starting test for {self.eax_device._selected_device}... "
-        )
-
-        # self.test_queue.append((1, self.arduino.test_indicator_on))
-
-        # self.test_queue.append(
-        #     (
-        #         1,
-        #         self.insert_text,
-        #         "\n • Battery power on → Siren chirps and both LEDs flash  \n",
-        #     )
-        # )
-
-        # self.test_queue.append((1, self.arduino.battery_on))
-
-        # self.test_queue.append(
-        #     (
-        #         speed,
-        #         self.insert_text,
-        #         "\n • Starting low battery test → LEDs flash alternating \n",
-        #     )
-        # )
-
-        # self.test_queue.append((1, self.arduino.low_battery_on))
-
-        # self.test_queue.append(
-        #     (
-        #         speed,
-        #         self.insert_text,
-        #         "\n • Low battery test off → LEDs turn off.\n",
-        #     )
-        # )
-
-        # self.test_queue.append((1, self.arduino.low_battery_off))
-
-        # self.test_queue.append(
-        #     (
-        #         500,
-        #         self.insert_text,
-        #         (
-        #             " • Perform the following:\n"
-        #             " \t1. Press the key switch → The siren sounds\n"
-        #             " \t2. Press the cylinder switch → The LEDs turn on\n"
-        #         ),
-        #     )
-        # )
-
-        # self.test_queue.append(
-        #     (
-        #         200,
-        #         self.insert_text,
-        #         "\n\nPress the Continue button to finish testing...",
-        #     )
-        # )
-
-        # self.test_queue.append((1, self.wait_for_button))
-
-        # self.test_queue.append((1, self.arduino.battery_off))
-
-        # self.test_queue.append((10, self.load_file_text, "instructions.md"))
-
-        # self.test_queue.append((1, self.arduino.test_indicator_off))
-
-        # Start processing the queue
-        self.process_queue()
-        self.state = State.TESTING
-
-    def process_queue(self) -> None:
-        """Process the test queue."""
-        if self.state == State.WAITING_FOR_BUTTON:
-            # Waiting for the button to be pressed
-            return
-        elif self.state == State.WAITING_FOR_INPUT:
-            # Waiting for an input
-            return
-        if self.test_queue:
-            # Loop through the queue and execute the tasks
-            delay, task, *args = self.test_queue.pop(0)
-            QTimer.singleShot(
-                delay, lambda: self.perform_task(task, args)
-            )
-            debug(
-                f"Processing queue. {len(self.test_queue)} items left."
-                f"Current state: {self.state}"
-                f"Current queue item: Task:{task} Params:{args} Delay:{delay}ms"
-            )
-        else:
-            # test is complete
-            self.state = State.CONNECTED
 
     def wait_for_button(self, timeout: int = 20000) -> None:
         """Waiting for the test button to be pressed."""
@@ -866,21 +702,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.state = State.TESTING
             self.process_queue()
 
-    def wait_for_input(self, pin: int, value: int, timeout: int) -> bool:
-        """Wait for a pin input."""
-        self.state = State.WAITING_FOR_INPUT
-        self.arduino.attach_callback(self.input_callback, pin)
-        self.timeout_timer.start(timeout)
-
-    def input_callback(self, msg: str) -> None:
-        pin = msg[0]
-        value = msg[1]
-        log.debug(f"Pin: {pin} Value: {value}")
-        if self.state == State.WAITING_FOR_INPUT:
-            self.timeout_timer.stop()
-            self.state = State.TESTING
-            self.process_queue()
-        
     def on_timeout(self) -> None:
         """Called when the timeout timer times out."""
         if self.state == State.WAITING_FOR_BUTTON or self.state == State.WAITING_FOR_INPUT:
@@ -888,7 +709,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.button_pressed = True
             debug("Timeout.")
             self.insert_text("Timeout.")
-            self.process_queue()
 
     def modify_settings(self) -> None:
         self.settings_dialog.show()
@@ -902,10 +722,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             f"color: {self.settings.get(KEY_FOREGROUND_COLOR)};"
             f"background-color: {self.settings.get(KEY_BACKGROUND_COLOR)};"
         )
-        if self.settings.get(KEY_AUTO_LOGIN):
-            self.actionLogout.setEnabled(False)
-        else:
-            self.actionLogout.setEnabled(True)
         if self.settings.get(KEY_FULLSCREEN):
             self.showFullScreen()
         else:
@@ -958,14 +774,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f"Programming {self.eax_device._selected_device}, args: {command}")
 
             self.program_thread = ProgrammingThread(command)
-            self.program_thread.resultReady.connect(self.process_result)
+            self.program_thread.resultReady.connect(self.handle_programming_result)
             self.program_thread.start()
 
-    def process_result(self, returncode=0) -> None:
+    def handle_programming_result(self, returncode=0) -> None:
         # This function gets called when the command finishes.
         # Do whatever you need to do with the return code here.
         if returncode == 0:
-            self.insert_text("Programming successful.")
+            self.insert_text("<p>Programming successful.</p>")
             log_info(
                 f"Programming {self.eax_device._selected_device} successful")
             logg.success(
@@ -974,20 +790,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 # self.state = State.TESTING
                 self.execute_test()
                 return
-        elif returncode == 2:
-            error(
-                f"Programming {self.eax_device._selected_device} failed. Error code: {returncode} (Check Programmer Serial Number?)")
-        elif returncode == 7:
-            error(
-                f"Programming {self.eax_device._selected_device} failed. Error code: {returncode} (Check chip part number)")
         else:
-            error(
-                f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
+            self.insert_text(f"<p>Programming failed. Return code: {returncode}</p>")
+            error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
+
+        self.program_thread.quit()
 
         if self.arduino:
             self.state = State.CONNECTED
         else:
             self.state = State.IDLE
+
+
 
     def show_statistics(self) -> None:
         (fail, success) = logg.count_programming_errors(
@@ -1149,37 +963,39 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         speed = self.settings.get_int(
             KEY_TESTING_SPEED, DEFAULT_SETTINGS[KEY_TESTING_SPEED]) / 1000
 
-        await self.usb_device.write_pin_by_func("test indicator", 1)
+        await self.arduino.write_pin_by_func("test indicator", 1)
 
         self.text_edit.setMarkdown(
             f"# Starting test for {model}... \n\n"
         )
 
         self.insert_text(
-            "- Battery Power ON"
-            "- Testing Low battery function → The LED's blink alternately"
+            "<p>- Battery Power ON</p>"
+            "<p>- Testing Low battery function → The LED's blink alternately</p>"
         )
-        await self.usb_device.write_pin_by_func("battery", 1)
-        await self.usb_device.write_pin_by_func("low battery", 1)
+        await self.arduino.write_pin_by_func("battery", 1)
+        await self.arduino.write_pin_by_func("low battery", 1)
 
         await asyncio.sleep(speed)
 
         self.insert_text(
             "- Stopping Low Battery Test → Both LED's are OFF")
-        await self.usb_device.write_pin_by_func("low battery", 0)
+        await self.arduino.write_pin_by_func("low battery", 0)
         await asyncio.sleep(speed)
 
-        self.input_event = asyncio.Event()  # Create a new Event.
+        self.insert_text("Press the OKC switch - The LEDs blink in unison")
+        
+        await asyncio.sleep(speed/2)
+        
+        self.insert_text("Press the key switch - The siren sounds")
 
-        self.insert_text(
-            "- Press the Pad switch (Blue Wires) - Both LEDs are ON solid\n"
-            "   *Press the Continue Button when finished*"
-        )
+        self.insert_text("<p><em>Press the Continue Button when finished</em></p>")
 
         self.state = State.WAITING_FOR_BUTTON
 
         # Wait for the button to be pressed
         try:
+            self.input_event = asyncio.Event()
             timeout = self.settings.get_int(
                 KEY_BUTTON_TIMEOUT, DEFAULT_SETTINGS[KEY_BUTTON_TIMEOUT])
             await asyncio.wait_for(self.input_event.wait(), timeout=timeout)
@@ -1194,9 +1010,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             logg.info(f"Test complete for {model}.")
 
-        await self.usb_device.write_pin_by_func("test indicator", 0)
-        await self.usb_device.write_pin_by_func("battery", 0)
-        await self.usb_device.write_pin_by_func("low battery", 0)
+        await self.arduino.write_pin_by_func("test indicator", 0)
+        await self.arduino.write_pin_by_func("battery", 0)
+        await self.arduino.write_pin_by_func("low battery", 0)
 
         await asyncio.sleep(speed/3)
 
@@ -1372,7 +1188,8 @@ class SettingsDialog(QWidget, Ui_Settings):
             self.comboBox_com_port.addItem(port)
         
         self.spinBox_autologoff_delay.setValue(
-            self.settings.get_int(KEY_LOGOFF_DELAY, config.get_default_setting(KEY_LOGOFF_DELAY))
+            self.settings.get_int(
+                KEY_INACTIVITY_TIMEOUT, config.get_default_setting(KEY_INACTIVITY_TIMEOUT))
         )
 
         self.spinBox_arduino_id.setValue(
@@ -1388,10 +1205,6 @@ class SettingsDialog(QWidget, Ui_Settings):
         )
 
         self.checkBox_debug.setChecked(self.settings.get_bool(KEY_DEBUG, config.get_default_setting(KEY_DEBUG)))
-
-        self.checkBox_logon.setChecked(
-            self.settings.get_bool(KEY_AUTO_LOGIN, config.get_default_setting(KEY_AUTO_LOGIN))
-        )
 
         self.checkBox_auto_find.setChecked(
             self.settings.get_bool(KEY_AUTO_FIND, config.get_default_setting(KEY_AUTO_FIND))
@@ -1432,11 +1245,11 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.comboBox_chip.setCurrentText(default_settings[KEY_CHIP_PART])
         self.dial.setValue(default_settings[KEY_TESTING_SPEED])
         self.checkBox_test.setChecked(default_settings[KEY_AUTO_TEST])
-        self.checkBox_logon.setChecked(default_settings[KEY_AUTO_LOGIN])
         self.checkBox_connect.setChecked(default_settings[KEY_AUTO_CONNECT])
         self.spinBox_arduino_id.setValue(default_settings[KEY_ARDUINO_INSTANCE_ID])
         self.checkBox_debug.setChecked(default_settings[KEY_DEBUG])
-        self.spinBox_autologoff_delay.setValue(default_settings[KEY_LOGOFF_DELAY])
+        self.spinBox_autologoff_delay.setValue(
+            default_settings[KEY_INACTIVITY_TIMEOUT])
         self.spinBox_wait_time.setValue(default_settings[KEY_ARDUINO_WAIT])
         self.checkBox_shutdown_on_exception.setChecked(default_settings[KEY_SHUTDOWN_ON_EXCEPTION])
         self.checkBox_auto_find.setChecked(default_settings[KEY_AUTO_FIND])
@@ -1445,24 +1258,6 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.checkBox_touchscreen.setChecked(default_settings[KEY_TOUCHSCREEN_ENABLED])
         self.checkBox_frameless.setChecked(default_settings[KEY_FRAMELESS])
 
-        # defaults = [DEFAULT_SETTINGS[key] for key in DEFAULT_SETTINGS.keys()]
-        # self.comboBox_com_port.setCurrentIndex(0)
-        # self.lineEdit_serial.setText(defaults[1])
-        # self.comboBox_chip.setCurrentIndex(CHIP_OPTIONS.index(defaults[2]))
-        # self.dial.setValue(int(defaults[4]))
-        # self.checkBox_test.setChecked(defaults[5])
-        # self.checkBox_logon.setChecked(defaults[9])
-        # self.checkBox_connect.setChecked(defaults[10])
-        # self.spinBox_arduino_id.setValue(defaults[11])
-        # self.checkBox_debug.setChecked(defaults[12])
-        # self.spinBox_autologoff_delay.setValue(defaults[14])
-        # self.spinBox_wait_time.setValue(defaults[17])
-        # self.checkBox_shutdown_on_exception.setChecked(defaults[18])
-        # self.checkBox_auto_find.setChecked(defaults[19])
-        # self.lineEdit_serial_sleep_tune.setText(str(defaults[20]))
-        # self.checkBox_fullscreen.setChecked(defaults[21])
-        # self.checkBox_touchscreen.setChecked(defaults[22])
-        # self.checkBox_frameless.setChecked(defaults[23])
 
     def save_changes(self) -> None:
         if self.background_color:
@@ -1488,13 +1283,11 @@ class SettingsDialog(QWidget, Ui_Settings):
             KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
         self.settings.setValue(KEY_DEBUG, self.checkBox_debug.isChecked())
         self.settings.setValue(
-            KEY_AUTO_LOGIN, self.checkBox_logon.isChecked())
-        self.settings.setValue(
             KEY_ARDUINO_INSTANCE_ID, self.spinBox_arduino_id.value()
         )
         self.settings.setValue(KEY_TESTING_SPEED, self.dial.value())
         self.settings.setValue(
-            KEY_LOGOFF_DELAY, self.spinBox_autologoff_delay.value()
+            KEY_INACTIVITY_TIMEOUT, self.spinBox_autologoff_delay.value()
         )
         self.settings.setValue(
             KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
@@ -1548,7 +1341,7 @@ class SettingsDialog(QWidget, Ui_Settings):
     def closeEvent(self, event) -> None:
         # self.settings.load_settings()
         self.saved.emit((0, self))
-        self.destroy()
+        # self.destroy()
         event.accept()
 
     def keyPressEvent(self, event) -> None:
