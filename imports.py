@@ -102,10 +102,6 @@ from pathlib import Path
 from enum import Enum
 from state import State
 import send2trash
-from main import (
-    LogView, 
-    HelpDialog, 
-)
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
