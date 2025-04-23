@@ -1,7 +1,6 @@
 .venv/
 __pycache__/
 Frame.py
-main.spec
 MyFrame.py
 prompt.txt
 pyinstaller.txt
@@ -24,7 +23,6 @@ test.ui
 ui_Test.py
 palette.xml
 private.py
-*.spec
 tools/
 main.dist/
 *.pdf
