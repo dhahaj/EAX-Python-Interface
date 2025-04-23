@@ -7,7 +7,6 @@
   - [Installation](#installation)
     - [New Features](#new-features)
     - [GUI](#gui)
-    - [Users](#users)
     - [Settings](#settings)
     - [Firmware](#firmware)
 
@@ -42,21 +41,6 @@ The EAX Test Interface is an improvement over the last version. The interface wa
 The main window is composed of a text console, two buttons and two labels. The text console is used for displaying messages, and the buttons are used for programming and testing. The two text labels are used for displaying the status of the USB connection and the currently selected device. The menu bar contains the `File`, `Device`, `Settings` and `Help` menus. The `File` menu contains items for logging in and out, connecting and disconnecting from the fixture, and exiting the application. The `Device` menu contains items for selecting the device. The `Settings` menu contains various items for modifying the settings. The `Help` menu contains items for displaying the debugging logs and displaying the about dialog.
 
 ![alt text](../images/MainWindow.png)
-
-### Users
-
-The users are stored in a SQLite database called `users.db`. The database contains a single table called `users` with the following schema:
-
-```sql
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,
-    is_admin INTEGER NOT NULL
-);
-```
-
-The `username` and `password` fields are used for logging in. The `is_admin` field is used to determine if the user is an administrator. The `id` field is used internally by the application and should not be modified. The `users.db` file can also be modified using the `Add User` and `Remove User` menu items located in the `Settings` menu. The `Add User` menu item will show a dialog for entering the `username`, `password` and `admin` fields. The user is added to the database when `Okay` is pressed. The `Remove User` menu item will delete the currently selected user from the database. `Administrator` access is required to make modifications to the applicaiton settings.
 
 ### Settings
 
