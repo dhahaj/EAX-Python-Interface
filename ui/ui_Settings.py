@@ -99,21 +99,9 @@ class Ui_Settings(object):
 
         self.gridLayout_3.addWidget(self.checkBox_auto_find, 0, 0, 1, 2)
 
-        self.checkBox_shutdown_on_exception = QCheckBox(self.groupBox_6)
-        self.checkBox_shutdown_on_exception.setObjectName(u"checkBox_shutdown_on_exception")
-        self.checkBox_shutdown_on_exception.setFont(font)
-        self.checkBox_shutdown_on_exception.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.checkBox_shutdown_on_exception.setChecked(True)
-
-        self.gridLayout_3.addWidget(self.checkBox_shutdown_on_exception, 1, 0, 1, 3)
-
         self.verticalSpacer_2 = QSpacerItem(20, 25, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
 
         self.gridLayout_3.addItem(self.verticalSpacer_2, 2, 0, 1, 1)
-
-        self.verticalSpacer = QSpacerItem(20, 25, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
-
-        self.gridLayout_3.addItem(self.verticalSpacer, 2, 2, 1, 1)
 
         self.lineEdit_serial_sleep_tune = QLineEdit(self.groupBox_6)
         self.lineEdit_serial_sleep_tune.setObjectName(u"lineEdit_serial_sleep_tune")
@@ -128,12 +116,13 @@ class Ui_Settings(object):
 
         self.gridLayout_3.addWidget(self.lineEdit_serial_sleep_tune, 3, 0, 1, 1)
 
-        self.label_6 = QLabel(self.groupBox_6)
-        self.label_6.setObjectName(u"label_6")
-        self.label_6.setFont(font)
-        self.label_6.setMargin(5)
+        self.checkBox_shutdown_on_exception = QCheckBox(self.groupBox_6)
+        self.checkBox_shutdown_on_exception.setObjectName(u"checkBox_shutdown_on_exception")
+        self.checkBox_shutdown_on_exception.setFont(font)
+        self.checkBox_shutdown_on_exception.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.checkBox_shutdown_on_exception.setChecked(True)
 
-        self.gridLayout_3.addWidget(self.label_6, 3, 1, 1, 2)
+        self.gridLayout_3.addWidget(self.checkBox_shutdown_on_exception, 1, 0, 1, 3)
 
         self.spinBox_wait_time = QSpinBox(self.groupBox_6)
         self.spinBox_wait_time.setObjectName(u"spinBox_wait_time")
@@ -152,12 +141,23 @@ class Ui_Settings(object):
 
         self.gridLayout_3.addWidget(self.spinBox_wait_time, 4, 0, 1, 1)
 
+        self.label_6 = QLabel(self.groupBox_6)
+        self.label_6.setObjectName(u"label_6")
+        self.label_6.setFont(font)
+        self.label_6.setMargin(5)
+
+        self.gridLayout_3.addWidget(self.label_6, 3, 1, 1, 2)
+
         self.label_5 = QLabel(self.groupBox_6)
         self.label_5.setObjectName(u"label_5")
         self.label_5.setFont(font)
         self.label_5.setMargin(5)
 
         self.gridLayout_3.addWidget(self.label_5, 4, 1, 1, 2)
+
+        self.verticalSpacer = QSpacerItem(20, 25, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+
+        self.gridLayout_3.addItem(self.verticalSpacer, 2, 2, 1, 1)
 
 
         self.gridLayout_2.addWidget(self.groupBox_6, 0, 1, 3, 1)
@@ -497,30 +497,13 @@ class Ui_Settings(object):
         self.groupBox_5.setChecked(False)
         self.gridLayout = QGridLayout(self.groupBox_5)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.checkBox_debug = QCheckBox(self.groupBox_5)
-        self.checkBox_debug.setObjectName(u"checkBox_debug")
-        self.checkBox_debug.setMinimumSize(QSize(0, 26))
-        self.checkBox_debug.setFont(font)
-
-        self.gridLayout.addWidget(self.checkBox_debug, 0, 1, 1, 1)
-
         self.checkBox_connect = QCheckBox(self.groupBox_5)
         self.checkBox_connect.setObjectName(u"checkBox_connect")
         self.checkBox_connect.setMinimumSize(QSize(0, 26))
         self.checkBox_connect.setFont(font)
-        self.checkBox_connect.setChecked(True)
+        self.checkBox_connect.setChecked(False)
 
         self.gridLayout.addWidget(self.checkBox_connect, 1, 0, 1, 1)
-
-        self.checkBox_test = QCheckBox(self.groupBox_5)
-        self.checkBox_test.setObjectName(u"checkBox_test")
-        self.checkBox_test.setMinimumSize(QSize(0, 25))
-        self.checkBox_test.setFont(font)
-        self.checkBox_test.setIconSize(QSize(20, 20))
-        self.checkBox_test.setChecked(True)
-        self.checkBox_test.setTristate(False)
-
-        self.gridLayout.addWidget(self.checkBox_test, 1, 1, 1, 1)
 
         self.checkBox_fullscreen = QCheckBox(self.groupBox_5)
         self.checkBox_fullscreen.setObjectName(u"checkBox_fullscreen")
@@ -539,6 +522,36 @@ class Ui_Settings(object):
         self.checkBox_frameless.setFont(font)
 
         self.gridLayout.addWidget(self.checkBox_frameless, 0, 0, 1, 1)
+
+        self.checkBox_test = QCheckBox(self.groupBox_5)
+        self.checkBox_test.setObjectName(u"checkBox_test")
+        self.checkBox_test.setMinimumSize(QSize(0, 25))
+        self.checkBox_test.setFont(font)
+        self.checkBox_test.setIconSize(QSize(20, 20))
+        self.checkBox_test.setChecked(True)
+        self.checkBox_test.setTristate(False)
+
+        self.gridLayout.addWidget(self.checkBox_test, 1, 1, 1, 1)
+
+        self.checkBox_debug = QCheckBox(self.groupBox_5)
+        self.checkBox_debug.setObjectName(u"checkBox_debug")
+        self.checkBox_debug.setMinimumSize(QSize(0, 26))
+        self.checkBox_debug.setFont(font)
+
+        self.gridLayout.addWidget(self.checkBox_debug, 0, 1, 1, 1)
+
+        self.counterCheckbox = QCheckBox(self.groupBox_5)
+        self.counterCheckbox.setObjectName(u"counterCheckbox")
+        self.counterCheckbox.setFont(font)
+        self.counterCheckbox.setChecked(True)
+
+        self.gridLayout.addWidget(self.counterCheckbox, 3, 0, 1, 1)
+
+        self.resetCounterButton = QPushButton(self.groupBox_5)
+        self.resetCounterButton.setObjectName(u"resetCounterButton")
+        self.resetCounterButton.setFont(font)
+
+        self.gridLayout.addWidget(self.resetCounterButton, 3, 1, 1, 1)
 
 
         self.gridLayout_2.addWidget(self.groupBox_5, 6, 1, 1, 1)
@@ -628,21 +641,21 @@ class Ui_Settings(object):
 #endif // QT_CONFIG(tooltip)
         self.checkBox_auto_find.setText(QCoreApplication.translate("Settings", u"Auto FInd", None))
 #if QT_CONFIG(tooltip)
-        self.checkBox_shutdown_on_exception.setToolTip(QCoreApplication.translate("Settings", u"Shutdown the Arduino upon encountering an exception.", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_shutdown_on_exception.setText(QCoreApplication.translate("Settings", u"Shutdown on Exception", None))
-#if QT_CONFIG(tooltip)
         self.lineEdit_serial_sleep_tune.setToolTip(QCoreApplication.translate("Settings", u"Fine adjust the sleep tuning parameter.", None))
 #endif // QT_CONFIG(tooltip)
         self.lineEdit_serial_sleep_tune.setText(QCoreApplication.translate("Settings", u"0.000001", None))
 #if QT_CONFIG(tooltip)
-        self.label_6.setToolTip(QCoreApplication.translate("Settings", u"Fine adjust the sleep tuning parameter.", None))
+        self.checkBox_shutdown_on_exception.setToolTip(QCoreApplication.translate("Settings", u"Shutdown the Arduino upon encountering an exception.", None))
 #endif // QT_CONFIG(tooltip)
-        self.label_6.setText(QCoreApplication.translate("Settings", u"Sleep Tune", None))
+        self.checkBox_shutdown_on_exception.setText(QCoreApplication.translate("Settings", u"Shutdown on Exception", None))
 #if QT_CONFIG(tooltip)
         self.spinBox_wait_time.setToolTip(QCoreApplication.translate("Settings", u"This is the delay to allow the Arduino to reset itself upon connection.", None))
 #endif // QT_CONFIG(tooltip)
         self.spinBox_wait_time.setSuffix(QCoreApplication.translate("Settings", u"s", None))
+#if QT_CONFIG(tooltip)
+        self.label_6.setToolTip(QCoreApplication.translate("Settings", u"Fine adjust the sleep tuning parameter.", None))
+#endif // QT_CONFIG(tooltip)
+        self.label_6.setText(QCoreApplication.translate("Settings", u"Sleep Tune", None))
 #if QT_CONFIG(tooltip)
         self.label_5.setToolTip(QCoreApplication.translate("Settings", u"This is the delay to allow the Arduino to reset itself upon connection", None))
 #endif // QT_CONFIG(tooltip)
@@ -719,17 +732,9 @@ class Ui_Settings(object):
         self.pushButton_background_color.setText(QCoreApplication.translate("Settings", u"Select Background Color", None))
         self.groupBox_5.setTitle("")
 #if QT_CONFIG(tooltip)
-        self.checkBox_debug.setToolTip(QCoreApplication.translate("Settings", u"The application will print out more info to the terminal", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_debug.setText(QCoreApplication.translate("Settings", u"Debug", None))
-#if QT_CONFIG(tooltip)
         self.checkBox_connect.setToolTip(QCoreApplication.translate("Settings", u"The application will try connecting on startup", None))
 #endif // QT_CONFIG(tooltip)
         self.checkBox_connect.setText(QCoreApplication.translate("Settings", u"Auto Connect", None))
-#if QT_CONFIG(tooltip)
-        self.checkBox_test.setToolTip(QCoreApplication.translate("Settings", u"Automatically start testing after programming", None))
-#endif // QT_CONFIG(tooltip)
-        self.checkBox_test.setText(QCoreApplication.translate("Settings", u"Auto Test", None))
 #if QT_CONFIG(tooltip)
         self.checkBox_fullscreen.setToolTip(QCoreApplication.translate("Settings", u"Display the window in fullscreen", None))
 #endif // QT_CONFIG(tooltip)
@@ -742,6 +747,16 @@ class Ui_Settings(object):
         self.checkBox_frameless.setToolTip(QCoreApplication.translate("Settings", u"Hide the window's frame", None))
 #endif // QT_CONFIG(tooltip)
         self.checkBox_frameless.setText(QCoreApplication.translate("Settings", u"Frameless", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_test.setToolTip(QCoreApplication.translate("Settings", u"Automatically start testing after programming", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBox_test.setText(QCoreApplication.translate("Settings", u"Auto Test", None))
+#if QT_CONFIG(tooltip)
+        self.checkBox_debug.setToolTip(QCoreApplication.translate("Settings", u"The application will print out more info to the terminal", None))
+#endif // QT_CONFIG(tooltip)
+        self.checkBox_debug.setText(QCoreApplication.translate("Settings", u"Debug", None))
+        self.counterCheckbox.setText(QCoreApplication.translate("Settings", u"Persistent Counter", None))
+        self.resetCounterButton.setText(QCoreApplication.translate("Settings", u"Reset Counter", None))
 #if QT_CONFIG(tooltip)
         self.pushButton_default.setToolTip(QCoreApplication.translate("Settings", u"Apply defaults to this window. Does not save until you press the save button.", None))
 #endif // QT_CONFIG(tooltip)
