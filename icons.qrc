@@ -117,15 +117,16 @@
     <file>main.qml</file>
   </qresource>
   <qresource prefix="/resources">
-    <file>docs/Settings.html</file>
+    <file>README.html</file>
     <file>docs/USAGE.html</file>
+    <file>default_resources.zip</file>
     <file>animation.gif</file>
+    <file>docs/Settings.html</file>
     <file>animation2.gif</file>
     <file>firmware_update.gif</file>
     <file>setting.gif</file>
     <file>testing.gif</file>
     <file>images/DeviceMenu.png</file>
-    <file>README.html</file>
     <file>images/MainWindow.png</file>
     <file>images/SettingsMenu.png</file>
     <file>images/ManualControl.png</file>
