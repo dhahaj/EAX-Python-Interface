@@ -18,7 +18,7 @@ The settings for this application are stored in the windows registry under the k
 - arduino_instance_id: The instance ID of the Arduino software. Example: 15.
 - debug: If set to true, the software will log extra information for debugging purposes.
 - firmware_folder: The path to the folder containing the device firmware. If empty, the software will look in the default location.
-- auto_logoff_delay: The delay in minutes before the software will automatically log off the current user. Example: 3.
+- inactivity_delay: The delay in minutes before the software will automatically log off the current user. Example: 3.
 - bg_color: The background color of the software, specified as a hex color. Example: "#000000".
 - fg_color: The foreground color of the software, specified as a hex color. Example: "#ffffff".
 - arduino_wait: The time in seconds to wait for the Arduino software to start. Example: 2.
