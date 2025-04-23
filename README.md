@@ -13,12 +13,11 @@ This is a Python version of the EAX Test Fixture Interface. It is a GUI built on
     - [Firmware Configuration](#firmware-configuration)
     - [Pin Configuration](#pin-configuration)
     - [Default Settings Configuration](#default-settings-configuration)
-    - [Default User Configuration](#default-user-configuration)
     - [Testing Configuration](#testing-configuration)
   - [Test Commands](#test-commands)
   - [Misc Files](#misc-files)
     - [Log Database](#log-database)
-    - [User Database](#user-database)
+
 
 ## Key Bindings
 
@@ -58,11 +57,10 @@ The `config.yaml` file contains the configuration for the application. The table
 | --- | --- |
 |`app_name` | The name of the application. |
 | `app_version` | The version of the application. |
-| `firmware` | The firmware configuration. |
-|`testing` | The testing configuration. |
+| `firmware` | The EAX firmware configuration. |
+|`testing` | The testing configuration. (Not currently implemented) |
 |`settings` | The default settings configuration. |
 |`pins` | The pin configuration. |
-|`users` | The default user configuration. |
 
 ### Firmware Configuration
 
@@ -72,15 +70,18 @@ The firmware configuration defined in `config.yaml` is used to configure the fil
 ...
 
 firmware:
-    path: ./firmware
-    default_file: EAX2500_73.OBJ
-    files:
-        - filename: EAX2500_73.OBJ
-            basename: EAX2500
-            version: "73"
-        - filename: EAX2501_73.OBJ
-            basename: EAX2501
-            version: "73"
+  path: ./firmware
+  default_device: EAX500
+  files:
+    - basename: EAX300
+      filename: EAX300_59.hex
+      version: '59'
+    - basename: EAX500
+      filename: EAX500_591.hex
+      version: '591'
+    - basename: EAX503
+      filename: EAX503_591.hex
+      version: '591'
 ...
 ```
 
@@ -99,21 +100,25 @@ The `pins` key in the `config.yaml` file contains the pin configuration. The pin
 
 ```yaml
 pins:
-    - pin_number: 2
-        io_mode: output
-        function: low battery
-        pullup_enabled: false
-    - pin_number: 3
-        io_mode: output
-        function: test mode
-        pullup_enabled: false
+  - function: low battery
+    io_mode: output
+    pin_number: 2
+    pullup_enabled: false
+  - function: test mode
+    io_mode: output
+    pin_number: 3
+    pullup_enabled: false
+  - function: battery
+    io_mode: output
+    pin_number: 4
+    pullup_enabled: false
 ...
 ```
 
 | Key | Description |
 | --- | --- |
 | `pin_number` | The pin number. |
-| `io_mode` | Input or output mode. |
+| `io_mode` | The I/O mode of the pin. Can be `input`, `output`, or `input_pullup`. |
 | `function` | Describes the function of the pin. |
 | `pullup_enabled` | Whether the internal pullup resistor is enabled. |
 
@@ -176,29 +181,10 @@ settings:
 | `touchscreen_enabled` | Whether to enable touchscreen mode. |
 | `frameless` | Whether to start in frameless mode. |
 
-### Default User Configuration
-
-The `users` key in the `config.yaml` file contains the default user configuration. The user configuration is stored in a YAML object with the following format:
-
-```yaml
-users:
-    - username: admin
-        password: "$2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O"
-        admin: true
-    - username: user
-        password: "$2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm"
-        admin: false
-```
-
-| Key | Description |
-| --- | --- |
-| `username` | The username. |
-| `password` | The password. |
-| `admin` | Whether the user is an admin. |
 
 ### Testing Configuration
 
-The `testing` key in the `config.yaml` file defines how the test is run. The testing configuration is stored in a YAML object with the following format:
+The `testing` key in the `config.yaml` file defines how the test is run. Currently this is not implemented. The testing configuration is stored in a YAML object with the following format:
 
 ```yaml
 testing:
@@ -261,15 +247,4 @@ CREATE TABLE logs (id INTEGER PRIMARY KEY,
                    level TEXT NOT NULL,
                    logger TEXT NOT NULL,
                    message TEXT NOT NULL)
-```
-
-### User Database
-
-The `users.db` file is a SQLite database is used to store user data. This database uses the following schema:
-
-```sql
-CREATE TABLE users (id INTEGER PRIMARY KEY,
-                    username TEXT NOT NULL UNIQUE,
-                    password TEXT NOT NULL,
-                    admin BOOLEAN NOT NULL DEFAULT 0)
 ```
