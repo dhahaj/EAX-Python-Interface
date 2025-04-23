@@ -84,11 +84,8 @@ from ui import (
 import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
 from device import Device
-# from userdatabase import UserDatabase
 from settings import ApplicationSettings
-# from usbhandler import USBDevice
 from applogger import AppLogger, Log, LogManager
-from stats import *
 from constants import *
 from loguru import logger as log
 import subprocess
@@ -100,7 +97,6 @@ from typing import List, Dict, Tuple, Union, Optional, Any, overload
 from datetime import datetime, timedelta
 from pathlib import Path
 from enum import Enum
-from state import State
 import send2trash
 
 """
@@ -121,10 +117,10 @@ ControlModifier = Qt.KeyboardModifier.ControlModifier
 """
 Global variables
 """
-app_logger = AppLogger.get_logger()
+app_logger: AppLogger | None = None
 settings = ApplicationSettings()
 # db = UserDatabase("users.db")
-logg = LogManager()
+logg: LogManager | None = None
 
 
 """
@@ -241,27 +237,29 @@ def get_stylesheet() -> str:
 
 
 def debug(msg: str) -> None:
-    # if settings.get(KEY_DEBUG):
-    #     logg.log('DEBUG', msg)
-    log.debug(msg)
-    app_logger.debug(msg)
+    """ Logs a debug message. """
+    if log: log.debug(msg)
+    if app_logger: app_logger.debug(msg)
 
 
 def error(msg: str) -> None:
-    log.error(msg)
-    app_logger.error(msg)
-    logg.log('ERROR', msg)
+    """ Logs an error message. """
+    if log: log.error(msg)
+    if app_logger: app_logger.error(msg)
+    if logg: logg.log('ERROR', msg)
 
 
 def log_info(msg: str) -> None:
-    app_logger.info(msg)
-    logg.log('INFO', msg)
+    """ Logs an info message. """
+    if app_logger: app_logger.info(msg)
+    if logg: logg.log('INFO', msg)
 
 
 def info(msg: str) -> None:
-    log.info(msg)
-    app_logger.info(msg)
-    logg.log('INFO', msg)
+    """ Logs an info message. """
+    if log: log.info(msg)
+    if app_logger: app_logger.info(msg)
+    if logg: logg.log('INFO', msg)
 
 
 def str_to_bool(s: str) -> bool:

@@ -2,7 +2,6 @@ from math import ceil
 from psutil import Popen
 from arduino import AIODevice
 from config_loader import ConfigLoader
-import config_loader
 from imports import *
 from rich import print
 import asyncio
@@ -865,36 +864,59 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
-
     def update_firmware(self) -> None:
         """Update the firmware on the test fixture."""
 
-        # force the user to login if auto login is enabled
-        if self.settings.get(KEY_AUTO_LOGIN):
-            if not self.authenticate():
-                return
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Select Firmware")
+        dialog.setText("Select the firmware to upload:")
+        dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        btnFirmata = dialog.button(QMessageBox.StandardButton.Yes)
+        btnFirmata.setText("Firmata (old)")
+        btnTelemetrix = dialog.button(QMessageBox.StandardButton.No)
+        btnTelemetrix.setText("Telemetrix (new)")
+
+        cancelBtn = dialog.addButton("Cancel", QMessageBox.ButtonRole.RejectRole)
+        dialog.setDefaultButton(cancelBtn)
+        dialog.setIcon(QMessageBox.Question)
+
+        dialog.exec()
+
+        if dialog.clickedButton() == cancelBtn:
+            log.info("Firmware update cancelled.")
+            return
+        elif dialog.clickedButton() == btnFirmata:
+            firmware_path = ".\\sketches\\StandardFirmata\\build\\arduino.avr.uno\\StandardFirmata.ino.hex"
+        elif dialog.clickedButton() == btnTelemetrix:
+            firmware_path = ".\\sketches\\Telemetrix4Arduino\\build\\arduino.avr.uno\\Telemetrix4Arduino.ino.hex"
+        else:
+            log.info("Firmware update cancelled.")
+            return
 
         self.state = State.UPDATING
 
-        self.device_label.setText("Firmware Update...")
+        self.set_status("Firmware Update...")
         info("Updating firmware...")
         self.disconnected = False
-        if self.arduino:
+        if self.arduino.device_connected:
             self.disconnected = True
-            self.disconnect_device()
-        id = str(self.settings.get(KEY_ARDUINO_INSTANCE_ID))
+            asyncio.create_task(self.disconnect_device())
+
         port = self.settings.get(KEY_COM_PORT)
 
         # Define the PowerShell script path
-        script_path = ".\\Scripts\\UpdateFirmware.PS1"
+        # script_path = ".\\Scripts\\UpdateFirmware.PS1"
+        script_path = ".\\Scripts\\Upload.ps1"
         self.update_process.setWorkingDirectory(os.getcwd())
         self.text_edit.setMarkdown(f"# Updating firmware... \n\n")
 
         # Define the command to execute
         self.update_process.start(
             "powershell.exe",
-            ["-ExecutionPolicy", "ByPass", "-File", script_path, id, port],
+            # ["-ExecutionPolicy", "ByPass", "-File", script_path, firmware_path, port],
+            ["-File", script_path, firmware_path, port],
         )
+
 
     def on_error(self, error: QProcess.ProcessError) -> None:
         log.error("An error occurred: ", error)
@@ -965,26 +987,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.state = State.TESTING
 
-        speed = self.settings.get_int(
-            KEY_TESTING_SPEED, DEFAULT_SETTINGS[KEY_TESTING_SPEED]) / 1000
+        speed = self.settings.get_int(KEY_TESTING_SPEED, DEFAULT_SETTINGS[KEY_TESTING_SPEED]) / 1000
 
         await self.arduino.write_pin_by_func("test indicator", 1)
 
-        self.text_edit.setMarkdown(
-            f"# Starting test for {model}... \n\n"
-        )
+        self.text_edit.setMarkdown(f"# Starting test for {model}... \n\n")
 
-        self.insert_text(
-            "<p>- Battery Power ON</p>"
-            "<p>- Testing Low battery function → The LED's blink alternately</p>"
-        )
+        self.insert_text("<p>- Battery Power ON</p>""<p>- Testing Low battery function → The LED's blink alternately</p>")
         await self.arduino.write_pin_by_func("battery", 1)
         await self.arduino.write_pin_by_func("low battery", 1)
 
         await asyncio.sleep(speed)
 
-        self.insert_text(
-            "- Stopping Low Battery Test → Both LED's are OFF")
+        self.insert_text("- Stopping Low Battery Test → Both LED's are OFF")
         await self.arduino.write_pin_by_func("low battery", 0)
         await asyncio.sleep(speed)
 
@@ -1001,8 +1016,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Wait for the button to be pressed
         try:
             self.input_event = asyncio.Event()
-            timeout = self.settings.get_int(
-                KEY_BUTTON_TIMEOUT, DEFAULT_SETTINGS[KEY_BUTTON_TIMEOUT])
+            timeout = self.settings.get_int(KEY_BUTTON_TIMEOUT, DEFAULT_SETTINGS[KEY_BUTTON_TIMEOUT])
             await asyncio.wait_for(self.input_event.wait(), timeout=timeout)
         except asyncio.TimeoutError:
             pass
@@ -1010,8 +1024,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.insert_text("Test complete.")
 
         if settings.get_bool(KEY_COUNTER_ENABLED, False):
-            logg.info(
-                f"Test complete for {model}. (Cycle count: {settings.get_int(KEY_TEST_COUNT, 0)})")
+            logg.info(f"Test complete for {model}. (Cycle count: {settings.get_int(KEY_TEST_COUNT, 0)})")
         else:
             logg.info(f"Test complete for {model}.")
 
@@ -1027,8 +1040,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
 
-
-
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     """
     Manual control dialog. This dialog allows the user to manually control the
@@ -1037,85 +1048,62 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
     :param usb_handler: The USB connection handler.
     """
 
-    def __init__(self, usb_handler: AIODevice = None):
+    def __init__(self, arduino: AIODevice = None):
         super().__init__()
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
 
         if get_theme() == "dark":
             self.setStyleSheet(qdarkstyle.load_stylesheet(palette=DarkPalette))
         else:
-            self.setStyleSheet(
-                qdarkstyle.load_stylesheet(palette=LightPalette))
+            self.setStyleSheet(qdarkstyle.load_stylesheet(palette=LightPalette))
 
-        self.usb_device = usb_handler
+        self._arduino = arduino
 
-        if self.usb_device is None or not self.usb_device.connected:
+        if self._arduino is None or not self._arduino.device_connected:
             warning(self, f"USB device not connected.")
             self.close()
             return
-        self.usb_device.attach_callback(self.callback)
-        self.battery_button.clicked.connect(self.toggle_battery)
-        self.low_battery_button.clicked.connect(self.toggle_low_battery)
-        self.test_indicator_button.clicked.connect(
-            self.toggle_testing_indicator)
-        self.indicator_button.clicked.connect(self.toggle_indicator)
+        # self._arduino.attach_callback(self.callback)
+        self.battery_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_battery(checked)))
+        self.low_battery_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_low_battery(checked)))
+        self.test_indicator_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_testing_indicator(checked)))
+        self.indicator_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_indicator(checked)))
 
-    def callback(self, msg):
-        pin = msg[0]
-        value = msg[1]
-        log.debug(f"Pin: {pin} Value: {value}")
-        self.label.setText(f"Pin: {pin} Value: {value}")
+    async def toggle_battery(self, checked):
+        value = (0, 1)[checked]
+        await self._arduino.write_pin_by_func("battery", value)
 
-    def toggle_battery(self, checked):
-        if checked:
-            value = 1
-        else:
-            value = 0
-        self.usb_device.write_pin_by_func("battery", value)
+    async def toggle_low_battery(self, checked):
+        value = (0, 1)[checked]
+        await self._arduino.write_pin_by_func("low battery", value)
 
-    def toggle_low_battery(self, checked):
-        if checked:
-            value = 1
-        else:
-            value = 0
-        self.usb_device.write_pin_by_func("low battery", value)
+    async def toggle_testing_indicator(self, checked):
+        value = (0, 1)[checked]
+        await self._arduino.write_pin_by_func("test indicator", value)
 
-    def toggle_testing_indicator(self, checked):
-        if checked:
-            value = 1
-        else:
-            value = 0
-        self.usb_device.write_pin_by_func("test indicator", value)
+    async def toggle_indicator(self, checked):
+        value = (0, 1)[checked]
+        await self._arduino.write_pin_by_func("indicator", value)
 
-    def toggle_indicator(self, checked):
-        if checked:
-            value = 1
-        else:
-            value = 0
-        self.usb_device.write_pin_by_func("indicator", value)
+    async def end(self):
+        if self._arduino is not None:
+            if self._arduino.device_connected:
+                await self._arduino.set_all_pins_to_value(0)
+                await self._arduino.write_pin_by_func("test indicator", 1)
 
     def closeEvent(self, event):
-        if self.usb_device is not None:
-            if self.usb_device.connected:
-                self.usb_device.set_all_pins_to_value(0)
-                self.usb_device.write_pin_by_func("indicator", 1)
+        # Close the dialog and reset the pins
+        asyncio.create_task(self.end())
         event.accept()
 
     def keyPressEvent(self, event):
         key = event.key()
-
         if key == Qt.Key_Escape:
             self.close()
         elif key == Qt.Key_F2:
-            screen = QtGui.QGuiApplication.primaryScreen()
-            QtCore.QCoreApplication.processEvents()
-            pixmap = screen.grabWindow(self.winId())
-            img = pixmap.toImage()
-            t = time.time()
-            img.save(f"screenshot-{t}.png")
-            QtCore.QCoreApplication.processEvents()
+            take_screenshot()
+        
 
 
 class SettingsDialog(QWidget, Ui_Settings):
@@ -1539,17 +1527,19 @@ if __name__ == "__main__":
         "firmware/EAX505_591.hex",
         "firmware/EAX525_591.hex",
     ]):
-        log.error(
-            "Some files are missing. Extracting defaults from resources.")
+        log.error("Some files are missing. Extracting defaults from resources.")
         extract_zip_from_resources('.')
         print('Restart the application to apply the changes.')  
-        sys.exit(1)
-    else:
-        app = SingleInstanceApp(sys.argv)
-        loop = QEventLoop(app)
-        asyncio.set_event_loop(loop)
-        window = MainWindow(app)
-        window.show()
-        info("Application started.")
-        with loop:
-            loop.run_forever()
+        # sys.exit(1)
+    
+    app_logger = AppLogger.get_logger()
+    logg = LogManager()
+
+    app = SingleInstanceApp(sys.argv)
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
+    window = MainWindow(app)
+    window.show()
+    info("Application started.")
+    with loop:
+        loop.run_forever()
