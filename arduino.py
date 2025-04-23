@@ -4,7 +4,7 @@ from config_loader import ConfigLoader
 from settings import ApplicationSettings
 from rich import print
 from loguru import logger as log
-from constants import *
+from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID
 from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
