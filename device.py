@@ -6,12 +6,13 @@ from typing import List, Dict, Any
 
 class Device:
     """ A class that contains the device information and maintains the current selected device. """
-    config = config_loader.ConfigLoader()
+    config: config_loader.ConfigLoader | None = None
 
     def __init__(self, selected_device: str = None):
         self._selected_device = selected_device
         self.data: List[Dict[str, Any]] = None
         self._path: str = None
+        self.config = config_loader.ConfigLoader()
         self.load_from_config()
 
     @property
