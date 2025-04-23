@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/resources">
+    <file>README.md</file>
     <file alias="detex">images/detex.svg</file>
     <file>images/pcb.ico</file>
     <file alias="connected">images/connected2.png</file>
@@ -14,5 +15,6 @@
     <file>images/icons/icon.png</file>
     <file>images/detex_dark.png</file>
     <file>images/detex_light.bmp</file>
+    <file>README.html</file>
   </qresource>
 </RCC>
