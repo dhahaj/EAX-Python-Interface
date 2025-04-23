@@ -7,7 +7,9 @@ from imports import *
 from rich import print
 import asyncio
 from qasync import QEventLoop
-
+from PySide6.QtCore import QFile, QIODevice
+import io
+import zipfile
 
 class LogView(QWidget, Ui_LogView):
     """
@@ -163,7 +165,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # loginDialog: LoginDialog = None
     arduino: AIODevice | None = None
     _drag_pos: int = None
-    eax_device: Device = Device()
+    eax_device: Device | None = None
 
     def __init__(self, app) -> None:
         super(MainWindow, self).__init__()
@@ -265,6 +267,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.text_edit.cursorPositionChanged.connect(self.check_for_link)
         self.load_file_text()
 
+        self.eax_device = Device()
+
+        # Set the default device    
         if not self.eax_device.verify_firmware():
             self.insert_text("Missing firmware!")
             log.critical("Missing firmware!")
@@ -362,8 +367,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # reset the position to avoid cursor moving to the link start
             cursor.setPosition(current_position)
             self.text_edit.setTextCursor(cursor)
-            # self.help_dialog = HelpDialog()
-            # self.help_dialog.show()
+            self.help_dialog = HelpDialog()
+            self.help_dialog.show()
 
     def set_theme(self, theme: str) -> None:
         """Set the theme."""
@@ -460,7 +465,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif key == Qt.Key.Key_Question:
             self.aboutQt()
         elif key == Qt.Key.Key_Q and event.modifiers() & ControlModifier:
-            sys.exit(0)
+            asyncio.get_event_loop().stop()
+            self.close()
         elif key == Qt.Key.Key_F2:
             take_screenshot()
         elif key == Qt.Key.Key_F3:
@@ -771,8 +777,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.state = State.PROGRAMMING
 
-            info(
-                f"Programming {self.eax_device._selected_device}, args: {command}")
+            info(f"Programming {self.eax_device._selected_device}, args: {command}")
 
             self.program_thread = ProgrammingThread(command)
             self.program_thread.resultReady.connect(self.handle_programming_result)
@@ -797,7 +802,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.program_thread.quit()
 
-        if self.arduino:
+        if self.arduino.device_connected:
             self.state = State.CONNECTED
         else:
             self.state = State.IDLE
@@ -1146,95 +1151,50 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.foreground_color: QColor = None
         self.qfont: QFont = None
 
-        self.pushButton_background_color.clicked.connect(
-            self.pick_background_color)
+        self.pushButton_background_color.clicked.connect(self.pick_background_color)
         self.pushButton_foreground_color.clicked.connect(self.pick_color)
         self.pushButton_change_font.clicked.connect(self.change_font)
 
         self.pushButton_save.clicked.connect(self.save_changes)
         self.pushButton_default.clicked.connect(self.reset_to_default)
-
-        self.apply_changes()
+        self.resetCounterButton.clicked.connect(self.reset_counter) 
+        self.initialize_settings()
 
         # Set the theme
         self.setStyleSheet(get_stylesheet())
 
-    def apply_changes(self) -> None:
+    def initialize_settings(self) -> None:
         config = ConfigLoader()
         
-        self.lineEdit_serial.setText(
-            self.settings.app_settings.value(
-                KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(KEY_PROGRAMMER_SERIAL_NUMBER))
-        )
+        self.lineEdit_serial.setText(self.settings.app_settings.value(KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(KEY_PROGRAMMER_SERIAL_NUMBER)))
         
         chip_options = config.chip_options
         for chip_part in chip_options:
             self.comboBox_chip.addItem(chip_part)
 
-        self.comboBox_chip.setCurrentText(
-            self.settings.app_settings.value(
-                KEY_CHIP_PART, config.get_default_setting(KEY_CHIP_PART))
-        )
+        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(KEY_CHIP_PART, config.get_default_setting(KEY_CHIP_PART)))
 
         value = self.settings.get_int(KEY_TESTING_SPEED, config.get_default_setting(KEY_TESTING_SPEED))
         self.dial.setValue(value)
 
-        self.comboBox_com_port.setCurrentText(
-            self.settings.app_settings.value(
-                KEY_COM_PORT, config.get_default_setting(KEY_COM_PORT))
-        )
+        self.comboBox_com_port.setCurrentText(self.settings.app_settings.value(KEY_COM_PORT, config.get_default_setting(KEY_COM_PORT)))
 
         for port in AIODevice.get_usb_ports():
             self.comboBox_com_port.addItem(port)
         
-        self.spinBox_autologoff_delay.setValue(
-            self.settings.get_int(
-                KEY_INACTIVITY_TIMEOUT, config.get_default_setting(KEY_INACTIVITY_TIMEOUT))
-        )
-
-        self.spinBox_arduino_id.setValue(
-            self.settings.get_int(KEY_ARDUINO_INSTANCE_ID, config.get_default_setting(KEY_ARDUINO_INSTANCE_ID))
-        )
-
-        self.checkBox_test.setChecked(
-            self.settings.get_bool(KEY_AUTO_TEST, config.get_default_setting(KEY_AUTO_TEST))
-        )
-
-        self.checkBox_connect.setChecked(
-            self.settings.get_bool(KEY_AUTO_CONNECT, config.get_default_setting(KEY_AUTO_CONNECT))
-        )
-
+        self.spinBox_autologoff_delay.setValue(self.settings.get_int(KEY_INACTIVITY_TIMEOUT, config.get_default_setting(KEY_INACTIVITY_TIMEOUT)))
+        self.spinBox_arduino_id.setValue(self.settings.get_int(KEY_ARDUINO_INSTANCE_ID, config.get_default_setting(KEY_ARDUINO_INSTANCE_ID)))
+        self.checkBox_test.setChecked(self.settings.get_bool(KEY_AUTO_TEST, config.get_default_setting(KEY_AUTO_TEST)))
+        self.checkBox_connect.setChecked(self.settings.get_bool(KEY_AUTO_CONNECT, config.get_default_setting(KEY_AUTO_CONNECT)))
         self.checkBox_debug.setChecked(self.settings.get_bool(KEY_DEBUG, config.get_default_setting(KEY_DEBUG)))
-
-        self.checkBox_auto_find.setChecked(
-            self.settings.get_bool(KEY_AUTO_FIND, config.get_default_setting(KEY_AUTO_FIND))
-        )
-
-        self.checkBox_shutdown_on_exception.setChecked(
-            self.settings.get_bool(KEY_SHUTDOWN_ON_EXCEPTION, config.get_default_setting(KEY_SHUTDOWN_ON_EXCEPTION))
-        )
-
-        self.lineEdit_serial_sleep_tune.setText(
-            str(self.settings.app_settings.value(KEY_SLEEP_TUNE,
-                config.get_default_setting(KEY_SLEEP_TUNE)))
-        )
-
-        self.spinBox_wait_time.setValue(
-            self.settings.get_int(KEY_ARDUINO_WAIT, config.get_default_setting(KEY_ARDUINO_WAIT))
-        )
-
-        self.checkBox_fullscreen.setChecked(
-            self.settings.get_bool(KEY_FULLSCREEN, config.get_default_setting(KEY_FULLSCREEN))
-        )
-
-        self.checkBox_touchscreen.setChecked(
-            self.settings.get_bool(KEY_TOUCHSCREEN_ENABLED, config.get_default_setting(KEY_TOUCHSCREEN_ENABLED))
-        )
-        
-        self.checkBox_frameless.setChecked(
-            self.settings.get_bool(KEY_FRAMELESS, config.get_default_setting(KEY_FRAMELESS))
-        )
-
+        self.checkBox_auto_find.setChecked(self.settings.get_bool(KEY_AUTO_FIND, config.get_default_setting(KEY_AUTO_FIND)))
+        self.checkBox_shutdown_on_exception.setChecked(self.settings.get_bool(KEY_SHUTDOWN_ON_EXCEPTION, config.get_default_setting(KEY_SHUTDOWN_ON_EXCEPTION)))
+        self.lineEdit_serial_sleep_tune.setText(str(self.settings.app_settings.value(KEY_SLEEP_TUNE,config.get_default_setting(KEY_SLEEP_TUNE))))
+        self.spinBox_wait_time.setValue(self.settings.get_int(KEY_ARDUINO_WAIT, config.get_default_setting(KEY_ARDUINO_WAIT)))
+        self.checkBox_fullscreen.setChecked(self.settings.get_bool(KEY_FULLSCREEN, config.get_default_setting(KEY_FULLSCREEN)))
+        self.checkBox_touchscreen.setChecked(self.settings.get_bool(KEY_TOUCHSCREEN_ENABLED, config.get_default_setting(KEY_TOUCHSCREEN_ENABLED)))
+        self.checkBox_frameless.setChecked(self.settings.get_bool(KEY_FRAMELESS, config.get_default_setting(KEY_FRAMELESS)))
+        self.counterCheckbox.setChecked(self.settings.get_bool(KEY_COUNTER_ENABLED, DEFAULT_SETTINGS[KEY_COUNTER_ENABLED]))
 
     def reset_to_default(self) -> None:
         config = ConfigLoader()
@@ -1248,8 +1208,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.checkBox_connect.setChecked(default_settings[KEY_AUTO_CONNECT])
         self.spinBox_arduino_id.setValue(default_settings[KEY_ARDUINO_INSTANCE_ID])
         self.checkBox_debug.setChecked(default_settings[KEY_DEBUG])
-        self.spinBox_autologoff_delay.setValue(
-            default_settings[KEY_INACTIVITY_TIMEOUT])
+        self.spinBox_autologoff_delay.setValue(default_settings[KEY_INACTIVITY_TIMEOUT])
         self.spinBox_wait_time.setValue(default_settings[KEY_ARDUINO_WAIT])
         self.checkBox_shutdown_on_exception.setChecked(default_settings[KEY_SHUTDOWN_ON_EXCEPTION])
         self.checkBox_auto_find.setChecked(default_settings[KEY_AUTO_FIND])
@@ -1257,7 +1216,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.checkBox_fullscreen.setChecked(default_settings[KEY_FULLSCREEN])
         self.checkBox_touchscreen.setChecked(default_settings[KEY_TOUCHSCREEN_ENABLED])
         self.checkBox_frameless.setChecked(default_settings[KEY_FRAMELESS])
-
+        self.counterCheckbox.setChecked(DEFAULT_SETTINGS[KEY_COUNTER_ENABLED])
 
     def save_changes(self) -> None:
         if self.background_color:
@@ -1270,42 +1229,24 @@ class SettingsDialog(QWidget, Ui_Settings):
             self.settings.setValue(KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
             self.settings.setValue(KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
             self.settings.setValue(KEY_FONT_WEIGHT, QFontInfo(self.qfont).weight())
-        self.settings.setValue(
-            KEY_COM_PORT, self.comboBox_com_port.currentText())
-        self.settings.setValue(
-            KEY_CHIP_PART, self.comboBox_chip.currentText())
-        self.settings.setValue(
-            KEY_PROGRAMMER_SERIAL_NUMBER, self.lineEdit_serial.text()
-        )
-        self.settings.setValue(
-            KEY_AUTO_TEST, self.checkBox_test.isChecked())
-        self.settings.setValue(
-            KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
+        self.settings.setValue(KEY_COM_PORT, self.comboBox_com_port.currentText())
+        self.settings.setValue(KEY_CHIP_PART, self.comboBox_chip.currentText())
+        self.settings.setValue(KEY_PROGRAMMER_SERIAL_NUMBER, self.lineEdit_serial.text())
+        self.settings.setValue(KEY_AUTO_TEST, self.checkBox_test.isChecked())
+        self.settings.setValue(KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
         self.settings.setValue(KEY_DEBUG, self.checkBox_debug.isChecked())
-        self.settings.setValue(
-            KEY_ARDUINO_INSTANCE_ID, self.spinBox_arduino_id.value()
-        )
+        self.settings.setValue(KEY_ARDUINO_INSTANCE_ID, self.spinBox_arduino_id.value())
         self.settings.setValue(KEY_TESTING_SPEED, self.dial.value())
-        self.settings.setValue(
-            KEY_INACTIVITY_TIMEOUT, self.spinBox_autologoff_delay.value()
-        )
-        self.settings.setValue(
-            KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
-        self.settings.setValue(
-            KEY_SHUTDOWN_ON_EXCEPTION, self.checkBox_shutdown_on_exception.isChecked()
-        )
-        self.settings.setValue(
-            KEY_SLEEP_TUNE, float(self.lineEdit_serial_sleep_tune.text())
-        )
-        self.settings.setValue(
-            KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
-        self.settings.setValue(
-            KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
-        self.settings.setValue(
-            KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
-        self.settings.setValue(KEY_TOUCHSCREEN_ENABLED,
-                          self.checkBox_touchscreen.isChecked())
+        self.settings.setValue(KEY_INACTIVITY_TIMEOUT, self.spinBox_autologoff_delay.value())
+        self.settings.setValue(KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
+        self.settings.setValue(KEY_SHUTDOWN_ON_EXCEPTION, self.checkBox_shutdown_on_exception.isChecked())
+        self.settings.setValue(KEY_SLEEP_TUNE, float(self.lineEdit_serial_sleep_tune.text()))
+        self.settings.setValue(KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
+        self.settings.setValue(KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
+        self.settings.setValue(KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
+        self.settings.setValue(KEY_TOUCHSCREEN_ENABLED,self.checkBox_touchscreen.isChecked())
         self.settings.setValue(KEY_FRAMELESS, self.checkBox_frameless.isChecked())
+        self.settings.setValue(KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
         self.saved.emit((0, self))
         self.close()
 
@@ -1354,10 +1295,14 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def showEvent(self, event) -> None:
         super().showEvent(event)
+        self.initialize_settings()
         self.activateWindow()
         self.setFocus()
 
-
+    def reset_counter(self) -> None:
+        self.settings.setValue(KEY_TEST_COUNT, 0)
+        sb = self._parent.statusBar()
+        sb.widget.lcdNumber.display(0)
 
 class SaveWorker(QThread):
     """
@@ -1371,14 +1316,14 @@ class SaveWorker(QThread):
         super(SaveWorker, self).__init__()
         self.data = data
         self.length = self.data.__len__()
+        self.setObjectName("SaveWorker")    
 
     def run(self):
         logg.clear_all_logs()
         for entry in self.data:
             log_entry = f"{entry['timestamp']} - logger - {entry['level']} - {entry['message']}"
             log.info(log_entry)
-            logg.insert_log(entry['timestamp'], "logger",
-                            entry['level'], entry['message'])
+            logg.insert_log(entry['timestamp'], "logger", entry['level'], entry['message'])
             progress = ceil(self.data.index(entry) / self.length * 100)
             self.progress_changed.emit(progress)
         super(SaveWorker, self).exec()
@@ -1408,6 +1353,8 @@ class ProgrammingThread(QThread):
     def __init__(self, command: List[str]):
         super(ProgrammingThread, self).__init__()
         self.command = command
+        # set thread name
+        self.setObjectName("ProgrammingThread")
 
     def run(self) -> None:
         debug(f"Running command: {self.command}")
@@ -1415,6 +1362,11 @@ class ProgrammingThread(QThread):
         process = subprocess.run(self.command, shell=True)
         self.resultReady.emit(process.returncode)
         super(ProgrammingThread, self).exec()
+
+    def quit(self):
+        """Override the quit method to ensure the thread is stopped properly."""    
+        print("Stopping ProgrammingThread...")  
+        return super().quit()
 
 
 class ConnectMenu(QAction):
@@ -1520,30 +1472,80 @@ class CustomStatusBar(QStatusBar):
 
 
 
+def extract_zip_from_resources(path: str) -> None:
+    """Extracts a ZIP file from the resources and extracts its contents to the specified path."""
+    # Open the ZIP file stored in resources
+    zip_file = QFile(":/resources/default_resources.zip")
+    if zip_file.open(QIODevice.ReadOnly):
+        # Read the contents into a QByteArray
+        zip_data = zip_file.readAll()
+        # Use BytesIO to treat the QByteArray as a file-like object
+        zip_file_like = io.BytesIO(zip_data)
+        # Now, use the zipfile module to extract files from the ZIP archive
+        with zipfile.ZipFile(zip_file_like, 'r') as zip_ref:
+            # List all files in the ZIP file
+            zip_ref.printdir()
+            # Extract all files (you can specify a directory if you want to extract it somewhere)
+            zip_ref.extractall(path)
+            print("ZIP file extracted successfully.")
+    else:
+        print("Failed to open the ZIP file from resources.")
+
+
+def verify_files(files: List[str]) -> bool:
+    """
+    Verify if the files exist in the current directory.
+    :param files: List of file names to verify.
+    """
+    found = True
+    print("checking for missing files…")
+    for file in files:
+        file_path = os.path.join('.', file)
+        if not os.path.exists(file_path):
+            print(f"File {file} does not exist.")
+            found = False
+    return found
+
+
+
 
 if __name__ == "__main__":
-    with log.catch(
-        message="Encountered exception from main.",
-        reraise=True,
-        exception=BaseException,
-    ):
+    # with log.catch(
+    #     message="Encountered exception from main.",
+    #     reraise=True,
+    #     exception=BaseException,
+    # ):
+        # app = SingleInstanceApp(sys.argv)
+        # debug("Checking for running instances")
+        # if app.is_running:
+        #     log.critical(
+        #         "Another instance of the application is already running.")
+        #     critical(
+        #         None,
+        #         "Another instance of the application is already running.",
+        #     )
+        #     sys.exit(1)
+
+    if not verify_files([
+        "settings.ini",
+        "instructions.md",
+        "config.yaml",
+        "Scripts/Upload.ps1",
+        "Scripts/UpdateFirmware.ps1",
+        "sketches/Telemetrix4Arduino/build/arduino.avr.uno/Telemetrix4Arduino.ino.hex",
+        "sketches/StandardFirmata/build/arduino.avr.uno/StandardFirmata.ino.hex",
+        "firmware/EAX300_59.hex",
+        "firmware/EAX500_591.hex",
+        "firmware/EAX505_591.hex",
+        "firmware/EAX525_591.hex",
+    ]):
+        log.error(
+            "Some files are missing. Extracting defaults from resources.")
+        extract_zip_from_resources('.')
+        print('Restart the application to apply the changes.')  
+        sys.exit(1)
+    else:
         app = SingleInstanceApp(sys.argv)
-        debug("Checking for running instances")
-        if app.is_running:
-            log.critical(
-                "Another instance of the application is already running.")
-            critical(
-                None,
-                "Another instance of the application is already running.",
-            )
-            sys.exit(1)
-        
-        # Validate the config file
-        (valid, missing_keys) = config_loader.validate_config('config.yaml')
-        if not valid:
-            critical(None, f"Missing the following keys in config file:\n  {', '.join(missing_keys)}")
-            sys.exit(1)
-            
         loop = QEventLoop(app)
         asyncio.set_event_loop(loop)
         window = MainWindow(app)
