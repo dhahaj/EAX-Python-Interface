@@ -34,9 +34,9 @@ class ConfigLoader:
         return self.settings.get(key, None)
 
     @property
-    def pins(self) -> Dict[str, Any]:
+    def pins(self) -> List[Dict[str, Any]]:
         """Return the pins configuration."""
-        return self.data.get('pins', {})
+        return self.data.get('pins', [])
 
     @property
     def firmware_path(self) -> str:
@@ -50,17 +50,20 @@ class ConfigLoader:
     @property
     def devices(self) -> List[str]:
         """Return a list of devices."""
-        return [entry['basename'] for entry in self.data['firmware']['files']]
+        firmware = self.data.get('firmware', {})
+        files = firmware.get('files', [])
+        return [entry.get('basename', '') for entry in files if 'basename' in entry]
 
     @property
     def default_device(self) -> str:
         """Return the default device."""
-        return self.data['firmware']['default_device']
+        firmware = self.data.get('firmware', {})
+        return firmware.get('default_device', '')
 
     @property
     def chip_options(self) -> List[str]:
         """Return a list of chip options."""
-        return self.data['chip_options']
+        return self.data.get('chip_options', [])
 
     def get_testing_config(self) -> List[Dict[str, Any]]:
         """Return the test instructions."""
@@ -91,10 +94,12 @@ if __name__ == '__main__':
     validate_config('config.yaml')
 
     config = ConfigLoader()
+    pins = config.pins
+    # print(type(pins[0]))
     # print(config.version)
-    print(config.firmware_path)
-    print(config.settings)
-    print(config.get_firmware())
+    # print(config.firmware_path)
+    # print(config.settings)
+    # print(config.get_firmware())
     # print(config.pins)
     # print(config.devices)
     # testing = config.get_test_instructions()
