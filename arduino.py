@@ -45,7 +45,7 @@ class AIODevice(QObject):
     it performs asynchronous connection and I/O with asyncio.
     """
     DEBOUNCE_TIME = 0.05
-    # input_changed = Signal(list)
+    connection_changed = Signal(bool, object)
 
     def __init__(
         self,
@@ -77,7 +77,7 @@ class AIODevice(QObject):
         self.pins: List[Pin] = ConfigLoader().pins
         self.inputs = []
         self.last_input_times = {}
-
+        self._connect_callback = None
         # Will hold the TelemetrixAIO instance.
         self.device = None
 
@@ -106,7 +106,7 @@ class AIODevice(QObject):
                 shutdown_on_exception=self.shutdown_on_exception,
                 sleep_tune=self.sleep_tune,
                 autostart=False,
-                close_loop_on_shutdown=False
+                close_loop_on_shutdown=True
             )
             # Await the connection—assuming TelemetrixAIO.connect() is an async method.
             await self.device.start_aio()
@@ -119,13 +119,19 @@ class AIODevice(QObject):
             # Notify via callback if provided.
             if callback:
                 callback(self.device_connected, self.device.com_port)
+
+            self.connection_changed.emit(self.device_connected, self.device.com_port)
+
+            # Start monitoring the connection in a separate task.
+            asyncio.create_task(self._monitor_connection())
         except Exception as e:
             log.exception(
                 f'Exception occurred while connecting to device: {e}')
             # Notify via callback if provided.
+            self.device_connected = False
             if callback:
                 callback(False, e.args[0])
-            self.device_connected = False
+            self.connection_changed.emit(self.device_connected, str(e))
 
     async def async_disconnect(self):
         """
@@ -181,8 +187,6 @@ class AIODevice(QObject):
             log.debug(f'Configuring pin {pin_obj}')
             await pin_obj.configure(self.device, self.input_callback)
 
-    # These methods delegate to the asynchronous device.
-
     def set_pin_mode_digital_output(self, pin_number: int):
         return self.device.set_pin_mode_digital_output(pin_number)
 
@@ -195,12 +199,34 @@ class AIODevice(QObject):
     async def digital_write(self, pin_number: int, value: int):
         await self.device.digital_write(pin_number, value)
 
-    async def write_pin_by_func(self, pin_function, value) -> None:
-        pin = self.get_pin_by_function(pin_function)
-        if pin:
-            await self.digital_write(pin, value)
-        else:
-            log.error(f'Pin with function {pin_function} not found.')
+    async def _monitor_connection(self):
+        """Periodically “ping” the board; on any exception assume the port died."""
+        while self.device_connected:
+            await asyncio.sleep(1)
+            try:
+                # you can pick any benign operation; a zero‐write is cheapest
+                await self.device._get_firmware_version()
+            except Exception as e:
+                log.exception("Arduino connection lost")
+                self.device_connected = False
+                if self._connect_callback:
+                    self._connect_callback(False, "Connection lost")
+                self.connection_changed.emit(self.device_connected, 'Connection lost')
+                break
+
+
+    async def write_pin_by_func(self, pin_function, value):
+        try:
+            pin = self.get_pin_by_function(pin_function)
+            if pin is None:
+                raise RuntimeError(f"No pin for {pin_function}")
+            await self.device.digital_write(pin, value)
+        except Exception as e:
+            log.error(f"Write failed: {e}")
+            self.device_connected = False
+            if self._connect_callback:
+                self._connect_callback(False, str(e))
+            raise
 
     def get_pin_by_function(self, function: str) -> int:
         """ Get a pin number by its function name. """
@@ -246,15 +272,31 @@ class AIODevice(QObject):
         return config.pins
 
 
-if __name__ == "__main__":
-    # Example usage
+async def main():
     device = AIODevice()
-    asyncio.run(device.async_connect())
-    print(asyncio.run(device.device._get_firmware_version()))
+    await device.async_connect()
+    print(await device.device._get_firmware_version())
     print(type(device.pins))
     device.load_pin_configuration()
-    asyncio.run(device.configure_pin_modes())
-    asyncio.run(device.set_all_pins_to_value(0))
+    await device.configure_pin_modes()
+    await device.set_all_pins_to_value(0)
     print(device.get_pin_by_function('ac'))
     print(AIODevice.get_pin_configuration())
-    asyncio.run(device.async_disconnect())
+
+    print("Device running. Waiting for input changes or disconnection...")
+    print("Try unplugging the Arduino now.")
+
+    # Keep running until disconnected (monitor task handles detection)
+    while device.device_connected:
+        await asyncio.sleep(1)
+    print("Main loop detected disconnection.")
+
+if __name__ == "__main__":
+    try:
+        # Use asyncio.run() for simple cases, but for GUI apps (PySide6),
+        # you'll integrate with the Qt event loop (e.g., using qasync)
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Program interrupted by user.")
+    except Exception as e:
+        log.exception(f"An unexpected error occurred: {e}")
