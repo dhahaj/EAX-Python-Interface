@@ -118,8 +118,8 @@
   </qresource>
   <qresource prefix="/resources">
     <file>README.html</file>
-    <file>docs/USAGE.html</file>
     <file>default_resources.zip</file>
+    <file>docs/USAGE.html</file>
     <file>animation.gif</file>
     <file>docs/Settings.html</file>
     <file>animation2.gif</file>

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/resources">
+    <file>default_resources.zip</file>
     <file>README.md</file>
     <file alias="detex">images/detex.svg</file>
     <file>images/pcb.ico</file>
@@ -11,7 +12,6 @@
     <file>images/icons/ChatGPT.ico</file>
     <file>images/icons/favicon.ico</file>
     <file>images/icons/meshroom.ico</file>
-    <file>images/icons/github.png</file>
     <file>images/icons/icon.png</file>
     <file>images/detex_dark.png</file>
     <file>images/detex_light.bmp</file>
