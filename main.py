@@ -1,14 +1,89 @@
+from re import A
+from qtpy import (
+    QtCore,
+    QtGui,
+)
+from qtpy.QtGui import (
+    QFont,
+    QFontInfo,
+    QColor,
+    QIcon,
+    QMovie,
+    QCursor,
+    QAction,
+    QKeyEvent,
+    QShowEvent,
+)
+from qtpy.QtCore import (
+    QTimer,
+    QEvent,
+    Qt,
+    QSize,
+    QProcess,
+    Signal,
+    QSize,
+    QByteArray,
+    QSystemSemaphore,
+    QSharedMemory,
+    QObject,
+    QThread,
+    Signal,
+    QFile,
+    QIODevice,
+)
+from qtpy.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QMessageBox,
+    QColorDialog,
+    QWidget,
+    QInputDialog,
+    QTableWidgetItem,
+    QDialog,
+    QLabel,
+    QStatusBar,
+)
+from ui import (
+    Ui_MainWindow,
+    Ui_HelpDialog,
+    Ui_LogView,
+    Ui_Settings,
+    Ui_ManualControlDialog,
+    Ui_ProgressBar,
+    Ui_StatusBarWidget
+)
+from imports import (
+    get_stylesheet,
+    get_theme,
+    get_font,
+    take_screenshot,
+    clean_backups,
+    error,
+    info,
+    warning,
+    debug,
+
+)
+from loguru import logger as log
+import sys
+import subprocess
+import qdarkstyle
 from math import ceil
-from psutil import Popen
 from arduino import AIODevice
 from config_loader import ConfigLoader
-from imports import *
 from rich import print
 import asyncio
 from qasync import QEventLoop
-from PySide6.QtCore import QFile, QIODevice
 import io
 import zipfile
+import os
+from pathlib import Path
+from typing import List, Dict, Tuple, Any
+import constants
+from constants import State
+from settings import ApplicationSettings
+from device import Device
+import applogger
 
 class LogView(QWidget, Ui_LogView):
     """
@@ -28,9 +103,10 @@ class LogView(QWidget, Ui_LogView):
         self.callback = callback
         self.data_changed = False
 
-        self.app_settings = settings.app_settings
+        self.settings = ApplicationSettings()
+        self.app_settings = self.settings.app_settings
         self.restoreGeometry(self.app_settings.value("logwindow/geometry", QByteArray()))
-        self.setStyleSheet(get_stylesheet())
+        self.setStyleSheet(get_stylesheet(self.settings))
 
     def on_item_changed(self, item) -> None:
         row, col = item.row(), item.column()
@@ -118,13 +194,15 @@ class HelpDialog(QDialog, Ui_HelpDialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.app_settings = settings.app_settings
+
+        self.settings = ApplicationSettings()
+        self.app_settings = self.settings.app_settings
         self.restoreGeometry(self.app_settings.value("helpwindow/geometry", QByteArray()))
         # self.toolBox.currentChanged.connect(self.on_tab_clicked)
         self.label.installEventFilter(self)
         self.label_2.installEventFilter(self)
         self.label_3.installEventFilter(self)
-        self.setStyleSheet(get_stylesheet())
+        self.setStyleSheet(get_stylesheet(self.settings))
 
     def eventFilter(self, obj: QLabel, event: QEvent) -> bool:
         if event.type() == QEvent.MouseButtonPress:
@@ -159,9 +237,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     _state: State = State.IDLE
     button_pressed: bool = False
     connecting: bool = False
-    log_view: LogView = None
-    help_dialog: HelpDialog = None
-    # loginDialog: LoginDialog = None
+    log_view: LogView | None = None
+    help_dialog: HelpDialog | None = None
     arduino: AIODevice | None = None
     _drag_pos: int = None
     eax_device: Device | None = None
@@ -173,37 +250,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         # Settings
-        self.settings: ApplicationSettings = settings
+        self.settings: ApplicationSettings = ApplicationSettings('settings.ini')
         self.settings_dialog = SettingsDialog(self)
         self.settings_dialog.saved.connect(self.on_settings_closed)
 
         # Restore the window geometry and state
-        self.app_settings = settings.app_settings
-        self.restoreGeometry(self.app_settings.value("mainwindow/geometry", QByteArray()))
-        self.restoreState(self.app_settings.value("mainwindow/windowState", QByteArray()))
+        self.restoreGeometry(self.settings.app_settings.value("mainwindow/geometry", QByteArray()))
+        self.restoreState(self.settings.app_settings.value("mainwindow/windowState", QByteArray()))
 
-        print(f"Settings: {self.app_settings.allKeys()}")
+        print(f"Settings: {self.settings.app_settings.allKeys()}")
 
-        if self.app_settings.value(KEY_FULLSCREEN, type=bool):
+        if self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool):
             self.showFullScreen()
         else:
             self.showNormal()
-        self.actionFullscreen.setChecked(
-            self.app_settings.value(KEY_FULLSCREEN, type=bool)
-        )
+        self.actionFullscreen.setChecked(self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool))
         self.actionFullscreen.triggered.connect(self.toggleFullScreen)
 
-        if self.settings.get_bool(KEY_FRAMELESS):
+        if self.settings.get_bool(constants.KEY_FRAMELESS):
             self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
 
         # Process for updating the firmware
         self.update_process = QProcess(self)
         self.update_process.finished.connect(self.on_finished)
         self.update_process.errorOccurred.connect(self.on_error)
-        self.update_process.readyReadStandardError.connect(
-            self.read_standard_output)
-        self.update_process.readyReadStandardOutput.connect(
-            self.read_standard_output)
+        self.update_process.readyReadStandardError.connect(self.read_standard_output)
+        self.update_process.readyReadStandardOutput.connect(self.read_standard_output)
         self.update_process.setWorkingDirectory(os.getcwd())
 
         self.device_changed.connect(self.on_device_changed)
@@ -219,22 +291,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.installEventFilter(self)
         for widget in QApplication.instance().allWidgets():
             widget.installEventFilter(self)
-        print(self.settings.get(KEY_FONT_FAMILY))
+        print(self.settings.get(constants.KEY_FONT_FAMILY))
         
         # Setup the text area
         self.text_edit.setFont(
             QFont(
-                self.settings.get(KEY_FONT_FAMILY),
-                self.settings.get_int(KEY_FONT_SIZE),
+                self.settings.get(constants.KEY_FONT_FAMILY),
+                self.settings.get_int(constants.KEY_FONT_SIZE),
             )
         )
         self.text_edit.setStyleSheet(
-            f"color:{self.settings.get(KEY_FOREGROUND_COLOR)};"
-            f"background-color:{self.settings.get(KEY_BACKGROUND_COLOR)};"
+            f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};"
+            f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
         )
 
         # Connect the menu items
-        self.actionExplore_Directory.triggered.connect(browse_directory)
+        self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
         self.actionConnect.triggered.connect(self.connect_device)
         self.actionAbout.triggered.connect(self.aboutQt)
@@ -248,7 +320,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionDark_Theme.triggered.connect(self.toggle_theme)
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
-        self.test_button.clicked.connect(lambda: asyncio.create_task(self.run_test()))
+        self.test_button.clicked.connect(self.on_test_clicked)
 
         # Remove the default actions from the device menu
         for action in self.menuDevice.actions():
@@ -275,7 +347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             app_logger.critical("Missing firmware!")
 
         # Set the theme
-        self.set_theme(get_theme())
+        self.set_theme(get_theme(self.settings))
 
         print(logg.check_integrity())
         logg.backup_database()
@@ -286,7 +358,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_status('Select a device to begin.')
 
         # If auto login and auto connect are enabled, try to connect to the USB device
-        if self.settings.get(KEY_AUTO_CONNECT):
+        if self.settings.get(constants.KEY_AUTO_CONNECT):
             QTimer.singleShot(2000, self.connect_device)
 
         self.timeout_timer = QTimer()
@@ -312,20 +384,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.test_button.setEnabled(False)
             # self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
-            self.label_usb_icon.setText(ICON_USB_YELLOW)
+            self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
         elif value == State.CONNECTED:
             self.test_button.setEnabled(True)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
-            self.label_usb_icon.setText(ICON_USB_GREEN)
+            self.label_usb_icon.setText(constants.ICON_USB_GREEN)
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
         elif value == State.IDLE:
             self.test_button.setEnabled(False)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
-            self.label_usb_icon.setText(ICON_USB_RED)
+            self.label_usb_icon.setText(constants.ICON_USB_RED)
             self.set_status("Disconnected.")
+        elif value == State.PROGRAMMING:
+            self.test_button.setEnabled(False)
+            self.program_button.setEnabled(False)
+            self.actionConnect.setEnabled(False)
+            self.set_status("Programming...")
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.LeftButton:
@@ -373,10 +450,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Set the theme."""
         log.info(f"Setting theme to {theme}")
         if theme == 'dark':
-            style = qdarkstyle.load_stylesheet(palette=DarkPalette)
+            style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
             self.actionDark_Theme.setChecked(True)
         else:
-            style = qdarkstyle.load_stylesheet(palette=LightPalette)
+            style = qdarkstyle.load_stylesheet(palette=qdarkstyle.LightPalette)
             self.actionDark_Theme.setChecked(False)
         self.setStyleSheet(style)
 
@@ -410,17 +487,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def toggle_theme(self) -> None:
         log.info("Toggle theme")
-        if self.settings.get_bool(KEY_DARK_THEME):
-            self.app_settings.setValue(KEY_DARK_THEME, False)
+        if self.settings.get_bool(constants.KEY_DARK_THEME):
+            self.settings.app_settings.setValue(constants.KEY_DARK_THEME, False)
             self.set_theme('light')
             self.actionDark_Theme.setChecked(False)
         else:
-            self.app_settings.setValue(KEY_DARK_THEME, True)
+            self.settings.app_settings.setValue(constants.KEY_DARK_THEME, True)
             self.set_theme('dark')
             self.actionDark_Theme.setChecked(True)
 
     def set_icon(self, widget: QObject, icon_name: str, ext='png') -> None:
-        if get_theme() == 'dark':
+        if get_theme(self.settings) == 'dark':
             icon_path = f":/resources/icons/images/icons/light/{icon_name}.{ext}"
         else:
             icon_path = f":/resources/icons/images/icons/dark/{icon_name}.{ext}"
@@ -434,14 +511,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         widget.setIcon(icon)
 
     def toggleFullScreen(self) -> bool:
-        if self.app_settings.value(KEY_FULLSCREEN, defaultValue=False) == "false":
+        if self.settings.app_settings.value(constants.KEY_FULLSCREEN, defaultValue=False) == "false":
             self.showFullScreen()
-            self.app_settings.setValue(KEY_FULLSCREEN, True)
+            self.settings.app_settings.setValue(constants.KEY_FULLSCREEN, True)
             self.actionFullscreen.setChecked(True)
             return True
         else:
             self.showNormal()
-            self.app_settings.setValue(KEY_FULLSCREEN, False)
+            self.settings.app_settings.setValue(constants.KEY_FULLSCREEN, False)
             self.actionFullscreen.setChecked(False)
             return False
 
@@ -463,7 +540,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.toggle_theme()
         elif key == Qt.Key.Key_Question:
             self.aboutQt()
-        elif key == Qt.Key.Key_Q and event.modifiers() & ControlModifier:
+        elif key == Qt.Key.Key_Q and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             asyncio.get_event_loop().stop()
             self.close()
         elif key == Qt.Key.Key_F2:
@@ -472,28 +549,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.control_manually()
         elif key == Qt.Key.Key_F4:
             self.actionConnect.trigger()
-        elif key == Qt.Key.Key_E and event.modifiers() & ControlModifier:
+        elif key == Qt.Key.Key_E and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             logg.export_logs()
-        elif key == Qt.Key.Key_R and event.modifiers() & ControlModifier:
+        elif key == Qt.Key.Key_R and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             is_frameless = self.windowFlags() & Qt.FramelessWindowHint
             # Toggle between frameless and regular states
             if is_frameless:
                 self.setWindowFlags(self.windowFlags() & ~
                                     Qt.FramelessWindowHint)
-                self.settings.setValue(KEY_FRAMELESS, False)
+                self.settings.setValue(constants.KEY_FRAMELESS, False)
             else:
                 self.setWindowFlags(self.windowFlags() |
                                     Qt.FramelessWindowHint)
-                self.settings.setValue(KEY_FRAMELESS, True)
+                self.settings.setValue(constants.KEY_FRAMELESS, True)
             QTimer.singleShot(10, self.show)
-        elif key == Qt.Key.Key_1 and event.modifiers() & ControlModifier:
-            log.warning(f"State: {self.state}")
-        elif (
-            key == Qt.Key.Key_2 and
-            event.modifiers() & ControlModifier
-        ):
+        # elif key == Qt.Key.Key_1 and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
+            # log.warning(f"State: {self.state}")
+        # elif (
+        #     key == Qt.Key.Key_2 and
+        #     event.modifiers() & Qt.KeyboardModifier.ControlModifier
+        # ):
             log.warning(f"Device: {self.eax_device.name}")
-        elif key == Qt.Key.Key_A and event.modifiers() & ControlModifier:
+        elif key == Qt.Key.Key_A and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             # print(vars(self))
             # print(vars(self.settings))
             # print(vars(app_logger))
@@ -513,11 +590,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Set the color of the device label
         if self.eax_device.name == "EAX300":
-            self.device_label.setStyleSheet(YELLOW)
+            self.device_label.setStyleSheet(constants.YELLOW)
         elif self.eax_device.name == "EAX500":
-            self.device_label.setStyleSheet(GREEN)
+            self.device_label.setStyleSheet(constants.GREEN)
         else:
-            self.device_label.setStyleSheet(ORANGE)
+            self.device_label.setStyleSheet(constants.ORANGE)
 
     def deviceSelect(self) -> None:
         """ Called when a device is selected from the menu. """
@@ -531,7 +608,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Uncheck the device label if the same action is clicked
         if self.eax_device.name == self.sender().text():
-            self.device_label.setStyleSheet(DEVICE_LABEL)
+            self.device_label.setStyleSheet(constants.DEVICE_LABEL)
             self.device_label.setText("")
             self.eax_device.name = None
             # self.sender().setIcon(icon)
@@ -559,24 +636,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if ok:
             debug(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
-            self.settings.setValue(KEY_FONT_FAMILY, QFontInfo(font).family())
-            self.app_settings.setValue(
-                KEY_FONT_FAMILY, QFontInfo(font).family())
-            self.settings.setValue(KEY_FONT_SIZE, font.pointSize())
-            self.app_settings.setValue(KEY_FONT_SIZE, font.pointSize())
+            self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(font).family())
+            self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(font).family())
+            self.settings.setValue(constants.KEY_FONT_SIZE, font.pointSize())
+            self.settings.setValue(constants.KEY_FONT_SIZE, font.pointSize())
 
     def get_chip_part(self) -> None:
-        current_chip = self.settings.get(KEY_CHIP_PART)
-        current_selection = CHIP_OPTIONS.index(current_chip)
+        current_chip = self.settings.get(constants.KEY_CHIP_PART)
+        current_selection = constants.CHIP_OPTIONS.index(current_chip)
         item, okPressed = QInputDialog.getItem(
-            self, "Get item", "Chip Select:", CHIP_OPTIONS, current_selection, False
+            self, "Get item", "Chip Select:", constants.CHIP_OPTIONS, current_selection, False
         )
         if okPressed and item:
-            self.settings_dialog.comboBox_chip.setCurrentText(
-                item
-            )  # update the combo box
-            self.settings.setValue(KEY_CHIP_PART, item)
-            self.app_settings.setValue(KEY_CHIP_PART, item)
+            self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
+            self.settings.setValue(constants.KEY_CHIP_PART, item)
+            self.settings.app_settings.setValue(constants.KEY_CHIP_PART, item)
             log.debug(f"saved chip settings: {item}")
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
@@ -585,14 +659,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #     if event.type() == QEvent.MouseButtonPress:
         #         if event.button() == Qt.LeftButton:
         #             log.info("Left mouse button clicked!")
-        #             if self.settings.get_bool(KEY_TOUCHSCREEN_ENABLED):
+        #             if self.settings.get_bool(constants.KEY_TOUCHSCREEN_ENABLED):
         #                 self.test_button.click()
         #                 return True  # event was handled
 
         # Reset the inactivity timer if a mouse movement or key press event is detected
         if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
             self.inactivityTimer.start(
-                self.settings.get_int(KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000
+                self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000
             )  # 60 seconds of inactivity before timeout
         return super(MainWindow, self).eventFilter(watched, event)
 
@@ -610,7 +684,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         debug("Inactivity timeout.")
 
         icon = QIcon()
-        icon.addFile(RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
+        icon.addFile(constants.RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
         # Uncheck all menu actions
         [action.setIcon(icon) for action in self.menuDevice.actions()]
         self.device_label.setText("")  # clear the device label
@@ -640,15 +714,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Setup the USB device."""
         # if self.usb_device is None:
         self.arduino = AIODevice(
-            wait=self.settings.get(KEY_ARDUINO_WAIT),
-            shutdown_on_exception=self.settings.get(
-                KEY_SHUTDOWN_ON_EXCEPTION),
-            sleep_tune=self.settings.get(KEY_SLEEP_TUNE),
-            debug=self.settings.get(KEY_DEBUG),
+            wait=self.settings.get(constants.KEY_ARDUINO_WAIT),
+            shutdown_on_exception=self.settings.get(constants.KEY_SHUTDOWN_ON_EXCEPTION),
+            sleep_tune=self.settings.get(constants.KEY_SLEEP_TUNE),
+            debug=self.settings.get(constants.KEY_DEBUG),
         )
+        self.arduino.connection_changed.connect(self.on_connection_changed)
         await self.arduino.async_connect(
             self.notify_device_connected
         )
+
+    def on_connection_changed(self, connected: bool, message: str = None) -> None:
+        """Callback for the USB device."""
+        log.info(f"Connection changed: {connected}, message: {message}")
 
     def connect_device(self) -> None:
         if self.state == State.CONNECTING:
@@ -723,12 +801,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # @Slot(Tuple[int, QObject])
     def on_settings_closed(self, result: Tuple) -> None:
         return_val, settings = result
-        log.info(f"Settings dialog closed. Result: {return_val}")
+        app_logger.info(f"Settings dialog closed. Result: {return_val}")
         self.text_edit.setStyleSheet(
-            f"color: {self.settings.get(KEY_FOREGROUND_COLOR)};"
-            f"background-color: {self.settings.get(KEY_BACKGROUND_COLOR)};"
+            f"color: {self.settings.get(constants.KEY_FOREGROUND_COLOR)};"
+            f"background-color: {self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
         )
-        if self.settings.get(KEY_FULLSCREEN):
+        if self.settings.get(constants.KEY_FULLSCREEN):
             self.showFullScreen()
         else:
             self.showNormal()
@@ -776,7 +854,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             self.state = State.PROGRAMMING
 
-            info(f"Programming {self.eax_device._selected_device}, args: {command}")
+            logg.info(f"Programming {self.eax_device._selected_device}, args: {command}")
 
             self.program_thread = ProgrammingThread(command)
             self.program_thread.resultReady.connect(self.handle_programming_result)
@@ -785,21 +863,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def handle_programming_result(self, returncode=0) -> None:
         # This function gets called when the command finishes.
         # Do whatever you need to do with the return code here.
+        self.program_thread.quit()
         if returncode == 0:
             self.insert_text("<p>Programming successful.</p>")
-            log_info(
-                f"Programming {self.eax_device._selected_device} successful")
-            logg.success(
-                f"Programming {self.eax_device._selected_device} successful")
-            if self.settings.get(KEY_AUTO_TEST):
-                # self.state = State.TESTING
-                self.execute_test()
+            log.info(f"Programming {self.eax_device._selected_device} successful")
+            logg.success(f"Programming {self.eax_device._selected_device} successful")
+            if self.settings.get(constants.KEY_AUTO_TEST):
+                if self.arduino.device_connected:
+                    self.state = State.CONNECTED
+                else:
+                    self.state = State.IDLE
+                self.test_button.click()
                 return
         else:
             self.insert_text(f"<p>Programming failed. Return code: {returncode}</p>")
-            error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
+            logg.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
+            log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
 
-        self.program_thread.quit()
 
         if self.arduino.device_connected:
             self.state = State.CONNECTED
@@ -831,8 +911,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Create a worker thread to run in the background
         self.save_worker = SaveWorker(log_data)
-        self.save_worker.progress_changed.connect(
-            self.progress_bar.update_progress)
+        self.save_worker.progress_changed.connect(self.progress_bar.update_progress)
         self.save_worker.started.connect(self.progress_bar.show)
         self.save_worker.finished.connect(self.on_save_finished)
         self.save_worker.start()
@@ -848,18 +927,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self,
             "Window Close",
             "Are you sure you want to close the window?",
-            Yes | No,
-            Yes,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes,
         )
 
-        if reply == Yes:
+        if reply == QMessageBox.StandardButton.Yes:
             log.info("Application closed.")
             logg.info("Application closed.")
             app_logger.info("Application closed.")
-            self.app_settings.setValue("mainwindow/geometry", self.saveGeometry())
-            self.app_settings.setValue("mainwindow/windowState", self.saveState())
-            self.app_settings.setValue("mainwindow/full_screen", self.isFullScreen())
-            self.app_settings.sync()
+            self.settings.app_settings.setValue("mainwindow/geometry", self.saveGeometry())
+            self.settings.app_settings.setValue("mainwindow/windowState", self.saveState())
+            self.settings.app_settings.setValue("mainwindow/full_screen", self.isFullScreen())
+            self.settings.app_settings.sync()
             event.accept()
         else:
             event.ignore()
@@ -883,14 +962,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.exec()
 
         if dialog.clickedButton() == cancelBtn:
-            log.info("Firmware update cancelled.")
+            app_logger.info("Firmware update cancelled.")
             return
         elif dialog.clickedButton() == btnFirmata:
             firmware_path = ".\\sketches\\StandardFirmata\\build\\arduino.avr.uno\\StandardFirmata.ino.hex"
         elif dialog.clickedButton() == btnTelemetrix:
             firmware_path = ".\\sketches\\Telemetrix4Arduino\\build\\arduino.avr.uno\\Telemetrix4Arduino.ino.hex"
         else:
-            log.info("Firmware update cancelled.")
+            app_logger.info("Firmware update cancelled.")
             return
 
         self.state = State.UPDATING
@@ -902,7 +981,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.disconnected = True
             asyncio.create_task(self.disconnect_device())
 
-        port = self.settings.get(KEY_COM_PORT)
+        port = self.settings.get(constants.KEY_COM_PORT)
 
         # Define the PowerShell script path
         # script_path = ".\\Scripts\\UpdateFirmware.PS1"
@@ -919,22 +998,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
     def on_error(self, error: QProcess.ProcessError) -> None:
-        log.error("An error occurred: ", error)
-        log.error("System reported: ", self.update_process.errorString())
+        app_logger.error("An error occurred: ", error)
+        app_logger.error("System reported: ", self.update_process.errorString())
         app_logger.error("Firmware update failed: ", error)
         logg.critical("Firmware update failed: ", error)
 
     def read_standard_output(self) -> None:
         output = self.update_process.readAllStandardOutput().data().decode()
         self.insert_text(output)
-        log.info(output)
+        app_logger.info(output)
         msg = self.update_process.readAllStandardError().data().decode()
         if msg != "":
             self.insert_text(msg)
-            log.error(msg)
+            app_logger.error(msg)
 
     def on_finished(self) -> None:
-        log.success("The process has finished")
+        app_logger.success("The process has finished")
         app_logger.info("Firmware update complete.")
         if self.eax_device._selected_device:
             self.device_label.setText(
@@ -947,84 +1026,89 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_process.terminate()
         if not self.update_process.waitForFinished(3000):
             self.update_process.kill()
-            log.error("Process did not terminate in time.")
+            app_logger.error("Process did not terminate in time.")
 
     def increment_counter(self) -> None:
         """Set the progress value in the status bar."""
-        if settings.get_bool(KEY_COUNTER_ENABLED, False):
-            settings.setValue(
-                KEY_TEST_COUNT, settings.get_int(KEY_TEST_COUNT) + 1)
+        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
+            self.settings.setValue(
+                constants.KEY_TEST_COUNT, self.settings.get_int(constants.KEY_TEST_COUNT) + 1)
         sb = self.statusBar()
         sb.update_counter()
 
 
-    async def run_test(self) -> None:
-        """Run the test."""
+    def on_test_clicked(self) -> None:
+        """Called when the test button is clicked."""
         if not self.eax_device.is_selected:
             warning(self, "Please select a device.")
-            return
         elif self.state is State.WAITING_FOR_BUTTON:
             # notify the input event
             if hasattr(self, 'input_event') and not self.input_event.is_set():
                 self.input_event.set()
-            return
         elif self.state == State.IDLE:
             warning(self, f"USB device not connected.")
-            return
-        elif self.state is (State.WAITING_FOR_INPUT, self.state == State.TESTING):
-            return
         elif self.state is not State.CONNECTED:
             warning(self, f"Cannot run test.")
-            return
+        else:
+            asyncio.create_task(self.run_test())
+
+
+    async def run_test(self) -> None:
+        """Run the test."""
 
         self.increment_counter()
 
         model = self.eax_device.name
 
         # app_logger.info(f"Testing started for {model.name}")
-        log.info(f"Testing started for {model}")
+        app_logger.info(f"Testing started for {model}")
         logg.info(f"Testing started for {model}")
 
         self.state = State.TESTING
 
-        speed = self.settings.get_int(KEY_TESTING_SPEED, DEFAULT_SETTINGS[KEY_TESTING_SPEED]) / 1000
+        speed = self.settings.get_int(constants.KEY_TESTING_SPEED, constants.DEFAULT_SETTINGS[constants.KEY_TESTING_SPEED]) / 1000
 
-        await self.arduino.write_pin_by_func("test indicator", 1)
 
         self.text_edit.setMarkdown(f"# Starting test for {model}... \n\n")
 
-        self.insert_text("<p>- Battery Power ON</p>""<p>- Testing Low battery function → The LED's blink alternately</p>")
+        await self.arduino.write_pin_by_func("test indicator", 1)
+        self.insert_text("<br><p>🔷 Battery Power ON</p>")
         await self.arduino.write_pin_by_func("battery", 1)
+        
+        await asyncio.sleep(speed)
+        
+        self.insert_text("<p>🔷 Testing Low battery function ➾ The LED's blink alternately</p>")
         await self.arduino.write_pin_by_func("low battery", 1)
 
         await asyncio.sleep(speed)
 
-        self.insert_text("- Stopping Low Battery Test → Both LED's are OFF")
+        self.insert_text("<p>🔷 Stopping Low Battery Test ➾ Both LED's are OFF</p>")
         await self.arduino.write_pin_by_func("low battery", 0)
+
         await asyncio.sleep(speed)
 
-        self.insert_text("Press the OKC switch - The LEDs blink in unison")
+        self.insert_text("<p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>")
         
-        await asyncio.sleep(speed/2)
+        await asyncio.sleep(speed/4)
         
-        self.insert_text("Press the key switch - The siren sounds")
+        self.insert_text("<p>🔷 Press the key switch ➾ The siren sounds</p>")
 
-        self.insert_text("<p><em>Press the Continue Button when finished</em></p>")
+        self.insert_text("<br><p>⌛<em>Press the Test/Continue Button when finished</em></p>")
 
         self.state = State.WAITING_FOR_BUTTON
 
         # Wait for the button to be pressed
         try:
             self.input_event = asyncio.Event()
-            timeout = self.settings.get_int(KEY_BUTTON_TIMEOUT, DEFAULT_SETTINGS[KEY_BUTTON_TIMEOUT])
+            timeout = self.settings.get_int(constants.KEY_BUTTON_TIMEOUT, constants.DEFAULT_SETTINGS[constants.KEY_BUTTON_TIMEOUT])
             await asyncio.wait_for(self.input_event.wait(), timeout=timeout)
         except asyncio.TimeoutError:
             pass
 
-        self.insert_text("Test complete.")
+        self.insert_text("✨Test complete.")
 
-        if settings.get_bool(KEY_COUNTER_ENABLED, False):
-            logg.info(f"Test complete for {model}. (Cycle count: {settings.get_int(KEY_TEST_COUNT, 0)})")
+        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
+            logg.info(f"Test complete for {model}. (Cycle count: {self.settings.get_int(constants.KEY_TEST_COUNT, 0)})")
         else:
             logg.info(f"Test complete for {model}.")
 
@@ -1052,11 +1136,11 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-
-        if get_theme() == "dark":
-            self.setStyleSheet(qdarkstyle.load_stylesheet(palette=DarkPalette))
+        self.settings = ApplicationSettings()
+        if get_theme(self.settings) == "dark":
+            self.setStyleSheet(qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette))
         else:
-            self.setStyleSheet(qdarkstyle.load_stylesheet(palette=LightPalette))
+            self.setStyleSheet(qdarkstyle.load_stylesheet(palette=qdarkstyle.LightPalette))
 
         self._arduino = arduino
 
@@ -1149,106 +1233,106 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.initialize_settings()
 
         # Set the theme
-        self.setStyleSheet(get_stylesheet())
+        self.setStyleSheet(get_stylesheet(self.settings))
 
     def initialize_settings(self) -> None:
         config = ConfigLoader()
         
-        self.lineEdit_serial.setText(self.settings.app_settings.value(KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(KEY_PROGRAMMER_SERIAL_NUMBER)))
+        self.lineEdit_serial.setText(self.settings.app_settings.value(constants.KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(constants.KEY_PROGRAMMER_SERIAL_NUMBER)))
         
         chip_options = config.chip_options
         for chip_part in chip_options:
             self.comboBox_chip.addItem(chip_part)
 
-        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(KEY_CHIP_PART, config.get_default_setting(KEY_CHIP_PART)))
+        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(constants.KEY_CHIP_PART, config.get_default_setting(constants.KEY_CHIP_PART)))
 
-        value = self.settings.get_int(KEY_TESTING_SPEED, config.get_default_setting(KEY_TESTING_SPEED))
+        value = self.settings.get_int(constants.KEY_TESTING_SPEED, config.get_default_setting(constants.KEY_TESTING_SPEED))
         self.dial.setValue(value)
 
-        self.comboBox_com_port.setCurrentText(self.settings.app_settings.value(KEY_COM_PORT, config.get_default_setting(KEY_COM_PORT)))
+        self.comboBox_com_port.setCurrentText(self.settings.app_settings.value(constants.KEY_COM_PORT, config.get_default_setting(constants.KEY_COM_PORT)))
 
         for port in AIODevice.get_usb_ports():
             self.comboBox_com_port.addItem(port)
         
-        self.spinBox_autologoff_delay.setValue(self.settings.get_int(KEY_INACTIVITY_TIMEOUT, config.get_default_setting(KEY_INACTIVITY_TIMEOUT)))
-        self.spinBox_arduino_id.setValue(self.settings.get_int(KEY_ARDUINO_INSTANCE_ID, config.get_default_setting(KEY_ARDUINO_INSTANCE_ID)))
-        self.checkBox_test.setChecked(self.settings.get_bool(KEY_AUTO_TEST, config.get_default_setting(KEY_AUTO_TEST)))
-        self.checkBox_connect.setChecked(self.settings.get_bool(KEY_AUTO_CONNECT, config.get_default_setting(KEY_AUTO_CONNECT)))
-        self.checkBox_debug.setChecked(self.settings.get_bool(KEY_DEBUG, config.get_default_setting(KEY_DEBUG)))
-        self.checkBox_auto_find.setChecked(self.settings.get_bool(KEY_AUTO_FIND, config.get_default_setting(KEY_AUTO_FIND)))
-        self.checkBox_shutdown_on_exception.setChecked(self.settings.get_bool(KEY_SHUTDOWN_ON_EXCEPTION, config.get_default_setting(KEY_SHUTDOWN_ON_EXCEPTION)))
-        self.lineEdit_serial_sleep_tune.setText(str(self.settings.app_settings.value(KEY_SLEEP_TUNE,config.get_default_setting(KEY_SLEEP_TUNE))))
-        self.spinBox_wait_time.setValue(self.settings.get_int(KEY_ARDUINO_WAIT, config.get_default_setting(KEY_ARDUINO_WAIT)))
-        self.checkBox_fullscreen.setChecked(self.settings.get_bool(KEY_FULLSCREEN, config.get_default_setting(KEY_FULLSCREEN)))
-        self.checkBox_touchscreen.setChecked(self.settings.get_bool(KEY_TOUCHSCREEN_ENABLED, config.get_default_setting(KEY_TOUCHSCREEN_ENABLED)))
-        self.checkBox_frameless.setChecked(self.settings.get_bool(KEY_FRAMELESS, config.get_default_setting(KEY_FRAMELESS)))
-        self.counterCheckbox.setChecked(self.settings.get_bool(KEY_COUNTER_ENABLED, DEFAULT_SETTINGS[KEY_COUNTER_ENABLED]))
+        self.spinBox_autologoff_delay.setValue(self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, config.get_default_setting(constants.KEY_INACTIVITY_TIMEOUT)))
+        self.spinBox_arduino_id.setValue(self.settings.get_int(constants.KEY_ARDUINO_INSTANCE_ID, config.get_default_setting(constants.KEY_ARDUINO_INSTANCE_ID)))
+        self.checkBox_test.setChecked(self.settings.get_bool(constants.KEY_AUTO_TEST, config.get_default_setting(constants.KEY_AUTO_TEST)))
+        self.checkBox_connect.setChecked(self.settings.get_bool(constants.KEY_AUTO_CONNECT, config.get_default_setting(constants.KEY_AUTO_CONNECT)))
+        self.checkBox_debug.setChecked(self.settings.get_bool(constants.KEY_DEBUG, config.get_default_setting(constants.KEY_DEBUG)))
+        self.checkBox_auto_find.setChecked(self.settings.get_bool(constants.KEY_AUTO_FIND, config.get_default_setting(constants.KEY_AUTO_FIND)))
+        self.checkBox_shutdown_on_exception.setChecked(self.settings.get_bool(constants.KEY_SHUTDOWN_ON_EXCEPTION, config.get_default_setting(constants.KEY_SHUTDOWN_ON_EXCEPTION)))
+        self.lineEdit_serial_sleep_tune.setText(str(self.settings.app_settings.value(constants.KEY_SLEEP_TUNE,config.get_default_setting(constants.KEY_SLEEP_TUNE))))
+        self.spinBox_wait_time.setValue(self.settings.get_int(constants.KEY_ARDUINO_WAIT, config.get_default_setting(constants.KEY_ARDUINO_WAIT)))
+        self.checkBox_fullscreen.setChecked(self.settings.get_bool(constants.KEY_FULLSCREEN, config.get_default_setting(constants.KEY_FULLSCREEN)))
+        self.checkBox_touchscreen.setChecked(self.settings.get_bool(constants.KEY_TOUCHSCREEN_ENABLED, config.get_default_setting(constants.KEY_TOUCHSCREEN_ENABLED)))
+        self.checkBox_frameless.setChecked(self.settings.get_bool(constants.KEY_FRAMELESS, config.get_default_setting(constants.KEY_FRAMELESS)))
+        self.counterCheckbox.setChecked(self.settings.get_bool(constants.KEY_COUNTER_ENABLED, constants.DEFAULT_SETTINGS[constants.KEY_COUNTER_ENABLED]))
 
     def reset_to_default(self) -> None:
         config = ConfigLoader()
         default_settings = config.settings
 
-        self.comboBox_com_port.setCurrentText(default_settings[KEY_COM_PORT])
-        self.lineEdit_serial.setText(default_settings[KEY_PROGRAMMER_SERIAL_NUMBER])
-        self.comboBox_chip.setCurrentText(default_settings[KEY_CHIP_PART])
-        self.dial.setValue(default_settings[KEY_TESTING_SPEED])
-        self.checkBox_test.setChecked(default_settings[KEY_AUTO_TEST])
-        self.checkBox_connect.setChecked(default_settings[KEY_AUTO_CONNECT])
-        self.spinBox_arduino_id.setValue(default_settings[KEY_ARDUINO_INSTANCE_ID])
-        self.checkBox_debug.setChecked(default_settings[KEY_DEBUG])
-        self.spinBox_autologoff_delay.setValue(default_settings[KEY_INACTIVITY_TIMEOUT])
-        self.spinBox_wait_time.setValue(default_settings[KEY_ARDUINO_WAIT])
-        self.checkBox_shutdown_on_exception.setChecked(default_settings[KEY_SHUTDOWN_ON_EXCEPTION])
-        self.checkBox_auto_find.setChecked(default_settings[KEY_AUTO_FIND])
-        self.lineEdit_serial_sleep_tune.setText(str(default_settings[KEY_SLEEP_TUNE]))
-        self.checkBox_fullscreen.setChecked(default_settings[KEY_FULLSCREEN])
-        self.checkBox_touchscreen.setChecked(default_settings[KEY_TOUCHSCREEN_ENABLED])
-        self.checkBox_frameless.setChecked(default_settings[KEY_FRAMELESS])
-        self.counterCheckbox.setChecked(DEFAULT_SETTINGS[KEY_COUNTER_ENABLED])
+        self.comboBox_com_port.setCurrentText(default_settings[constants.KEY_COM_PORT])
+        self.lineEdit_serial.setText(default_settings[constants.KEY_PROGRAMMER_SERIAL_NUMBER])
+        self.comboBox_chip.setCurrentText(default_settings[constants.KEY_CHIP_PART])
+        self.dial.setValue(default_settings[constants.KEY_TESTING_SPEED])
+        self.checkBox_test.setChecked(default_settings[constants.KEY_AUTO_TEST])
+        self.checkBox_connect.setChecked(default_settings[constants.KEY_AUTO_CONNECT])
+        self.spinBox_arduino_id.setValue(default_settings[constants.KEY_ARDUINO_INSTANCE_ID])
+        self.checkBox_debug.setChecked(default_settings[constants.KEY_DEBUG])
+        self.spinBox_autologoff_delay.setValue(default_settings[constants.KEY_INACTIVITY_TIMEOUT])
+        self.spinBox_wait_time.setValue(default_settings[constants.KEY_ARDUINO_WAIT])
+        self.checkBox_shutdown_on_exception.setChecked(default_settings[constants.KEY_SHUTDOWN_ON_EXCEPTION])
+        self.checkBox_auto_find.setChecked(default_settings[constants.KEY_AUTO_FIND])
+        self.lineEdit_serial_sleep_tune.setText(str(default_settings[constants.KEY_SLEEP_TUNE]))
+        self.checkBox_fullscreen.setChecked(default_settings[constants.KEY_FULLSCREEN])
+        self.checkBox_touchscreen.setChecked(default_settings[constants.KEY_TOUCHSCREEN_ENABLED])
+        self.checkBox_frameless.setChecked(default_settings[constants.KEY_FRAMELESS])
+        self.counterCheckbox.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_COUNTER_ENABLED])
 
     def save_changes(self) -> None:
         if self.background_color:
-            self.settings.setValue(KEY_BACKGROUND_COLOR,
+            self.settings.setValue(constants.KEY_BACKGROUND_COLOR,
                               self.background_color.name())
         if self.foreground_color:
-            self.settings.app_settings.setValue(KEY_FOREGROUND_COLOR,
+            self.settings.app_settings.setValue(constants.KEY_FOREGROUND_COLOR,
                               self.foreground_color.name())
         if self.qfont:
-            self.settings.setValue(KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
-            self.settings.setValue(KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
-            self.settings.setValue(KEY_FONT_WEIGHT, QFontInfo(self.qfont).weight())
-        self.settings.setValue(KEY_COM_PORT, self.comboBox_com_port.currentText())
-        self.settings.setValue(KEY_CHIP_PART, self.comboBox_chip.currentText())
-        self.settings.setValue(KEY_PROGRAMMER_SERIAL_NUMBER, self.lineEdit_serial.text())
-        self.settings.setValue(KEY_AUTO_TEST, self.checkBox_test.isChecked())
-        self.settings.setValue(KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
-        self.settings.setValue(KEY_DEBUG, self.checkBox_debug.isChecked())
-        self.settings.setValue(KEY_ARDUINO_INSTANCE_ID, self.spinBox_arduino_id.value())
-        self.settings.setValue(KEY_TESTING_SPEED, self.dial.value())
-        self.settings.setValue(KEY_INACTIVITY_TIMEOUT, self.spinBox_autologoff_delay.value())
-        self.settings.setValue(KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
-        self.settings.setValue(KEY_SHUTDOWN_ON_EXCEPTION, self.checkBox_shutdown_on_exception.isChecked())
-        self.settings.setValue(KEY_SLEEP_TUNE, float(self.lineEdit_serial_sleep_tune.text()))
-        self.settings.setValue(KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
-        self.settings.setValue(KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
-        self.settings.setValue(KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
-        self.settings.setValue(KEY_TOUCHSCREEN_ENABLED,self.checkBox_touchscreen.isChecked())
-        self.settings.setValue(KEY_FRAMELESS, self.checkBox_frameless.isChecked())
-        self.settings.setValue(KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
+            self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
+            self.settings.setValue(constants.KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
+            self.settings.setValue(constants.KEY_FONT_WEIGHT, QFontInfo(self.qfont).weight())
+        self.settings.setValue(constants.KEY_COM_PORT, self.comboBox_com_port.currentText())
+        self.settings.setValue(constants.KEY_CHIP_PART, self.comboBox_chip.currentText())
+        self.settings.setValue(constants.KEY_PROGRAMMER_SERIAL_NUMBER, self.lineEdit_serial.text())
+        self.settings.setValue(constants.KEY_AUTO_TEST, self.checkBox_test.isChecked())
+        self.settings.setValue(constants.KEY_AUTO_CONNECT, self.checkBox_connect.isChecked())
+        self.settings.setValue(constants.KEY_DEBUG, self.checkBox_debug.isChecked())
+        self.settings.setValue(constants.KEY_ARDUINO_INSTANCE_ID, self.spinBox_arduino_id.value())
+        self.settings.setValue(constants.KEY_TESTING_SPEED, self.dial.value())
+        self.settings.setValue(constants.KEY_INACTIVITY_TIMEOUT, self.spinBox_autologoff_delay.value())
+        self.settings.setValue(constants.KEY_AUTO_FIND, self.checkBox_auto_find.isChecked())
+        self.settings.setValue(constants.KEY_SHUTDOWN_ON_EXCEPTION, self.checkBox_shutdown_on_exception.isChecked())
+        self.settings.setValue(constants.KEY_SLEEP_TUNE, float(self.lineEdit_serial_sleep_tune.text()))
+        self.settings.setValue(constants.KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
+        self.settings.setValue(constants.KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
+        self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
+        self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED,self.checkBox_touchscreen.isChecked())
+        self.settings.setValue(constants.KEY_FRAMELESS, self.checkBox_frameless.isChecked())
+        self.settings.setValue(constants.KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
         self.saved.emit((0, self))
         self.close()
 
     def pick_color(self, *args) -> None:
         print(args)
         self.foreground_color = self.choose_color(
-            self.settings.get(KEY_FOREGROUND_COLOR, "#ffffff"))
-        log.debug(f"User selected color: {self.foreground_color.name()}")
+            self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff"))
+        app_logger.debug(f"User selected color: {self.foreground_color.name()}")
 
     def pick_background_color(self, *args) -> None:
         print(args)
         self.background_color = self.choose_color(
-            self.settings.get(KEY_BACKGROUND_COLOR, "#000000"))
-        log.debug(f"User selected color: {self.background_color.name()}")
+            self.settings.get(constants.KEY_BACKGROUND_COLOR, "#000000"))
+        app_logger.debug(f"User selected color: {self.background_color.name()}")
 
     def choose_color(self, color_name: str) -> QColor:
         new_color = QColorDialog.getColor(color_name)
@@ -1259,9 +1343,9 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def change_font(self) -> None:
         ok, font = get_font([
-            self.settings.get(KEY_FONT_FAMILY, self._parent.font().family()),
-            self.settings.get_int(KEY_FONT_SIZE, self._parent.font().pointSize()),
-            self.settings.get_int(KEY_FONT_WEIGHT, self._parent.font().weight())
+            self.settings.get(constants.KEY_FONT_FAMILY, self._parent.font().family()),
+            self.settings.get_int(constants.KEY_FONT_SIZE, self._parent.font().pointSize()),
+            self.settings.get_int(constants.KEY_FONT_WEIGHT, self._parent.font().weight())
         ])
         if ok:
             print(font)
@@ -1288,7 +1372,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.setFocus()
 
     def reset_counter(self) -> None:
-        self.settings.setValue(KEY_TEST_COUNT, 0)
+        self.settings.setValue(constants.KEY_TEST_COUNT, 0)
         sb = self._parent.statusBar()
         sb.widget.lcdNumber.display(0)
 
@@ -1310,7 +1394,7 @@ class SaveWorker(QThread):
         logg.clear_all_logs()
         for entry in self.data:
             log_entry = f"{entry['timestamp']} - logger - {entry['level']} - {entry['message']}"
-            log.info(log_entry)
+            app_logger.info(log_entry)
             logg.insert_log(entry['timestamp'], "logger", entry['level'], entry['message'])
             progress = ceil(self.data.index(entry) / self.length * 100)
             self.progress_changed.emit(progress)
@@ -1327,7 +1411,8 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setupUi(self)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
-        self.setStyleSheet(get_stylesheet())
+        self.settings = ApplicationSettings()
+        self.setStyleSheet(get_stylesheet(self.settings))
 
     def update_progress(self, value: int) -> None:
         self.progressBar.setValue(value)
@@ -1414,9 +1499,9 @@ class CustomStatusBar(QStatusBar):
         self.addPermanentWidget(self.widget, 1)
 
         self.widget.lcdNumber.setDigitCount(5)
-
-        if settings.get_bool(KEY_COUNTER_ENABLED, False):
-            self.widget.lcdNumber.display(settings.get_int(KEY_TEST_COUNT, 0))
+        self.settings = ApplicationSettings()
+        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
+            self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
 
         self._persistent_message = ""
 
@@ -1452,8 +1537,8 @@ class CustomStatusBar(QStatusBar):
     def update_counter(self) -> None:
         # IF the persistant counter is enabled, increment the counter in the settings
         # so that it can be restored on the next run. Otherwise, just increment the counter in the widget.
-        if settings.get_bool(KEY_COUNTER_ENABLED, False):
-            self.widget.lcdNumber.display(settings.get_int(KEY_TEST_COUNT, 0))
+        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
+            self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
         else:
             current_value = self.widget.lcdNumber.value()
             self.widget.lcdNumber.display(current_value + 1)
@@ -1527,13 +1612,13 @@ if __name__ == "__main__":
         "firmware/EAX505_591.hex",
         "firmware/EAX525_591.hex",
     ]):
-        log.error("Some files are missing. Extracting defaults from resources.")
+        print("Some files are missing. Extracting defaults from resources.")
         extract_zip_from_resources('.')
         print('Restart the application to apply the changes.')  
         # sys.exit(1)
     
-    app_logger = AppLogger.get_logger()
-    logg = LogManager()
+    app_logger = applogger.AppLogger.get_logger()
+    logg = applogger.LogManager()
 
     app = SingleInstanceApp(sys.argv)
     loop = QEventLoop(app)
