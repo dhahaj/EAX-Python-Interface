@@ -60,5 +60,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    #hide_console='minimize-early',
+    hide_console='minimize-early',
 )
