@@ -16,6 +16,7 @@ class PinMode(Enum):
     OUTPUT = 'output'
     INPUT_PULLUP = 'input_pullup'
 
+
 class Pin:
     def __init__(self, pin_number: int, mode: PinMode, function: str = None, pullup_enabled: bool = False):
         self.pin_number = pin_number
@@ -60,8 +61,7 @@ class AIODevice(QObject):
         # Determine connection parameters from settings.
         if self.settings.get(KEY_AUTO_FIND):
             self.port = None
-            self.arduino_instance_id = self.settings.get_int(
-                KEY_ARDUINO_INSTANCE_ID)
+            self.arduino_instance_id = self.settings.get_int(KEY_ARDUINO_INSTANCE_ID)
         else:
             self.port = self.settings.get(KEY_COM_PORT)
             self.arduino_instance_id = None
@@ -70,16 +70,19 @@ class AIODevice(QObject):
         self.shutdown_on_exception = shutdown_on_exception
         self.arduino_wait = wait
         self.sleep_tune = float(sleep_tune)  # Ensure a float.
-        self.device_connected = False
+        self._device_connected = False
         self.debug = debug
         self.input_pin = None
         self.callback = None
-        self.pins: List[Pin] = ConfigLoader().pins
+
+        self.pins: List[Pin] = []
+
         self.inputs = []
         self.last_input_times = {}
         self._connect_callback = None
+
         # Will hold the TelemetrixAIO instance.
-        self.device = None
+        self.device: TelemetrixAIO = None
 
         print(
             f"[bold green]AIODevice[/bold green]\n"
@@ -89,58 +92,64 @@ class AIODevice(QObject):
             f"shutdown_on_exception: {self.shutdown_on_exception}\n"
             f"arduino_wait: {self.arduino_wait}\n"
             f"sleep_tune: {self.sleep_tune}\n"
-            f"device_connected: {self.device_connected}\n"
+            f"device_connected: {self._device_connected}\n"
         )
 
+    @property
+    def device_connected(self) -> bool:
+        return self._device_connected
+
+    @device_connected.setter
+    def device_connected(self, value: bool) -> None:
+        if self._device_connected == value:
+            return
+        self._device_connected = value
+        self.connection_changed.emit(value, self.device.com_port if value else "Disconnected")
+
     async def async_connect(self, callback=None) -> None:
-        """
-        Asynchronously establish a connection to the Arduino via TelemetrixAIO.
-        """
+        """ Asynchronously establish a connection to the Arduino via TelemetrixAIO. """
         try:
             # Instantiate the asynchronous Telemetrix device.
             self.device = TelemetrixAIO(
                 com_port=self.port,
-                arduino_instance_id=self.settings.get_int(
-                    KEY_ARDUINO_INSTANCE_ID),
+                arduino_instance_id=self.settings.get_int(KEY_ARDUINO_INSTANCE_ID),
                 arduino_wait=int(self.arduino_wait),
-                shutdown_on_exception=self.shutdown_on_exception,
+                shutdown_on_exception=False,
                 sleep_tune=self.sleep_tune,
                 autostart=False,
-                close_loop_on_shutdown=True
+                close_loop_on_shutdown=False
             )
+
+            self._connect_callback = callback
             # Await the connection—assuming TelemetrixAIO.connect() is an async method.
             await self.device.start_aio()
+            self.device_connected = True
+            asyncio.create_task(self._monitor_connection(), name="monitor_connection")
 
             # After connecting, load and configure pins.
             self.load_pin_configuration()
-            self.device_connected = True
             await self.configure_pin_modes()
 
             # Notify via callback if provided.
             if callback:
-                callback(self.device_connected, self.device.com_port)
+                callback(self._device_connected, self.device.com_port)
 
-            self.connection_changed.emit(self.device_connected, self.device.com_port)
+            # self.connection_changed.emit(self._device_connected, self.device.com_port)
 
-            # Start monitoring the connection in a separate task.
-            asyncio.create_task(self._monitor_connection())
         except Exception as e:
-            log.exception(
-                f'Exception occurred while connecting to device: {e}')
+            log.info(f'Exception occurred while connecting to device: {e}')
             # Notify via callback if provided.
             self.device_connected = False
             if callback:
-                callback(False, e.args[0])
-            self.connection_changed.emit(self.device_connected, str(e))
+                callback(self.device_connected, str(e))
+            # self.connection_changed.emit(self._device_connected, str(e))
 
     async def async_disconnect(self):
-        """
-        Asynchronously disconnect from the Arduino device.
-        """
+        """ Asynchronously disconnect from the Arduino device. """
         if self.device:
             await self.device.shutdown()
-            # self.device = None
             self.device_connected = False
+            # self.device = None
 
     async def input_callback(self, message) -> None:
         """
@@ -149,8 +158,7 @@ class AIODevice(QObject):
         """
         pin_number = message[1]
         value = message[2]
-        print(
-            self, f'Method: {self.input_callback.__name__}, Pin: {pin_number}, Value: {value}')
+        print(self, f'Method: {self.input_callback.__name__}, Pin: {pin_number}, Value: {value}')
         if pin_number != self.input_pin:
             return
 
@@ -168,13 +176,13 @@ class AIODevice(QObject):
     def load_pin_configuration(self, filename='config.yaml') -> None:
         """
         Load pin configuration from a JSON file via the ConfigLoader.
-        
+
         param filename: str - The name of the configuration file.
         """
         config = ConfigLoader(filename=filename)
         self.pins = config.pins
 
-    async def configure_pin_modes(self):
+    async def configure_pin_modes(self) -> None:
         """ Configure the pin modes based on the loaded configuration. """
         for pin in self.pins:
             pin_obj = Pin(
@@ -187,35 +195,41 @@ class AIODevice(QObject):
             log.debug(f'Configuring pin {pin_obj}')
             await pin_obj.configure(self.device, self.input_callback)
 
-    def set_pin_mode_digital_output(self, pin_number: int):
+    def set_pin_mode_digital_output(self, pin_number: int) -> None:
         return self.device.set_pin_mode_digital_output(pin_number)
 
-    def set_pin_mode_digital_input(self, pin_number: int, callback):
+    def set_pin_mode_digital_input(self, pin_number: int, callback) -> None:
         return self.device.set_pin_mode_digital_input(pin_number, callback)
 
-    def set_pin_mode_digital_input_pullup(self, pin_number: int, callback):
+    def set_pin_mode_digital_input_pullup(self, pin_number: int, callback) -> None:
         return self.device.set_pin_mode_digital_input_pullup(pin_number, callback)
 
-    async def digital_write(self, pin_number: int, value: int):
+    async def digital_write(self, pin_number: int, value: int) -> None:
         await self.device.digital_write(pin_number, value)
+
+    def start_monitoring(self) -> None:
+        """ Start monitoring the connection. """
+        # Start the connection monitoring task.
+        loop = asyncio.get_running_loop()
+        loop.create_task(self._monitor_connection(), name="monitor_connection")
 
     async def _monitor_connection(self):
         """Periodically “ping” the board; on any exception assume the port died."""
-        while self.device_connected:
+        while self._device_connected:
             await asyncio.sleep(1)
             try:
-                # you can pick any benign operation; a zero‐write is cheapest
-                await self.device._get_firmware_version()
+                # log.debug("Pinging device...")
+                await self.digital_write(14, 0)
+                # log.debug("Heartbeat...")
             except Exception as e:
-                log.exception("Arduino connection lost")
+                log.info("Arduino connection lost")
                 self.device_connected = False
                 if self._connect_callback:
                     self._connect_callback(False, "Connection lost")
-                self.connection_changed.emit(self.device_connected, 'Connection lost')
                 break
+        # self.connection_changed.emit(self._device_connected, 'Connection lost')
 
-
-    async def write_pin_by_func(self, pin_function, value):
+    async def write_pin_by_func(self, pin_function: str, value: int) -> None:
         try:
             pin = self.get_pin_by_function(pin_function)
             if pin is None:
@@ -230,10 +244,7 @@ class AIODevice(QObject):
 
     def get_pin_by_function(self, function: str) -> int:
         """ Get a pin number by its function name. """
-        return next(
-            (pin['pin_number']
-             for pin in self.pins if pin.get('function') == function), None
-        )
+        return next((pin['pin_number'] for pin in self.pins if pin.get('function') == function), None)
 
     async def async_cleanup(self):
         """
@@ -253,7 +264,7 @@ class AIODevice(QObject):
                 await self.digital_write(pin.get('pin_number'), value)
 
     def __str__(self) -> str:
-        return f'AIODevice(port={self.port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self.device_connected})'
+        return f'AIODevice(port={self.port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
 
     @staticmethod
     def get_usb_ports() -> List[str]:
@@ -264,7 +275,7 @@ class AIODevice(QObject):
         return com_ports
 
     @staticmethod
-    def get_pin_configuration() -> List[str]:
+    def get_pin_configuration():
         """
         Get the pin configuration from the settings.
         """
@@ -274,22 +285,22 @@ class AIODevice(QObject):
 
 async def main():
     device = AIODevice()
+    device.connection_changed.connect(lambda connected, port: print(f"Connection changed: {connected}, Port: {port}"))
     await device.async_connect()
-    print(await device.device._get_firmware_version())
-    print(type(device.pins))
+    device.device.disable_digital_reporting(7)
+    # device.start_monitoring()
+    # await device.set_pin_mode_digital_output(13)
     device.load_pin_configuration()
     await device.configure_pin_modes()
-    await device.set_all_pins_to_value(0)
-    print(device.get_pin_by_function('ac'))
-    print(AIODevice.get_pin_configuration())
-
     print("Device running. Waiting for input changes or disconnection...")
     print("Try unplugging the Arduino now.")
 
     # Keep running until disconnected (monitor task handles detection)
-    while device.device_connected:
+    while device._device_connected:
+        # await device.digital_write(13, 1)  # Example: Set pin 13 to HIGH
         await asyncio.sleep(1)
     print("Main loop detected disconnection.")
+    print(device)
 
 if __name__ == "__main__":
     try:
@@ -299,4 +310,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Program interrupted by user.")
     except Exception as e:
-        log.exception(f"An unexpected error occurred: {e}")
+        log.error(f"An unexpected error occurred: {e}")
