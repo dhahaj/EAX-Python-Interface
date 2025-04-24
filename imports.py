@@ -105,21 +105,12 @@ Set the QT_API environment variable to "pyside6" to use PySide6
 os.environ["QT_API"] = 'pyside6'
 
 
-"""
-Global constants
-"""
-Yes = QMessageBox.StandardButton.Yes
-No = QMessageBox.StandardButton.No
-Ok = QMessageBox.StandardButton.Ok
-
-ControlModifier = Qt.KeyboardModifier.ControlModifier
 
 """
 Global variables
 """
 app_logger: AppLogger | None = None
-settings = ApplicationSettings()
-# db = UserDatabase("users.db")
+# settings = ApplicationSettings()
 logg: LogManager | None = None
 
 
@@ -201,38 +192,15 @@ def take_screenshot() -> None:
         print(path, fileName)
 
 
-def print_window_flags(widget: QWidget) -> None:
-    flags = widget.windowFlags()
 
-    # Define known flags and their string representations
-    flag_dict = {
-        Qt.Window: "Window",
-        Qt.Dialog: "Dialog",
-        Qt.WindowTitleHint: "WindowTitleHint",
-        Qt.WindowSystemMenuHint: "WindowSystemMenuHint",
-        Qt.WindowMinimizeButtonHint: "WindowMinimizeButtonHint",
-        Qt.WindowMaximizeButtonHint: "WindowMaximizeButtonHint",
-        Qt.WindowCloseButtonHint: "WindowCloseButtonHint",
-        Qt.WindowContextHelpButtonHint: "WindowContextHelpButtonHint",
-        Qt.WindowStaysOnTopHint: "WindowStaysOnTopHint",
-        Qt.CustomizeWindowHint: "CustomizeWindowHint",
-        # Add other flags as needed
-    }
-
-    # Check each known flag and print it if it's set
-    for flag, name in flag_dict.items():
-        if flags & flag:
-            print(name)
-
-
-def get_theme() -> str:
+def get_theme(settings: ApplicationSettings) -> str:
     """ Returns the current theme. """
     return 'dark' if str_to_bool(settings.app_settings.value(KEY_DARK_THEME)) else 'light'
 
 
-def get_stylesheet() -> str:
+def get_stylesheet(settings: ApplicationSettings) -> str:
     """ Returns the stylesheet for the current theme. """
-    palette = DarkPalette if get_theme() == 'dark' else LightPalette
+    palette = DarkPalette if get_theme(settings) == 'dark' else LightPalette
     return qdarkstyle.load_stylesheet(palette)
 
 
@@ -269,10 +237,6 @@ def str_to_bool(s: str) -> bool:
     return s.lower().strip(' ') in ['true', 'yes', '1'] if type(s) == str else bool(s)
 
 
-def browse_directory() -> None:
-    """ Opens the current working directory in the file explorer. """
-    subprocess.Popen(f"explorer {os.getcwd()}")
-
 
 @overload
 def warning(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
@@ -284,8 +248,8 @@ def warning(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QM
 def warning(attr: Union[str, QWidget], message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
     """ Displays a warning message box. """
     if isinstance(attr, str):
-        return QMessageBox.warning(None, title, message, Ok)
-    return QMessageBox.warning(attr, title, message, Ok)
+        return QMessageBox.warning(None, title, message, QMessageBox.StandardButton.Ok)
+    return QMessageBox.warning(attr, title, message, QMessageBox.StandardButton.Ok)
 
 
 @overload
@@ -298,5 +262,5 @@ def critical(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.Q
 def critical(attr: Union[str, QWidget], message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton:
     """ Displays a critical message box. """
     if isinstance(attr, str):
-        return QMessageBox.critical(None, title, attr, Ok)
-    return QMessageBox.critical(attr, title, message, Ok)
+        return QMessageBox.critical(None, title, attr, QMessageBox.StandardButton.Ok)
+    return QMessageBox.critical(attr, title, message, QMessageBox.StandardButton.Ok)
