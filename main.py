@@ -85,6 +85,7 @@ from settings import ApplicationSettings
 from device import Device
 import applogger
 
+
 class LogView(QWidget, Ui_LogView):
     """
     A widget for displaying logs entries. 
@@ -235,12 +236,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     """
     device_changed = Signal(str)
     _state: State = State.IDLE
-    button_pressed: bool = False
     connecting: bool = False
     log_view: LogView | None = None
     help_dialog: HelpDialog | None = None
     arduino: AIODevice | None = None
-    _drag_pos: int = None
     eax_device: Device | None = None
 
     def __init__(self, app) -> None:
@@ -292,7 +291,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for widget in QApplication.instance().allWidgets():
             widget.installEventFilter(self)
         print(self.settings.get(constants.KEY_FONT_FAMILY))
-        
+
         # Setup the text area
         self.text_edit.setFont(
             QFont(
@@ -326,7 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for action in self.menuDevice.actions():
             self.menuDevice.removeAction(action)
 
-        # Load the devices from the config file and add them to the menu        
+        # Load the devices from the config file and add them to the menu
         config = ConfigLoader()
         for device in config.devices:
             action = QAction(device, self)
@@ -340,7 +339,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.eax_device = Device()
 
-        # Set the default device    
+        # Set the default device
         if not self.eax_device.verify_firmware():
             self.insert_text("Missing firmware!")
             log.critical("Missing firmware!")
@@ -360,10 +359,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # If auto login and auto connect are enabled, try to connect to the USB device
         if self.settings.get(constants.KEY_AUTO_CONNECT):
             QTimer.singleShot(2000, self.connect_device)
-
-        self.timeout_timer = QTimer()
-        self.timeout_timer.setSingleShot(True)
-        self.timeout_timer.timeout.connect(self.on_timeout)
 
     def set_status(self, message: str, timeout: int = 0) -> None:
         """Set the status message in the status bar."""
@@ -403,23 +398,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Programming...")
-
-    def mousePressEvent(self, event) -> None:
-        if event.button() == Qt.LeftButton:
-            self._drag_pos = event.globalPos() - self.geometry().topLeft()
-            event.accept()
-        super().mousePressEvent(event)
-
-    def mouseReleaseEvent(self, event) -> None:
-        self._drag_pos = None
-        super().mouseReleaseEvent(event)
-
-    def mouseMoveEvent(self, event) -> None:
-        if event.buttons() == Qt.LeftButton and self._drag_pos:
-            self.move(event.globalPos() - self._drag_pos)
-            event.accept()
-        else:
-            super().mouseMoveEvent(event)
 
     def focusOutEvent(self, event) -> None:
         super().focusOutEvent(event)
@@ -581,7 +559,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.load_file_text()
             print(self.arduino)
 
-
     def on_device_changed(self, device: str) -> None:
         """ Called when the device is changed. """
         log.info(f"Device changed: {device}")
@@ -690,7 +667,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_label.setText("")  # clear the device label
         self.eax_device.name = None  # reset the device
 
-
     def insert_text(self, text: str) -> None:
         """Add text to the text console."""
         self.text_edit.append("\n" + text)
@@ -710,9 +686,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def aboutQt(self) -> None:
         QApplication.aboutQt()
 
+    ''' Connection Functions '''
+
     async def connect_task(self) -> None:
         """Setup the USB device."""
-        # if self.usb_device is None:
         self.arduino = AIODevice(
             wait=self.settings.get(constants.KEY_ARDUINO_WAIT),
             shutdown_on_exception=self.settings.get(constants.KEY_SHUTDOWN_ON_EXCEPTION),
@@ -720,13 +697,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             debug=self.settings.get(constants.KEY_DEBUG),
         )
         self.arduino.connection_changed.connect(self.on_connection_changed)
-        await self.arduino.async_connect(
-            self.notify_device_connected
-        )
+        await self.arduino.async_connect()
+        self.arduino.start_monitoring()
 
     def on_connection_changed(self, connected: bool, message: str = None) -> None:
         """Callback for the USB device."""
         log.info(f"Connection changed: {connected}, message: {message}")
+        if connected:  # device is connected
+            self.usb_label.setText(f"USB connected: {message}")
+            self.actionConnect.setText("Disconnect")
+            self.state = State.CONNECTED
+        else:
+            self.usb_label.setText("USB disconnected")
+            error(f"USB: connection lost. Error: {message}")
+            self.insert_text(f"<h2>USB Error: {message}</h2>")
+            self.state = State.IDLE
 
     def connect_device(self) -> None:
         if self.state == State.CONNECTING:
@@ -736,22 +721,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.state == State.IDLE:
             self.state = State.CONNECTING
             asyncio.create_task(self.connect_task())
-
-    def notify_device_connected(self, connected: bool, message: str = None) -> None:
-        """Callback for the USB device."""
-        debug(f"notify_device_connected: {connected}, message: {message}")
-        if connected:  # device is connected
-            self.usb_label.setText(f"USB: {message}")
-            self.actionConnect.setText("Disconnect")
-            self.state = State.CONNECTED
-
-        else:  # device is not connected
-            error(f"USB: connection failed. Error: {message}")
-            # if message is not None and str.__contains__(
-            #     message, "Incorrect Arduino ID"
-            # ):
-            self.insert_text(f"<p>Connection Failed. {message}</p>")
-            self.state = State.IDLE
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
@@ -768,37 +737,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.manual = ManualWidget(self.arduino)
         self.manual.show()
 
-    def wait_for_button(self, timeout: int = 20000) -> None:
-        """Waiting for the test button to be pressed."""
-        if self.state == State.TESTING:
-            self.state = State.WAITING_FOR_BUTTON
-            self.timeout_timer.start(timeout)
-            
-        if not self.button_pressed:
-            # loop until the button is pressed
-            QTimer.singleShot(100, self.wait_for_button)
-            self.set_icon(self.test_button, 'forward-button')
-        else:
-            # button was pressed
-            self.timeout_timer.stop()
-            self.set_icon(self.test_button, 'test-button')
-            self.button_pressed = False
-            self.state = State.TESTING
-            self.process_queue()
-
-    def on_timeout(self) -> None:
-        """Called when the timeout timer times out."""
-        if self.state == State.WAITING_FOR_BUTTON or self.state == State.WAITING_FOR_INPUT:
-            self.state = State.TESTING
-            self.button_pressed = True
-            debug("Timeout.")
-            self.insert_text("Timeout.")
-
     def modify_settings(self) -> None:
         self.settings_dialog.show()
 
-
     # @Slot(Tuple[int, QObject])
+
     def on_settings_closed(self, result: Tuple) -> None:
         return_val, settings = result
         app_logger.info(f"Settings dialog closed. Result: {return_val}")
@@ -880,13 +823,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             logg.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
             log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
 
-
         if self.arduino.device_connected:
             self.state = State.CONNECTED
         else:
             self.state = State.IDLE
-
-
 
     def show_statistics(self) -> None:
         (fail, success) = logg.count_programming_errors(
@@ -920,9 +860,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log.info("Save finished.")
         self.progress_bar.close()
 
-
     def closeEvent(self, event) -> None:
-        log.debug(event.isAccepted())
         reply = QMessageBox.question(
             self,
             "Window Close",
@@ -945,7 +883,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_firmware(self) -> None:
         """Update the firmware on the test fixture."""
-
         dialog = QMessageBox(self)
         dialog.setWindowTitle("Select Firmware")
         dialog.setText("Select the firmware to upload:")
@@ -981,7 +918,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.disconnected = True
             asyncio.create_task(self.disconnect_device())
 
-        port = self.settings.get(constants.KEY_COM_PORT)
+        port = self.settings.get(constants.KEY_COM_PORT, constants.DEFAULT_SETTINGS[constants.KEY_COM_PORT])
 
         # Define the PowerShell script path
         # script_path = ".\\Scripts\\UpdateFirmware.PS1"
@@ -995,7 +932,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # ["-ExecutionPolicy", "ByPass", "-File", script_path, firmware_path, port],
             ["-File", script_path, firmware_path, port],
         )
-
 
     def on_error(self, error: QProcess.ProcessError) -> None:
         app_logger.error("An error occurred: ", error)
@@ -1036,7 +972,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         sb = self.statusBar()
         sb.update_counter()
 
-
     def on_test_clicked(self) -> None:
         """Called when the test button is clicked."""
         if not self.eax_device.is_selected:
@@ -1051,7 +986,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             warning(self, f"Cannot run test.")
         else:
             asyncio.create_task(self.run_test())
-
 
     async def run_test(self) -> None:
         """Run the test."""
@@ -1068,15 +1002,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         speed = self.settings.get_int(constants.KEY_TESTING_SPEED, constants.DEFAULT_SETTINGS[constants.KEY_TESTING_SPEED]) / 1000
 
-
         self.text_edit.setMarkdown(f"# Starting test for {model}... \n\n")
 
         await self.arduino.write_pin_by_func("test indicator", 1)
         self.insert_text("<br><p>🔷 Battery Power ON</p>")
         await self.arduino.write_pin_by_func("battery", 1)
-        
+
         await asyncio.sleep(speed)
-        
+
         self.insert_text("<p>🔷 Testing Low battery function ➾ The LED's blink alternately</p>")
         await self.arduino.write_pin_by_func("low battery", 1)
 
@@ -1088,9 +1021,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         await asyncio.sleep(speed)
 
         self.insert_text("<p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>")
-        
+
         await asyncio.sleep(speed/4)
-        
+
         self.insert_text("<p>🔷 Press the key switch ➾ The siren sounds</p>")
 
         self.insert_text("<br><p>⌛<em>Press the Test/Continue Button when finished</em></p>")
@@ -1123,7 +1056,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.load_file_text()
 
 
-
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     """
     Manual control dialog. This dialog allows the user to manually control the
@@ -1148,27 +1080,15 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
             warning(self, f"USB device not connected.")
             self.close()
             return
-        # self._arduino.attach_callback(self.callback)
-        self.battery_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_battery(checked)))
-        self.low_battery_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_low_battery(checked)))
-        self.test_indicator_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_testing_indicator(checked)))
-        self.indicator_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_indicator(checked)))
 
-    async def toggle_battery(self, checked):
-        value = (0, 1)[checked]
-        await self._arduino.write_pin_by_func("battery", value)
+        self.battery_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_pin("battery", checked)))
+        self.low_battery_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_pin("low battery", checked)))
+        self.test_indicator_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_pin("test indicator", checked)))
+        self.indicator_button.clicked.connect(lambda checked: asyncio.create_task(self.toggle_pin("indicator", checked)))
 
-    async def toggle_low_battery(self, checked):
+    async def toggle_pin(self, pin: str, checked: bool):
         value = (0, 1)[checked]
-        await self._arduino.write_pin_by_func("low battery", value)
-
-    async def toggle_testing_indicator(self, checked):
-        value = (0, 1)[checked]
-        await self._arduino.write_pin_by_func("test indicator", value)
-
-    async def toggle_indicator(self, checked):
-        value = (0, 1)[checked]
-        await self._arduino.write_pin_by_func("indicator", value)
+        await self._arduino.write_pin_by_func(pin, value)
 
     async def end(self):
         if self._arduino is not None:
@@ -1187,7 +1107,6 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
             self.close()
         elif key == Qt.Key_F2:
             take_screenshot()
-        
 
 
 class SettingsDialog(QWidget, Ui_Settings):
@@ -1229,7 +1148,7 @@ class SettingsDialog(QWidget, Ui_Settings):
 
         self.pushButton_save.clicked.connect(self.save_changes)
         self.pushButton_default.clicked.connect(self.reset_to_default)
-        self.resetCounterButton.clicked.connect(self.reset_counter) 
+        self.resetCounterButton.clicked.connect(self.reset_counter)
         self.initialize_settings()
 
         # Set the theme
@@ -1237,9 +1156,9 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def initialize_settings(self) -> None:
         config = ConfigLoader()
-        
+
         self.lineEdit_serial.setText(self.settings.app_settings.value(constants.KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(constants.KEY_PROGRAMMER_SERIAL_NUMBER)))
-        
+
         chip_options = config.chip_options
         for chip_part in chip_options:
             self.comboBox_chip.addItem(chip_part)
@@ -1253,7 +1172,7 @@ class SettingsDialog(QWidget, Ui_Settings):
 
         for port in AIODevice.get_usb_ports():
             self.comboBox_com_port.addItem(port)
-        
+
         self.spinBox_autologoff_delay.setValue(self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, config.get_default_setting(constants.KEY_INACTIVITY_TIMEOUT)))
         self.spinBox_arduino_id.setValue(self.settings.get_int(constants.KEY_ARDUINO_INSTANCE_ID, config.get_default_setting(constants.KEY_ARDUINO_INSTANCE_ID)))
         self.checkBox_test.setChecked(self.settings.get_bool(constants.KEY_AUTO_TEST, config.get_default_setting(constants.KEY_AUTO_TEST)))
@@ -1261,7 +1180,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.checkBox_debug.setChecked(self.settings.get_bool(constants.KEY_DEBUG, config.get_default_setting(constants.KEY_DEBUG)))
         self.checkBox_auto_find.setChecked(self.settings.get_bool(constants.KEY_AUTO_FIND, config.get_default_setting(constants.KEY_AUTO_FIND)))
         self.checkBox_shutdown_on_exception.setChecked(self.settings.get_bool(constants.KEY_SHUTDOWN_ON_EXCEPTION, config.get_default_setting(constants.KEY_SHUTDOWN_ON_EXCEPTION)))
-        self.lineEdit_serial_sleep_tune.setText(str(self.settings.app_settings.value(constants.KEY_SLEEP_TUNE,config.get_default_setting(constants.KEY_SLEEP_TUNE))))
+        self.lineEdit_serial_sleep_tune.setText(str(self.settings.app_settings.value(constants.KEY_SLEEP_TUNE, config.get_default_setting(constants.KEY_SLEEP_TUNE))))
         self.spinBox_wait_time.setValue(self.settings.get_int(constants.KEY_ARDUINO_WAIT, config.get_default_setting(constants.KEY_ARDUINO_WAIT)))
         self.checkBox_fullscreen.setChecked(self.settings.get_bool(constants.KEY_FULLSCREEN, config.get_default_setting(constants.KEY_FULLSCREEN)))
         self.checkBox_touchscreen.setChecked(self.settings.get_bool(constants.KEY_TOUCHSCREEN_ENABLED, config.get_default_setting(constants.KEY_TOUCHSCREEN_ENABLED)))
@@ -1293,10 +1212,10 @@ class SettingsDialog(QWidget, Ui_Settings):
     def save_changes(self) -> None:
         if self.background_color:
             self.settings.setValue(constants.KEY_BACKGROUND_COLOR,
-                              self.background_color.name())
+                                   self.background_color.name())
         if self.foreground_color:
             self.settings.app_settings.setValue(constants.KEY_FOREGROUND_COLOR,
-                              self.foreground_color.name())
+                                                self.foreground_color.name())
         if self.qfont:
             self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
             self.settings.setValue(constants.KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
@@ -1316,7 +1235,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.settings.setValue(constants.KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
         self.settings.setValue(constants.KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
         self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
-        self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED,self.checkBox_touchscreen.isChecked())
+        self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
         self.settings.setValue(constants.KEY_FRAMELESS, self.checkBox_frameless.isChecked())
         self.settings.setValue(constants.KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
         self.saved.emit((0, self))
@@ -1376,6 +1295,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         sb = self._parent.statusBar()
         sb.widget.lcdNumber.display(0)
 
+
 class SaveWorker(QThread):
     """
     A worker thread for saving log data to the database.
@@ -1388,7 +1308,7 @@ class SaveWorker(QThread):
         super(SaveWorker, self).__init__()
         self.data = data
         self.length = self.data.__len__()
-        self.setObjectName("SaveWorker")    
+        self.setObjectName("SaveWorker")
 
     def run(self):
         logg.clear_all_logs()
@@ -1437,8 +1357,8 @@ class ProgrammingThread(QThread):
         super(ProgrammingThread, self).exec()
 
     def quit(self):
-        """Override the quit method to ensure the thread is stopped properly."""    
-        print("Stopping ProgrammingThread...")  
+        """Override the quit method to ensure the thread is stopped properly."""
+        print("Stopping ProgrammingThread...")
         return super().quit()
 
 
@@ -1544,7 +1464,6 @@ class CustomStatusBar(QStatusBar):
             self.widget.lcdNumber.display(current_value + 1)
 
 
-
 def extract_zip_from_resources(path: str) -> None:
     """Extracts a ZIP file from the resources and extracts its contents to the specified path."""
     # Open the ZIP file stored in resources
@@ -1580,24 +1499,22 @@ def verify_files(files: List[str]) -> bool:
     return found
 
 
-
-
 if __name__ == "__main__":
     # with log.catch(
     #     message="Encountered exception from main.",
     #     reraise=True,
     #     exception=BaseException,
     # ):
-        # app = SingleInstanceApp(sys.argv)
-        # debug("Checking for running instances")
-        # if app.is_running:
-        #     log.critical(
-        #         "Another instance of the application is already running.")
-        #     critical(
-        #         None,
-        #         "Another instance of the application is already running.",
-        #     )
-        #     sys.exit(1)
+    # app = SingleInstanceApp(sys.argv)
+    # debug("Checking for running instances")
+    # if app.is_running:
+    #     log.critical(
+    #         "Another instance of the application is already running.")
+    #     critical(
+    #         None,
+    #         "Another instance of the application is already running.",
+    #     )
+    #     sys.exit(1)
 
     if not verify_files([
         "settings.ini",
@@ -1614,9 +1531,9 @@ if __name__ == "__main__":
     ]):
         print("Some files are missing. Extracting defaults from resources.")
         extract_zip_from_resources('.')
-        print('Restart the application to apply the changes.')  
+        print('Restart the application to apply the changes.')
         # sys.exit(1)
-    
+
     app_logger = applogger.AppLogger.get_logger()
     logg = applogger.LogManager()
 
