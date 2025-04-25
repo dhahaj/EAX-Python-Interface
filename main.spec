@@ -1,5 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
+import telemetrix_aio
+import os
 
+telemetrix_aio_path = os.path.dirname(telemetrix_aio.__file__)
 
 a = Analysis(
     ['main.py'],
@@ -18,6 +21,8 @@ a = Analysis(
         ('device.py', '.'), 
         ('settings.py', '.'), 
         ('main.py', '.'),
+        ('globals.py', '.'),
+        (telemetrix_aio_path, 'telemetrix_aio'),
     ],
     hiddenimports=[
         'qdarkstyle', 
@@ -28,9 +33,11 @@ a = Analysis(
         'sqlite3', 
         'bcrypt', 
         'shutil',
-        'send2trash', 
-        'telemetrix_aio', 
-        'telemetrix_aio.telemetrix_aio', 
+        'telemetrix_aio',
+        'telemetrix_aio.telemetrix_aio',
+        'serial',
+        'serial.serialutil',
+        'serial.tools.list_ports',
         ],
     hookspath=[],
     hooksconfig={},
