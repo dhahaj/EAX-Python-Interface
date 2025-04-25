@@ -9,7 +9,8 @@ from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
 from enum import Enum
-import imports
+# import imports
+from globals import logger as log
 
 class PinMode(Enum):
     INPUT = 'input'
@@ -65,8 +66,7 @@ class AIODevice(QObject):
         else:
             self.port = self.settings.get(KEY_COM_PORT)
             self.arduino_instance_id = None
-        self.log = imports.log
-        self.log.info(f'Port is set to {self.port}')
+        log.info(f'Port is set to {self.port}')
         self.shutdown_on_exception = shutdown_on_exception
         self.arduino_wait = wait
         self.sleep_tune = float(sleep_tune)  # Ensure a float.
@@ -114,7 +114,7 @@ class AIODevice(QObject):
                 com_port=self.port,
                 arduino_instance_id=self.settings.get_int(KEY_ARDUINO_INSTANCE_ID),
                 arduino_wait=int(self.arduino_wait),
-                shutdown_on_exception=False,
+                shutdown_on_exception=self.shutdown_on_exception,
                 sleep_tune=self.sleep_tune,
                 autostart=False,
                 close_loop_on_shutdown=False
@@ -134,22 +134,18 @@ class AIODevice(QObject):
             if callback:
                 callback(self._device_connected, self.device.com_port)
 
-            # self.connection_changed.emit(self._device_connected, self.device.com_port)
-
         except Exception as e:
-            self.log.info(f'Exception occurred while connecting to device: {e}')
-            # Notify via callback if provided.
+            log.warning(f'Exception occurred while connecting to device: {e}')
             self.device_connected = False
+            self.connection_changed.emit(self._device_connected, str(e))
             if callback:
                 callback(self.device_connected, str(e))
-            # self.connection_changed.emit(self._device_connected, str(e))
 
     async def async_disconnect(self):
         """ Asynchronously disconnect from the Arduino device. """
         if self.device:
             await self.device.shutdown()
             self.device_connected = False
-            # self.device = None
 
     async def input_callback(self, message) -> None:
         """
@@ -158,7 +154,7 @@ class AIODevice(QObject):
         """
         pin_number = message[1]
         value = message[2]
-        print(self, f'Method: {self.input_callback.__name__}, Pin: {pin_number}, Value: {value}')
+        log.debug(f'{self}: Method: {self.input_callback.__name__}, Pin: {pin_number}, Value: {value}')
         if pin_number != self.input_pin:
             return
 
@@ -192,7 +188,7 @@ class AIODevice(QObject):
                 pin.get('pullup_enabled') or False
             )
 
-            self.log.debug(f'Configuring pin {pin_obj}')
+            log.debug(f'Configuring pin {pin_obj}')
             await pin_obj.configure(self.device, self.input_callback)
 
     def set_pin_mode_digital_output(self, pin_number: int) -> None:
@@ -222,7 +218,7 @@ class AIODevice(QObject):
                 await self.digital_write(14, 0)
                 # log.debug("Heartbeat...")
             except Exception as e:
-                self.log.info("Arduino connection lost")
+                log.warning("Arduino connection lost")
                 self.device_connected = False
                 if self._connect_callback:
                     self._connect_callback(False, "Connection lost")
@@ -236,7 +232,7 @@ class AIODevice(QObject):
                 raise RuntimeError(f"No pin for {pin_function}")
             await self.device.digital_write(pin, value)
         except Exception as e:
-            self.log.error(f"Write failed: {e}")
+            log.error(f"Write failed: {e}")
             self.device_connected = False
             if self._connect_callback:
                 self._connect_callback(False, str(e))
@@ -256,7 +252,7 @@ class AIODevice(QObject):
                 await self.device.shutdown()
                 self.device_connected = False
         except Exception as e:
-            self.log.exception(f'Cleanup error: {e}')
+            log.exception(f'Cleanup error: {e}')
 
     async def set_all_pins_to_value(self, value: int) -> None:
         for pin in self.pins:
@@ -264,7 +260,7 @@ class AIODevice(QObject):
                 await self.digital_write(pin.get('pin_number'), value)
 
     def __str__(self) -> str:
-        return f'AIODevice(port={self.port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
+        return f'AIODevice(port={self.device.com_port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
 
     @staticmethod
     def get_usb_ports() -> List[str]:

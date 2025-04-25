@@ -85,10 +85,7 @@ import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
 from device import Device
 from settings import ApplicationSettings
-# from applogger import AppLogger, Log, LogManager
 from constants import *
-# from loguru import logger as log
-from applogger import AppLogger
 import subprocess
 import sys
 import os
@@ -98,7 +95,7 @@ from typing import List, Dict, Tuple, Union, Optional, Any, overload
 from datetime import datetime, timedelta
 from pathlib import Path
 from enum import Enum
-import send2trash
+from globals import logger as log, settings
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
@@ -106,19 +103,6 @@ Set the QT_API environment variable to "pyside6" to use PySide6
 os.environ["QT_API"] = 'pyside6'
 
 
-
-"""
-Global variables
-"""
-# app_logger: AppLogger | None = None
-# settings = ApplicationSettings()
-# logg: LogManager | None = None
-log: AppLogger = AppLogger()
-
-
-"""
-Utility functions
-"""
 @overload
 def get_font(attr: QFont) -> Tuple[bool, QFont]: ...
 
@@ -137,35 +121,6 @@ def get_font(attr: Union[QFont, List]) -> Tuple[bool, QFont]:
         return (False, None)
 
     return QFontDialog.getFont(font)
-
-
-def clean_backups(directory: str, days: int = 7) -> None:
-    """
-    Removes files from the given directory (and its subdirectories) that are
-    older than the specified number of days by moving them to the trash.
-
-    Args:
-        directory (str): The directory to clean.
-        days (int, optional): The number of days to keep files. Defaults to 7.
-    """
-    cutoff = datetime.now() - timedelta(days=days)
-
-    for dirpath, dirnames, filenames in os.walk(directory):
-        for file in filenames:
-            filepath = os.path.join(dirpath, file)
-
-            # Get modified time and compare with cutoff
-            file_modified_time = datetime.fromtimestamp(
-                os.path.getmtime(filepath))
-
-            if file_modified_time < cutoff:
-                # Send to trash
-                try:
-                    send2trash.send2trash(filepath)
-                    log.info(f"Moved to trash: {filepath}")
-                except Exception as e:
-                    log.critical(f"Failed to move to trash: {filepath}. Error: {e}")
-
 
 def take_screenshot() -> None:
     """ Takes a screenshot of the current window. """
@@ -193,7 +148,6 @@ def take_screenshot() -> None:
         print(path, fileName)
 
 
-
 def get_theme(settings: ApplicationSettings) -> str:
     """ Returns the current theme. """
     return 'dark' if str_to_bool(settings.app_settings.value(KEY_DARK_THEME)) else 'light'
@@ -207,30 +161,22 @@ def get_stylesheet(settings: ApplicationSettings) -> str:
 
 def debug(msg: str) -> None:
     """ Logs a debug message. """
-    if log: log.debug(msg)
-    # if app_logger: app_logger.debug(msg)
+    log.debug(msg)
 
 
 def error(msg: str) -> None:
     """ Logs an error message. """
-    if log: log.error(msg)
-    # if app_logger: app_logger.error(msg)
-    # if logg: logg.log('ERROR', msg)
+    log.error(msg)
 
 
 def log_info(msg: str) -> None:
     """ Logs an info message. """
-    if log: log.log('INFO', msg)
-    # if app_logger: app_logger.info(msg)
-    # if logg: logg.log('INFO', msg)
+    log.log('INFO', msg)
 
 
 def info(msg: str) -> None:
     """ Logs an info message. """
-    if log: log.info(msg)
-    # if app_logger: app_logger.info(msg)
-    # if logg: logg.log('INFO', msg)
-
+    log.info(msg)
 
 
 def str_to_bool(s: str) -> bool:

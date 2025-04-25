@@ -2,7 +2,6 @@ from loguru import logger
 import sqlite3
 from datetime import datetime
 
-
 class AppLogger:
     def __init__(self, logfile="logs/app_{time:YYYY-MM-DD}.log", database="logs.db"):
         # Configure loguru to log to files with rotation
@@ -31,6 +30,11 @@ class AppLogger:
             cursor.execute('INSERT INTO logs (timestamp, level, message) VALUES (?, ?, ?)', (timestamp, level, message))
             conn.commit()
 
+    def log(self, level: str, message: str):
+        """Log a message with the specified level."""
+        logger.log(level, message)
+        self.log_to_db(level, message)
+
     def info(self, message: str):
         logger.info(message)
         self.log_to_db("INFO", message)
@@ -46,6 +50,18 @@ class AppLogger:
     def critical(self, message: str):
         logger.critical(message)
         self.log_to_db("CRITICAL", message)
+
+    def success(self, message: str):
+        logger.success(message)
+        self.log_to_db("SUCCESS", message)
+
+    def warning(self, message: str):
+        logger.warning(message)
+        self.log_to_db("WARNING", message)
+
+    def exception(self, message: str):
+        logger.exception(message)
+        self.log_to_db("EXCEPTION", message)
 
     def get_logs(self) -> list:
         """Fetch logs from the database for the LogView class."""

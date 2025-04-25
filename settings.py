@@ -2,8 +2,7 @@ import os
 from PySide6.QtCore import QSettings
 from typing import Any
 import constants
-from applogger import AppLogger, logger as log
-import imports 
+# from globals import logger as log
 
 class ApplicationSettings():
     """The settings class, used to store settings."""
@@ -12,7 +11,6 @@ class ApplicationSettings():
         self.app_settings: QSettings = QSettings(filename, QSettings.Format.IniFormat)
         self.filename = filename
         self.default_settings = constants.DEFAULT_SETTINGS.copy()
-        self.log = log
 
     @property
     def path(self) -> str:
@@ -45,7 +43,7 @@ class ApplicationSettings():
 
     def get_float(self, key: str, default_value: float = None) -> float:
         return_val = self.app_settings.value(key, default_value)
-        print(f"get_float: {key} = {return_val}, type={type(return_val)}")
+        # print(f"get_float: {key} = {return_val}, type={type(return_val)}")
         return 0.0 if not return_val else float(return_val) if type(return_val) != float else return_val
 
     def get_bool(self, key: str, default_value: bool = False) -> bool:
@@ -73,7 +71,7 @@ class ApplicationSettings():
         """Print the settings."""
         for key in self.app_settings.allKeys():
             value = self.app_settings.value(key)
-            self.log.debug(f"{key}: {value}, type={type(value)}")
+            # log.debug(f"{key}: {value}, type={type(value)}")
 
     def readArray(self) -> list:
         array = []

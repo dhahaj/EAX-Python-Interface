@@ -57,14 +57,11 @@ from imports import (
     get_theme,
     get_font,
     take_screenshot,
-    clean_backups,
     error,
     info,
     warning,
     debug,
-
 )
-# from loguru import logger as log
 import sys
 import subprocess
 import qdarkstyle
@@ -83,8 +80,7 @@ import constants
 from constants import State
 from settings import ApplicationSettings
 from device import Device
-import imports
-
+from globals import logger as log, settings
 
 
 class LogView(QWidget, Ui_LogView):
@@ -105,23 +101,19 @@ class LogView(QWidget, Ui_LogView):
         self.callback = callback
         self.data_changed = False
 
-        self.settings = ApplicationSettings()
-        self.app_settings = self.settings.app_settings
-        self.restoreGeometry(self.app_settings.value("logwindow/geometry", QByteArray()))
-        self.setStyleSheet(get_stylesheet(self.settings))
+        self.restoreGeometry(settings.app_settings.value("logwindow/geometry", QByteArray()))
+        self.setStyleSheet(get_stylesheet(settings))
 
     def on_item_changed(self, item) -> None:
         row, col = item.row(), item.column()
 
-        row_data = [self.tableWidget.item(row, column).text(
-        ) for column in range(self.tableWidget.columnCount())]
+        row_data = [self.tableWidget.item(row, column).text() for column in range(self.tableWidget.columnCount())]
         print(f"Row {row_data}")
         new_value = item.text()
         original_data = self.data[row]
 
         print(f"Original data: {original_data}")
-        print(
-            f"Data at row {row}, column {col} has been changed to: {new_value}")
+        print(f"Data at row {row}, column {col} has been changed to: {new_value}")
 
         # if col == 1:
         #     logg.update_log(row_data[0], timestamp=new_value)
@@ -132,8 +124,7 @@ class LogView(QWidget, Ui_LogView):
 
     def delete_selected_rows(self) -> None:
         """Deletes the currently selected rows from the table."""
-        selected_rows = set(index.row()
-                            for index in self.tableWidget.selectedIndexes())
+        selected_rows = set(index.row() for index in self.tableWidget.selectedIndexes())
         self.data_changed = True
         for row in sorted(selected_rows, reverse=True):
             self.tableWidget.removeRow(row)
@@ -158,7 +149,7 @@ class LogView(QWidget, Ui_LogView):
         self.tableWidget.resizeRowsToContents()
 
     def closeEvent(self, event) -> None:
-        self.app_settings.setValue("logwindow/geometry", self.saveGeometry())
+        settings.app_settings.setValue("logwindow/geometry", self.saveGeometry())
         if self.data_changed and self.callback is not None:
             self.callback(self.extract_data())
         self.deleteLater()
@@ -187,8 +178,7 @@ class LogView(QWidget, Ui_LogView):
             timestamp = self.tableWidget.item(i, 1).text()
             level = self.tableWidget.item(i, 2).text()
             message = self.tableWidget.item(i, 3).text()
-            data.append({"timestamp": timestamp,
-                        "level": level, "message": message})
+            data.append({"timestamp": timestamp, "level": level, "message": message})
         return data
 
 
@@ -197,14 +187,12 @@ class HelpDialog(QDialog, Ui_HelpDialog):
         super().__init__()
         self.setupUi(self)
 
-        self.settings = ApplicationSettings()
-        self.app_settings = self.settings.app_settings
-        self.restoreGeometry(self.app_settings.value("helpwindow/geometry", QByteArray()))
+        self.restoreGeometry(settings.app_settings.value("helpwindow/geometry", QByteArray()))
         # self.toolBox.currentChanged.connect(self.on_tab_clicked)
         self.label.installEventFilter(self)
         self.label_2.installEventFilter(self)
         self.label_3.installEventFilter(self)
-        self.setStyleSheet(get_stylesheet(self.settings))
+        self.setStyleSheet(get_stylesheet(settings))
 
     def eventFilter(self, obj: QLabel, event: QEvent) -> bool:
         if event.type() == QEvent.MouseButtonPress:
@@ -221,7 +209,7 @@ class HelpDialog(QDialog, Ui_HelpDialog):
         return super().eventFilter(obj, event)
 
     def closeEvent(self, event: QEvent) -> None:
-        self.app_settings.setValue("helpwindow/geometry", self.saveGeometry())
+        settings.app_settings.setValue("helpwindow/geometry", self.saveGeometry())
         self.deleteLater()
         event.accept()
 
@@ -250,7 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         # Settings
-        self.settings: ApplicationSettings = ApplicationSettings('settings.ini')
+        self.settings: ApplicationSettings = settings
         self.settings_dialog = SettingsDialog(self)
         self.settings_dialog.saved.connect(self.on_settings_closed)
 
@@ -258,7 +246,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.restoreGeometry(self.settings.app_settings.value("mainwindow/geometry", QByteArray()))
         self.restoreState(self.settings.app_settings.value("mainwindow/windowState", QByteArray()))
 
-        print(f"Settings: {self.settings.app_settings.allKeys()}")
+        log.debug(f"Settings: {self.settings.app_settings.allKeys()}")
 
         if self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool):
             self.showFullScreen()
@@ -343,15 +331,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set the default device
         if not self.eax_device.verify_firmware():
             self.insert_text("Missing firmware!")
-            imports.log.critical("Missing firmware!")
-            # app_logger.critical("Missing firmware!")
+            # log.critical("Missing firmware!")
 
         # Set the theme
         self.set_theme(get_theme(self.settings))
-
-        # print(logg.check_integrity())
-        # logg.backup_database()
-        # clean_backups("backups", 5)
 
         self.setStatusBar(CustomStatusBar())
         self.set_status('Select a device to begin.')
@@ -372,7 +355,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @state.setter
     def state(self, value: State) -> None:
-        imports.log.debug(f"Setting state to {value}")
+        log.debug(f"Setting state to {value}")
         self._state = value
 
         if value == State.CONNECTING:
@@ -426,7 +409,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_theme(self, theme: str) -> None:
         """Set the theme."""
-        imports.log.info(f"Setting theme to {theme}")
+        log.info(f"Setting theme to {theme}")
         if theme == 'dark':
             style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
             self.actionDark_Theme.setChecked(True)
@@ -464,7 +447,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.set_icon(self.actionLogout, 'logout')
 
     def toggle_theme(self) -> None:
-        imports.log.info("Toggle theme")
+        log.info("Toggle theme")
         if self.settings.get_bool(constants.KEY_DARK_THEME):
             self.settings.app_settings.setValue(constants.KEY_DARK_THEME, False)
             self.set_theme('light')
@@ -542,12 +525,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.settings.setValue(constants.KEY_FRAMELESS, True)
             QTimer.singleShot(10, self.show)
         # elif key == Qt.Key.Key_1 and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            # imports.log.warning(f"State: {self.state}")
+            # log.warning(f"State: {self.state}")
         # elif (
         #     key == Qt.Key.Key_2 and
         #     event.modifiers() & Qt.KeyboardModifier.ControlModifier
         # ):
-            imports.log.warning(f"Device: {self.eax_device.name}")
+            log.warning(f"Device: {self.eax_device.name}")
         elif key == Qt.Key.Key_A and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             # print(vars(self))
             # print(vars(self.settings))
@@ -561,7 +544,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def on_device_changed(self, device: str) -> None:
         """ Called when the device is changed. """
-        imports.log.info(f"Device changed: {device}")
+        log.info(f"Device changed: {device}")
         self.device_label.setText(f"Device: {device}")
         self.eax_device.name = device
 
@@ -628,7 +611,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
             self.settings.setValue(constants.KEY_CHIP_PART, item)
             self.settings.app_settings.setValue(constants.KEY_CHIP_PART, item)
-            imports.log.debug(f"saved chip settings: {item}")
+            log.debug(f"saved chip settings: {item}")
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         # Handle mouse clicks on the scroll area
@@ -702,7 +685,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def on_connection_changed(self, connected: bool, message: str = None) -> None:
         """Callback for the USB device."""
-        imports.log.info(f"Connection changed: {connected}, message: {message}")
+        log.info(f"Connection changed: {connected}, message: {message}")
         if connected:  # device is connected
             self.usb_label.setText(f"USB connected: {message}")
             self.actionConnect.setText("Disconnect")
@@ -728,7 +711,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         #     return
         await self.arduino.async_disconnect()
         self.device_connected = False
-        imports.log.info("Device disconnected successfully.")
+        log.info("Device disconnected successfully.")
         self.actionConnect.setText("Connect")
         # self.usb_device = None
         self.state = State.IDLE
@@ -745,7 +728,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_settings_closed(self, result: Tuple) -> None:
         return_val, settings = result
         # app_logger.info(f"Settings dialog closed. Result: {return_val}")
-        imports.log.info(f"Settings dialog closed. Result: {return_val}")
+        log.info(f"Settings dialog closed. Result: {return_val}")
         self.text_edit.setStyleSheet(
             f"color: {self.settings.get(constants.KEY_FOREGROUND_COLOR)};"
             f"background-color: {self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
@@ -799,7 +782,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.state = State.PROGRAMMING
 
             # logg.info(f"Programming {self.eax_device._selected_device}, args: {command}")
-            imports.log.info(f"Programming {self.eax_device._selected_device}, args: {command}")
+            log.info(f"Programming {self.eax_device._selected_device}, args: {command}")
 
             self.program_thread = ProgrammingThread(command)
             self.program_thread.resultReady.connect(self.handle_programming_result)
@@ -811,7 +794,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.program_thread.quit()
         if returncode == 0:
             self.insert_text("<p>Programming successful.</p>")
-            imports.log.info(f"Programming {self.eax_device._selected_device} successful")
+            log.info(f"Programming {self.eax_device._selected_device} successful")
             # logg.success(f"Programming {self.eax_device._selected_device} successful")
             if self.settings.get(constants.KEY_AUTO_TEST):
                 if self.arduino.device_connected:
@@ -823,7 +806,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.insert_text(f"<p>Programming failed. Return code: {returncode}</p>")
             # logg.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
-            imports.log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
+            log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
 
         if self.arduino.device_connected:
             self.state = State.CONNECTED
@@ -843,7 +826,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_log(self) -> None:
         """Display the log view widget."""
         # logs = logg.get_all_logs()
-        logs = imports.log.get_logs()
+        logs = log.get_logs()
         self.log_view = LogView(logs, self.save_logs)
         self.log_view.show()
 
@@ -860,7 +843,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.save_worker.start()
 
     def on_save_finished(self) -> None:
-        imports.log.info("Save finished.")
+        log.info("Save finished.")
         self.progress_bar.close()
 
     def closeEvent(self, event) -> None:
@@ -873,7 +856,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            imports.log.info("Application closed.")
+            log.info("Application closed.")
             # logg.info("Application closed.")
             # app_logger.info("Application closed.")
             self.settings.app_settings.setValue("mainwindow/geometry", self.saveGeometry())
@@ -902,14 +885,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         dialog.exec()
 
         if dialog.clickedButton() == cancelBtn:
-            imports.log.info("Firmware update cancelled.")
+            log.info("Firmware update cancelled.")
             return
         elif dialog.clickedButton() == btnFirmata:
             firmware_path = ".\\sketches\\StandardFirmata\\build\\arduino.avr.uno\\StandardFirmata.ino.hex"
         elif dialog.clickedButton() == btnTelemetrix:
             firmware_path = ".\\sketches\\Telemetrix4Arduino\\build\\arduino.avr.uno\\Telemetrix4Arduino.ino.hex"
         else:
-            imports.log.info("Firmware update cancelled.")
+            log.info("Firmware update cancelled.")
             return
 
         self.state = State.UPDATING
@@ -937,23 +920,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
     def on_error(self, error: QProcess.ProcessError) -> None:
-        imports.log.error("An error occurred: ", error)
-        imports.log.error("System reported: ", self.update_process.errorString())
-        imports.log.error("Firmware update failed: ", error)
-        imports.log.critical("Firmware update failed: ", error)
+        log.error("An error occurred: ", error)
+        log.error("System reported: ", self.update_process.errorString())
+        log.error("Firmware update failed: ", error)
+        log.critical("Firmware update failed: ", error)
 
     def read_standard_output(self) -> None:
         output = self.update_process.readAllStandardOutput().data().decode()
         self.insert_text(output)
-        imports.log.info(output)
+        log.info(output)
         msg = self.update_process.readAllStandardError().data().decode()
         if msg != "":
             self.insert_text(msg)
-            imports.log.error(msg)
+            log.error(msg)
 
     def on_finished(self) -> None:
-        imports.log.success("The process has finished")
-        imports.log.info("Firmware update complete.")
+        log.success("The process has finished")
+        log.info("Firmware update complete.")
         if self.eax_device._selected_device:
             self.device_label.setText(
                 f"Device: {self.eax_device._selected_device}")
@@ -965,7 +948,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_process.terminate()
         if not self.update_process.waitForFinished(3000):
             self.update_process.kill()
-            imports.log.error("Process did not terminate in time.")
+            log.error("Process did not terminate in time.")
 
     def increment_counter(self) -> None:
         """Set the progress value in the status bar."""
@@ -998,7 +981,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         model = self.eax_device.name
 
         # app_logger.info(f"Testing started for {model.name}")
-        imports.log.info(f"Testing started for {model}")
+        log.info(f"Testing started for {model}")
         # logg.info(f"Testing started for {model}")
 
         self.state = State.TESTING
@@ -1044,9 +1027,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.insert_text("✨Test complete.")
 
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
-            imports.log.info(f"Test complete for {model}. (Cycle count: {self.settings.get_int(constants.KEY_TEST_COUNT, 0)})")
+            log.info(f"Test complete for {model}. (Cycle count: {self.settings.get_int(constants.KEY_TEST_COUNT, 0)})")
         else:
-            imports.log.info(f"Test complete for {model}.")
+            log.info(f"Test complete for {model}.")
 
         await self.arduino.write_pin_by_func("test indicator", 0)
         await self.arduino.write_pin_by_func("battery", 0)
@@ -1248,13 +1231,13 @@ class SettingsDialog(QWidget, Ui_Settings):
         print(args)
         self.foreground_color = self.choose_color(
             self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff"))
-        imports.log.debug(f"User selected color: {self.foreground_color.name()}")
+        log.debug(f"User selected color: {self.foreground_color.name()}")
 
     def pick_background_color(self, *args) -> None:
         print(args)
         self.background_color = self.choose_color(
             self.settings.get(constants.KEY_BACKGROUND_COLOR, "#000000"))
-        imports.log.debug(f"User selected color: {self.background_color.name()}")
+        log.debug(f"User selected color: {self.background_color.name()}")
 
     def choose_color(self, color_name: str) -> QColor:
         new_color = QColorDialog.getColor(color_name)
@@ -1317,9 +1300,9 @@ class SaveWorker(QThread):
         # logg.clear_all_logs()
         for entry in self.data:
             log_entry = f"{entry['timestamp']} - logger - {entry['level']} - {entry['message']}"
-            imports.log.info(log_entry)
+            log.info(log_entry)
             # logg.insert_log(entry['timestamp'], "logger", entry['level'], entry['message'])
-            imports.log.log_to_db(entry['timestamp'], "logger", entry['level'], entry['message'])
+            log.log_to_db(entry['timestamp'], "logger", entry['level'], entry['message'])
             progress = ceil(self.data.index(entry) / self.length * 100)
             self.progress_changed.emit(progress)
         super(SaveWorker, self).exec()
@@ -1539,11 +1522,7 @@ if __name__ == "__main__":
         extract_zip_from_resources('.')
         print('Restart the application to apply the changes.')
         # sys.exit(1)
-
-    # app_logger = applogger.AppLogger.get_logger()
-    # logg = applogger.LogManager()
-    # imports.log = AppLogger()
-
+    
     app = SingleInstanceApp(sys.argv)
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
