@@ -914,7 +914,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_status("Firmware Update...")
         info("Updating firmware...")
         self.disconnected = False
-        if self.arduino.device_connected:
+        if self.arduino and self.arduino.device_connected:
             self.disconnected = True
             asyncio.create_task(self.disconnect_device())
 
