@@ -88,7 +88,7 @@ from settings import ApplicationSettings
 # from applogger import AppLogger, Log, LogManager
 from constants import *
 # from loguru import logger as log
-from new_logger import AppLogger
+from applogger import AppLogger
 import subprocess
 import sys
 import os
@@ -113,7 +113,7 @@ Global variables
 # app_logger: AppLogger | None = None
 # settings = ApplicationSettings()
 # logg: LogManager | None = None
-log: AppLogger | None = None
+log: AppLogger = AppLogger()
 
 
 """

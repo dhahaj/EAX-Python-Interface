@@ -83,7 +83,8 @@ import constants
 from constants import State
 from settings import ApplicationSettings
 from device import Device
-# import applogger
+import imports
+
 
 
 class LogView(QWidget, Ui_LogView):
@@ -1503,8 +1504,6 @@ def verify_files(files: List[str]) -> bool:
 
 
 
-from new_logger import AppLogger
-import imports
 
 if __name__ == "__main__":
     # with log.catch(
@@ -1543,7 +1542,7 @@ if __name__ == "__main__":
 
     # app_logger = applogger.AppLogger.get_logger()
     # logg = applogger.LogManager()
-    imports.log = AppLogger()
+    # imports.log = AppLogger()
 
     app = SingleInstanceApp(sys.argv)
     loop = QEventLoop(app)
