@@ -3,13 +3,13 @@ from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 from config_loader import ConfigLoader
 from settings import ApplicationSettings
 from rich import print
-from loguru import logger as log
+# from loguru import logger as log
 from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID
 from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
 from enum import Enum
-
+import imports
 
 class PinMode(Enum):
     INPUT = 'input'
@@ -65,8 +65,8 @@ class AIODevice(QObject):
         else:
             self.port = self.settings.get(KEY_COM_PORT)
             self.arduino_instance_id = None
-
-        log.info(f'Port is set to {self.port}')
+        self.log = imports.log
+        self.log.info(f'Port is set to {self.port}')
         self.shutdown_on_exception = shutdown_on_exception
         self.arduino_wait = wait
         self.sleep_tune = float(sleep_tune)  # Ensure a float.
@@ -137,7 +137,7 @@ class AIODevice(QObject):
             # self.connection_changed.emit(self._device_connected, self.device.com_port)
 
         except Exception as e:
-            log.info(f'Exception occurred while connecting to device: {e}')
+            self.log.info(f'Exception occurred while connecting to device: {e}')
             # Notify via callback if provided.
             self.device_connected = False
             if callback:
@@ -192,7 +192,7 @@ class AIODevice(QObject):
                 pin.get('pullup_enabled') or False
             )
 
-            log.debug(f'Configuring pin {pin_obj}')
+            self.log.debug(f'Configuring pin {pin_obj}')
             await pin_obj.configure(self.device, self.input_callback)
 
     def set_pin_mode_digital_output(self, pin_number: int) -> None:
@@ -222,7 +222,7 @@ class AIODevice(QObject):
                 await self.digital_write(14, 0)
                 # log.debug("Heartbeat...")
             except Exception as e:
-                log.info("Arduino connection lost")
+                self.log.info("Arduino connection lost")
                 self.device_connected = False
                 if self._connect_callback:
                     self._connect_callback(False, "Connection lost")
@@ -236,7 +236,7 @@ class AIODevice(QObject):
                 raise RuntimeError(f"No pin for {pin_function}")
             await self.device.digital_write(pin, value)
         except Exception as e:
-            log.error(f"Write failed: {e}")
+            self.log.error(f"Write failed: {e}")
             self.device_connected = False
             if self._connect_callback:
                 self._connect_callback(False, str(e))
@@ -256,7 +256,7 @@ class AIODevice(QObject):
                 await self.device.shutdown()
                 self.device_connected = False
         except Exception as e:
-            log.exception(f'Cleanup error: {e}')
+            self.log.exception(f'Cleanup error: {e}')
 
     async def set_all_pins_to_value(self, value: int) -> None:
         for pin in self.pins:
@@ -287,7 +287,6 @@ async def main():
     device = AIODevice()
     device.connection_changed.connect(lambda connected, port: print(f"Connection changed: {connected}, Port: {port}"))
     await device.async_connect()
-    device.device.disable_digital_reporting(7)
     # device.start_monitoring()
     # await device.set_pin_mode_digital_output(13)
     device.load_pin_configuration()
@@ -310,4 +309,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Program interrupted by user.")
     except Exception as e:
-        log.error(f"An unexpected error occurred: {e}")
+        print(f"An unexpected error occurred: {e}")

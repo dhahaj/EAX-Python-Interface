@@ -1,8 +1,11 @@
 import os
 from PySide6.QtCore import QSettings
 from typing import Any
-from loguru import logger as log
+# from loguru import logger as log
 import constants
+# from imports import log
+from new_logger import AppLogger
+import imports 
 
 class ApplicationSettings():
     """The settings class, used to store settings."""
@@ -11,6 +14,7 @@ class ApplicationSettings():
         self.app_settings: QSettings = QSettings(filename, QSettings.Format.IniFormat)
         self.filename = filename
         self.default_settings = constants.DEFAULT_SETTINGS.copy()
+        self.log = imports.log
 
     @property
     def path(self) -> str:
@@ -71,7 +75,7 @@ class ApplicationSettings():
         """Print the settings."""
         for key in self.app_settings.allKeys():
             value = self.app_settings.value(key)
-            log.debug(f"{key}: {value}, type={type(value)}")
+            self.log.debug(f"{key}: {value}, type={type(value)}")
 
     def readArray(self) -> list:
         array = []

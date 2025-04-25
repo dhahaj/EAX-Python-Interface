@@ -85,9 +85,10 @@ import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
 from device import Device
 from settings import ApplicationSettings
-from applogger import AppLogger, Log, LogManager
+# from applogger import AppLogger, Log, LogManager
 from constants import *
-from loguru import logger as log
+# from loguru import logger as log
+from new_logger import AppLogger
 import subprocess
 import sys
 import os
@@ -109,9 +110,10 @@ os.environ["QT_API"] = 'pyside6'
 """
 Global variables
 """
-app_logger: AppLogger | None = None
+# app_logger: AppLogger | None = None
 # settings = ApplicationSettings()
-logg: LogManager | None = None
+# logg: LogManager | None = None
+log: AppLogger | None = None
 
 
 """
@@ -160,10 +162,9 @@ def clean_backups(directory: str, days: int = 7) -> None:
                 # Send to trash
                 try:
                     send2trash.send2trash(filepath)
-                    logg.info(f"Moved to trash: {filepath}")
+                    log.info(f"Moved to trash: {filepath}")
                 except Exception as e:
-                    logg.critical(
-                        f"Failed to move to trash: {filepath}. Error: {e}")
+                    log.critical(f"Failed to move to trash: {filepath}. Error: {e}")
 
 
 def take_screenshot() -> None:
@@ -207,27 +208,29 @@ def get_stylesheet(settings: ApplicationSettings) -> str:
 def debug(msg: str) -> None:
     """ Logs a debug message. """
     if log: log.debug(msg)
-    if app_logger: app_logger.debug(msg)
+    # if app_logger: app_logger.debug(msg)
 
 
 def error(msg: str) -> None:
     """ Logs an error message. """
     if log: log.error(msg)
-    if app_logger: app_logger.error(msg)
-    if logg: logg.log('ERROR', msg)
+    # if app_logger: app_logger.error(msg)
+    # if logg: logg.log('ERROR', msg)
 
 
 def log_info(msg: str) -> None:
     """ Logs an info message. """
-    if app_logger: app_logger.info(msg)
-    if logg: logg.log('INFO', msg)
+    if log: log.log('INFO', msg)
+    # if app_logger: app_logger.info(msg)
+    # if logg: logg.log('INFO', msg)
 
 
 def info(msg: str) -> None:
     """ Logs an info message. """
     if log: log.info(msg)
-    if app_logger: app_logger.info(msg)
-    if logg: logg.log('INFO', msg)
+    # if app_logger: app_logger.info(msg)
+    # if logg: logg.log('INFO', msg)
+
 
 
 def str_to_bool(s: str) -> bool:
