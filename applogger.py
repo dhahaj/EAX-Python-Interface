@@ -1,13 +1,25 @@
 from loguru import logger
 import sqlite3
 from datetime import datetime
+from config_loader import ConfigLoader
 
 class AppLogger:
     def __init__(self, logfile="logs/app_{time:YYYY-MM-DD}.log", database="logs.db"):
-        # Configure loguru to log to files with rotation
-        logger.add(logfile, rotation="00:00", retention="7 days", level="DEBUG", format="{time} | {level} | {message}")
+        
+        self.config = ConfigLoader().get('logging')
+        if self.config:
+            logger.add(
+                self.config.get('log_file', logfile),
+                rotation=self.config.get('log_rotation', "00:00"),
+                retention=self.config.get('log_retention', "7 days"),
+                level=self.config.get('log_level', 'DEBUG'),
+                format=self.config.get('log_format', "{time} | {level} | {message}"),
+            )
+            self.database = self.config.get('database_file', database)
+        else:
+            logger.add(logfile, rotation="00:00", retention="7 days", level='DEBUG', format="{time} | {level} | {message}") 
+            self.database = database
 
-        self.database = database
         self.create_log_table()
 
     def create_log_table(self):
@@ -29,6 +41,27 @@ class AppLogger:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute('INSERT INTO logs (timestamp, level, message) VALUES (?, ?, ?)', (timestamp, level, message))
             conn.commit()
+
+    def clear_logs(self):
+        """Clear all logs from the SQLite database."""
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM logs")
+            conn.commit()
+
+    def add_log(self, timestamp: str, level: str, message: str):
+        """Add a log entry to the SQLite database."""
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO logs (timestamp, level, message) VALUES (?, ?, ?)', (timestamp, level, message))
+            conn.commit()
+
+    def get_log(self, log_id: int): 
+        """Get a log entry by its ID."""
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM logs WHERE id=?", (log_id,))
+            return cursor.fetchone()    
 
     def log(self, level: str, message: str):
         """Log a message with the specified level."""
@@ -65,10 +98,49 @@ class AppLogger:
 
     def get_logs(self) -> list:
         """Fetch logs from the database for the LogView class."""
+        logs = []
         with sqlite3.connect(self.database) as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM logs")
-            return cursor.fetchall()
+            rows = cursor.fetchall()
+            for row in rows:
+                log_entry = {
+                    "id": row[0],
+                    "timestamp": row[1],
+                    "level": row[2],
+                    "message": row[3]
+                }
+                logs.append(log_entry)
+        return logs 
+    
+    def read_log_into_database(self, log_file: str):
+        """Read a log file and insert its contents into the SQLite database."""
+        with open(log_file, "r") as file:
+            for line in file:
+                # Assuming the log format is consistent with the database schema
+                timestamp, level, message = line.strip().split(" | ", 2)
+                print(f"timestamp: {timestamp}, level: {level}, message: {message}")
+                self.add_log(timestamp, level, message) 
+
+    def dump_logs(self):
+        """Dump all logs from the SQLite database."""
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM logs")
+            rows = cursor.fetchall()
+            for row in rows:
+                print(row)  
+
+if __name__ == "__main__":
+    logger = AppLogger()
+
+    logger.read_log_into_database('logs/app_2025-04-25.log')
+    logger.dump_logs()  
+    logger.clear_logs()
+
+    # logs = logger.get_logs()
+
+    # print(len(logs))
 
 
 # import atexit
