@@ -1,4 +1,5 @@
 from re import A
+import re
 from qtpy import (
     QtCore,
     QtGui,
@@ -30,6 +31,7 @@ from qtpy.QtCore import (
     Signal,
     QFile,
     QIODevice,
+    Slot,
 )
 from qtpy.QtWidgets import (
     QApplication,
@@ -65,7 +67,7 @@ from imports import (
 import sys
 import subprocess
 import qdarkstyle
-from math import ceil
+from math import ceil, e
 from arduino import AIODevice
 from config_loader import ConfigLoader
 from rich import print
@@ -240,7 +242,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Settings
         self.settings: ApplicationSettings = settings
         self.settings_dialog = SettingsDialog(self)
-        self.settings_dialog.saved.connect(self.on_settings_closed)
 
         # Restore the window geometry and state
         self.restoreGeometry(self.settings.app_settings.value("mainwindow/geometry", QByteArray()))
@@ -252,19 +253,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.showFullScreen()
         else:
             self.showNormal()
-        self.actionFullscreen.setChecked(self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool))
         self.actionFullscreen.triggered.connect(self.toggleFullScreen)
+        self.actionFullscreen.setChecked(self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool))
 
         if self.settings.get_bool(constants.KEY_FRAMELESS):
             self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
 
         # Process for updating the firmware
-        self.update_process = QProcess(self)
-        self.update_process.finished.connect(self.on_finished)
-        self.update_process.errorOccurred.connect(self.on_error)
-        self.update_process.readyReadStandardError.connect(self.read_standard_output)
-        self.update_process.readyReadStandardOutput.connect(self.read_standard_output)
-        self.update_process.setWorkingDirectory(os.getcwd())
+        self.update_process = UpdateProcess(self)
+        self.update_process.outputReceived.connect(lambda data: self.insert_text(data, prepend=""))
+        self.update_process.finishedWithCode.connect(self.on_finished)
+
+        self.program_process: QProcess | None = None
 
         self.device_changed.connect(self.on_device_changed)
 
@@ -296,7 +296,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Connect the menu items
         self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
-        self.actionConnect.triggered.connect(self.connect_device)
+        self.actionConnect.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
         self.actionAbout.triggered.connect(self.aboutQt)
         self.actionChip_Select.triggered.connect(self.get_chip_part)
         self.actionShow_Logs.triggered.connect(self.show_log)
@@ -339,9 +339,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setStatusBar(CustomStatusBar())
         self.set_status('Select a device to begin.')
 
-        # If auto login and auto connect are enabled, try to connect to the USB device
+        # If auto connect is enabled, try to connect to the USB device
         if self.settings.get(constants.KEY_AUTO_CONNECT):
-            QTimer.singleShot(2000, self.connect_device)
+            QTimer.singleShot(1200, lambda: asyncio.create_task(self.connect_task()))
 
     def set_status(self, message: str, timeout: int = 0) -> None:
         """Set the status message in the status bar."""
@@ -360,10 +360,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if value == State.CONNECTING:
             self.test_button.setEnabled(False)
-            # self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
+            self.usb_label.setText("USB connecting...")
         elif value == State.CONNECTED:
             self.test_button.setEnabled(True)
             self.program_button.setEnabled(True)
@@ -381,6 +381,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Programming...")
+        elif value == State.TESTING:
+            self.test_button.setEnabled(False)
+            self.program_button.setEnabled(False)
+            self.actionConnect.setEnabled(False)
+            self.set_status("Testing...")
+        elif value == State.WAITING_FOR_BUTTON:
+            self.test_button.setEnabled(True)
+            self.program_button.setEnabled(False)
+            self.actionConnect.setEnabled(False)
+            self.set_status("Waiting for input...")
 
     def focusOutEvent(self, event) -> None:
         super().focusOutEvent(event)
@@ -398,9 +408,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         current_position = cursor.position()
         anchor = self.text_edit.anchorAt(self.text_edit.mapFromGlobal(QCursor.pos()))
         if anchor:
-            print(anchor)
-            # debug(current_position)
-            # QDesktopServices.openUrl(QUrl(anchor))
+            # print(anchor)
+
+            if anchor == "continue":
+                self.test_button.click()
+                return
+
             # reset the position to avoid cursor moving to the link start
             cursor.setPosition(current_position)
             self.text_edit.setTextCursor(cursor)
@@ -411,12 +424,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Set the theme."""
         log.info(f"Setting theme to {theme}")
         if theme == 'dark':
-            style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
+            style = qdarkstyle.load_stylesheet(qt_api='pyside2')
+            # style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
             self.actionDark_Theme.setChecked(True)
         else:
             style = qdarkstyle.load_stylesheet(palette=qdarkstyle.LightPalette)
             self.actionDark_Theme.setChecked(False)
-        self.setStyleSheet(style)
+        # self.setStyleSheet(style)
 
         self.set_icon(self.connect_menu, 'usb2')
         self.set_icon(self.test_button, 'test-button')
@@ -440,11 +454,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_icon(self.actionChange_font, 'size')
         self.set_icon(self.actionManual_Control, 'gear')
         self.set_icon(self.actionModify_Settings, 'settings', 'ico')
-        # self.set_icon(self.actionAdd_User, 'follow')
-        # self.set_icon(self.actionRemove_User, 'remove-user')
         self.set_icon(self.actionHelp, 'help')
         self.set_icon(self.actionStatisitics, 'bar-chart')
-        # self.set_icon(self.actionLogout, 'logout')
 
     def toggle_theme(self) -> None:
         log.info("Toggle theme")
@@ -463,16 +474,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             icon_path = f":/resources/icons/images/icons/dark/{icon_name}.{ext}"
         icon = QIcon()
-        icon.addFile(
-            icon_path,
-            QSize(),
-            QIcon.Normal,
-            QIcon.On,
-        )
+        icon.addFile(icon_path, QSize(), QIcon.Normal, QIcon.On,)
         widget.setIcon(icon)
 
     def toggleFullScreen(self) -> bool:
-        if self.settings.app_settings.value(constants.KEY_FULLSCREEN, defaultValue=False) == "false":
+        if self.settings.app_settings.value(constants.KEY_FULLSCREEN, defaultValue=False) == False:
             self.showFullScreen()
             self.settings.app_settings.setValue(constants.KEY_FULLSCREEN, True)
             self.actionFullscreen.setChecked(True)
@@ -538,9 +544,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(vars(self.arduino))
             # print(vars(db))
             # print(vars(logg))
-            self.text_edit.setAcceptRichText(True)
-            self.load_file_text()
-            print(self.arduino)
+            # self.text_edit.setAcceptRichText(True)
+            # self.load_file_text()
+            # print(self.arduino)
+            # print(self.state)
+            print(self.text_edit.toPlainText())
+
 
     def on_device_changed(self, device: str) -> None:
         """ Called when the device is changed. """
@@ -650,15 +659,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_label.setText("")  # clear the device label
         self.eax_device.name = None  # reset the device
 
-    def insert_text(self, text: str) -> None:
+    def insert_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
-        self.text_edit.append("\n" + text)
+        self.text_edit.append(prepend + text)
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
 
     def load_file_text(self, filename="instructions.md") -> None:
         """Load text from a file and add it to the text area"""
-
         self.text_edit.setMarkdown(Path(filename).read_text() + "\n")
         self.text_edit.moveCursor(QtGui.QTextCursor.End)
         self.text_edit.ensureCursorVisible()
@@ -672,17 +680,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     ''' Connection Functions '''
 
     async def connect_task(self) -> None:
-        """Setup the USB device."""
-        self.arduino = AIODevice(
-            wait=self.settings.get(constants.KEY_ARDUINO_WAIT),
-            shutdown_on_exception=self.settings.get(constants.KEY_SHUTDOWN_ON_EXCEPTION),
-            sleep_tune=self.settings.get(constants.KEY_SLEEP_TUNE),
-            debug=self.settings.get(constants.KEY_DEBUG),
-        )
-        self.arduino.connection_changed.connect(self.on_connection_changed)
-        await self.arduino.async_connect()
-        self.arduino.start_monitoring()
+        if self.state == State.CONNECTED:
+            await self.disconnect_device()
+        elif self.state is not State.IDLE:
+            return
+        else:
+            self.arduino = AIODevice(
+                wait=self.settings.get(constants.KEY_ARDUINO_WAIT),
+                shutdown_on_exception=self.settings.get(constants.KEY_SHUTDOWN_ON_EXCEPTION),
+                sleep_tune=self.settings.get(constants.KEY_SLEEP_TUNE),
+                debug=self.settings.get(constants.KEY_DEBUG),
+            )
+            self.arduino.connection_changed.connect(self.on_connection_changed)
+            self.state = State.CONNECTING
+            await self.arduino.async_connect()
 
+    @Slot(bool, str)
     def on_connection_changed(self, connected: bool, message: str = None) -> None:
         """Callback for the USB device."""
         log.info(f"Connection changed: {connected}, message: {message}")
@@ -693,28 +706,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.usb_label.setText("USB disconnected")
             error(f"USB: connection lost. Error: {message}")
-            self.insert_text(f"<h2>USB Error: {message}</h2>")
+            self.insert_text(f"\n<p>USB Error: {message}</p>")
+            self.actionConnect.setText("Connect")
             self.state = State.IDLE
-
-    def connect_device(self) -> None:
-        if self.state == State.CONNECTING:
-            return
-        elif self.state == State.CONNECTED:
-            asyncio.create_task(self.disconnect_device())
-        elif self.state == State.IDLE:
-            self.state = State.CONNECTING
-            asyncio.create_task(self.connect_task())
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
-        # if self.usb_device is None:
-        #     return
+        self.state = State.IDLE
         await self.arduino.async_disconnect()
-        self.device_connected = False
         log.info("Device disconnected successfully.")
         self.actionConnect.setText("Connect")
-        # self.usb_device = None
-        self.state = State.IDLE
 
     def control_manually(self) -> None:
         self.manual = ManualWidget(self.arduino)
@@ -723,95 +724,53 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def modify_settings(self) -> None:
         self.settings_dialog.show()
 
-    # @Slot(Tuple[int, QObject])
-
-    def on_settings_closed(self, result: Tuple) -> None:
-        return_val, settings = result
-        # app_logger.info(f"Settings dialog closed. Result: {return_val}")
-        log.info(f"Settings dialog closed. Result: {return_val}")
-        self.text_edit.setStyleSheet(
-            f"color: {self.settings.get(constants.KEY_FOREGROUND_COLOR)};"
-            f"background-color: {self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
-        )
-        if self.settings.get(constants.KEY_FULLSCREEN):
-            self.showFullScreen()
-        else:
-            self.showNormal()
-
-        if settings.qfont:
-            print(settings.qfont)
-            self.text_edit.setFont(settings.qfont)
-
-    def perform_task(self, task, args) -> None:
-        """
-        Execute a task.
-
-        :param task: The task to execute.
-        :param args: The arguments to pass to the task.
-        """
-        task(*args)
-        self.process_queue()  # Continue processing the queue
+    """ Programming Functions """
 
     def program(self) -> None:
-        """Program the device."""
+        """Program the device using QProcess instead of a QThread."""
         if not self.eax_device.is_selected:
             warning(self, "Please select a device.")
             return
 
-        if (self.state == State.IDLE or self.state == State.CONNECTED):
-            # Check if the firmware file exists
-            if not os.path.exists(self.eax_device.firmware_path):
-                self.insert_text(
-                    f"{self.eax_device.firmware_path} not found!")
-                return
+        if self.state not in (State.IDLE, State.CONNECTED):
+            return
 
-            # self.settings.load_settings()  # reload the settings
-            chip = self.settings.get("chip_part")
-            # serial = self.settings.get("programmer_serial_number")
-            programmer_path = self.settings.get("programmer_path")
+        fw = self.eax_device.firmware_path
+        if not os.path.exists(fw):
+            self.insert_text(f"{fw} not found!")
+            return
 
-            command = [
-                programmer_path,
-                "/part",
-                chip,
-                "/p",
-                self.eax_device.firmware_path,
-                "/q1",
-            ]
+        chip = self.settings.get("chip_part")
+        programmer = self.settings.get("programmer_path")
+        args = ["/part", chip, "/p", fw, "/q1"]
 
-            self.state = State.PROGRAMMING
+        log.info(f"Programming {self.eax_device._selected_device}, args: {[programmer] + args}")
 
-            # logg.info(f"Programming {self.eax_device._selected_device}, args: {command}")
-            log.info(f"Programming {self.eax_device._selected_device}, args: {command}")
+        # create (or reuse) a QProcess
+        self.program_process = QProcess(self)
+        # when it finishes, grab only the exit code
+        previous_state = self.state
+        self.program_process.finished.connect(
+            lambda code, status: self.handle_programming_result(code, previous_state)
+        )
+        self.state = State.PROGRAMMING
+        # start it
+        self.program_process.setProgram(programmer)
+        self.program_process.setArguments(args)
+        self.program_process.start()
 
-            self.program_thread = ProgrammingThread(command)
-            self.program_thread.resultReady.connect(self.handle_programming_result)
-            self.program_thread.start()
-
-    def handle_programming_result(self, returncode=0) -> None:
-        # This function gets called when the command finishes.
-        # Do whatever you need to do with the return code here.
-        self.program_thread.quit()
+    def handle_programming_result(self, returncode: int, previous_state: State) -> None:
+        """Called when QProcess emits finished()."""
+        self.state = previous_state # restore the previous state
         if returncode == 0:
             self.insert_text("<p>Programming successful.</p>")
             log.info(f"Programming {self.eax_device._selected_device} successful")
-            # logg.success(f"Programming {self.eax_device._selected_device} successful")
-            if self.settings.get(constants.KEY_AUTO_TEST):
-                if self.arduino.device_connected:
-                    self.state = State.CONNECTED
-                else:
-                    self.state = State.IDLE
+            if self.settings.get(constants.KEY_AUTO_TEST) and self.arduino.device_connected:
                 self.test_button.click()
                 return
         else:
             self.insert_text(f"<p>Programming failed. Return code: {returncode}</p>")
-            # logg.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
             log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
-
-        if self.arduino.device_connected:
-            self.state = State.CONNECTED
-        else:
-            self.state = State.IDLE
 
     def show_statistics(self) -> None:
         # (fail, success) = logg.count_programming_errors(
@@ -845,6 +804,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_save_finished(self) -> None:
         log.info("Save finished.")
         self.progress_bar.close()
+        self.save_worker.quit()  # Stop the worker thread
+        self.save_worker.deleteLater()  # Clean up the worker thread
+
 
     def closeEvent(self, event) -> None:
         reply = QMessageBox.question(
@@ -895,61 +857,51 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.info("Firmware update cancelled.")
             return
 
+        self.set_status("Updating tester firmware...")
+        info("Updating tester firmware...")
+
+        # Get the COM port from the settings or the Arduino device
+        if self.arduino.device_connected:
+            port = self.arduino.device.com_port
+            self.update_process.device_connected = True 
+            asyncio.create_task(self.arduino.async_disconnect())
+        else:
+            self.update_process.device_connected = False
+            port = self.settings.get(constants.KEY_COM_PORT, constants.DEFAULT_SETTINGS[constants.KEY_COM_PORT])
+
         self.state = State.UPDATING
 
-        self.set_status("Firmware Update...")
-        info("Updating firmware...")
-        self.disconnected = False
-        if self.arduino and self.arduino.device_connected:
-            self.disconnected = True
-            asyncio.create_task(self.disconnect_device())
-
-        port = self.settings.get(constants.KEY_COM_PORT, constants.DEFAULT_SETTINGS[constants.KEY_COM_PORT])
-
-        # Define the PowerShell script path
-        # script_path = ".\\Scripts\\UpdateFirmware.PS1"
         script_path = ".\\Scripts\\Upload.ps1"
-        self.update_process.setWorkingDirectory(os.getcwd())
-        self.text_edit.setMarkdown(f"# Updating firmware... \n\n")
-
+        self.text_edit.setHtml(f"""<h1>Updating firmware...</h1>
+                                    <p>Firmware: {firmware_path}</p>
+                                    <p>Port: {port}</p>
+                                    """)
         # Define the command to execute
-        self.update_process.start(
+        self.update_process.run(
             "powershell.exe",
             # ["-ExecutionPolicy", "ByPass", "-File", script_path, firmware_path, port],
             ["-File", script_path, firmware_path, port],
         )
 
-    def on_error(self, error: QProcess.ProcessError) -> None:
-        log.error("An error occurred: ", error)
-        log.error("System reported: ", self.update_process.errorString())
-        log.error("Firmware update failed: ", error)
-        log.critical("Firmware update failed: ", error)
-
-    def read_standard_output(self) -> None:
-        output = self.update_process.readAllStandardOutput().data().decode()
-        self.insert_text(output)
-        log.info(output)
-        msg = self.update_process.readAllStandardError().data().decode()
-        if msg != "":
-            self.insert_text(msg)
-            log.error(msg)
-
-    def on_finished(self) -> None:
-        log.success("The process has finished")
-        log.info("Firmware update complete.")
-        if self.eax_device._selected_device:
-            self.device_label.setText(
-                f"Device: {self.eax_device._selected_device}")
-        else:
-            self.device_label.setText("Firmware Update Complete.")
+    @Slot(int, QProcess.ExitStatus, bool)
+    def on_finished(self, exit_code: int, exit_status: QProcess.ExitStatus, was_connected: bool) -> None:
+        """Called when the update process is finished."""
         self.state = State.IDLE
-        if self.disconnected:
-            self.connect_device()
-        self.update_process.terminate()
-        if not self.update_process.waitForFinished(3000):
-            self.update_process.kill()
-            log.error("Process did not terminate in time.")
+        
+        if exit_code != 0:
+            log.error(f"Update process failed with exit code {exit_code}.")
+            self.insert_text(f"<p>Update process failed with exit code {exit_code}.</p>")
+        else:
+            log.success("Firmware update complete.")
+            self.insert_text("<p>Firmware update complete.</p>")        
 
+        if was_connected:
+            asyncio.create_task(self.connect_task())
+
+        self.set_status("Firmware update complete.")
+
+        QTimer.singleShot(2500, self.load_file_text)
+        
     def increment_counter(self) -> None:
         """Set the progress value in the status bar."""
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
@@ -957,6 +909,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 constants.KEY_TEST_COUNT, self.settings.get_int(constants.KEY_TEST_COUNT) + 1)
         sb = self.statusBar()
         sb.update_counter()
+
+
+    """ Test Functions """
 
     def on_test_clicked(self) -> None:
         """Called when the test button is clicked."""
@@ -1007,12 +962,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         await asyncio.sleep(speed)
 
         self.insert_text("<p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>")
-
-        await asyncio.sleep(speed/4)
-
         self.insert_text("<p>🔷 Press the key switch ➾ The siren sounds</p>")
 
-        self.insert_text("<br><p>⌛<em>Press the Test/Continue Button when finished</em></p>")
+        await asyncio.sleep(0.5)
+
+        self.insert_text("<p>🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides</p>")
+
+        await asyncio.sleep(speed)
+
+        self.insert_text(f"<br><h2>⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Click here to continue...</span></a> </h2 >")
 
         self.state = State.WAITING_FOR_BUTTON
 
@@ -1024,7 +982,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except asyncio.TimeoutError:
             pass
 
-        self.insert_text("✨Test complete.")
+        self.insert_text("<p>✨Test complete.</p>")
 
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
             log.info(f"Test complete for {model}. (Cycle count: {self.settings.get_int(constants.KEY_TEST_COUNT, 0)})")
@@ -1041,6 +999,52 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.load_file_text()
 
+
+
+class UpdateProcess(QProcess):
+    """Process to update the firmware."""
+
+    # emit decoded stdout whenever new data arrives
+    outputReceived = Signal(str)
+    # emit exit code when finished
+    finishedWithCode = Signal(int, QProcess.ExitStatus, bool)
+
+    def __init__(self, parent: MainWindow = None):
+        super().__init__(parent)
+        self.parent: MainWindow = parent
+        self.setWorkingDirectory(os.getcwd())
+        self.errorOccurred.connect(self._on_error)
+        self.finished.connect(self._on_finished)
+        self.readyReadStandardOutput.connect(self._read_standard_output)
+        self.readyReadStandardError.connect(self._read_standard_error)
+        self.device_connected = False
+
+    @Slot()
+    def _read_standard_output(self):
+        """Read the standard output of the process."""
+        output = self.readAllStandardOutput().data().decode()
+        self.outputReceived.emit(output)
+
+    @Slot()
+    def _read_standard_error(self):
+        """Read the standard error of the process."""
+        error = self.readAllStandardError().data().decode()
+        self.outputReceived.emit(error)
+
+    @Slot(int, QProcess.ExitStatus)
+    def _on_finished(self, exit_code, exit_status):
+        self.finishedWithCode.emit(exit_code, exit_status, self.device_connected)
+
+    @Slot(QProcess.ProcessError)
+    def _on_error(self, error: QProcess.ProcessError):  
+        self.parent.on_error(error)
+        self.finishedWithCode.emit(-1, QProcess.ExitStatus.NormalExit, self.device_connected)
+
+    def run(self, program: str, args: list[str] = None):
+        """Convenience method to start a process."""
+        self.setProgram(program)
+        self.setArguments(args or [])
+        self.start()
 
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     """
@@ -1118,7 +1122,7 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def __init__(self, parent: MainWindow = None):
         super().__init__()
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
         # self.app_settings = settings.app_settings
         self.settings: ApplicationSettings = parent.settings
@@ -1129,7 +1133,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.qfont: QFont = None
 
         self.pushButton_background_color.clicked.connect(self.pick_background_color)
-        self.pushButton_foreground_color.clicked.connect(self.pick_color)
+        self.pushButton_foreground_color.clicked.connect(self.pick_text_color)
         self.pushButton_change_font.clicked.connect(self.change_font)
 
         self.pushButton_save.clicked.connect(self.save_changes)
@@ -1143,21 +1147,24 @@ class SettingsDialog(QWidget, Ui_Settings):
     def initialize_settings(self) -> None:
         config = ConfigLoader()
 
-        self.lineEdit_serial.setText(self.settings.app_settings.value(constants.KEY_PROGRAMMER_SERIAL_NUMBER, config.get_default_setting(constants.KEY_PROGRAMMER_SERIAL_NUMBER)))
+        self.lineEdit_serial.setText(self.settings.app_settings.value(
+            constants.KEY_PROGRAMMER_SERIAL_NUMBER, constants.DEFAULT_SETTINGS[constants.KEY_PROGRAMMER_SERIAL_NUMBER]))
 
-        chip_options = config.chip_options
-        for chip_part in chip_options:
+        for chip_part in constants.CHIP_OPTIONS:
             self.comboBox_chip.addItem(chip_part)
 
-        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(constants.KEY_CHIP_PART, config.get_default_setting(constants.KEY_CHIP_PART)))
+        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(
+            constants.KEY_CHIP_PART, constants.DEFAULT_SETTINGS[constants.KEY_CHIP_PART]))
 
-        value = self.settings.get_int(constants.KEY_TESTING_SPEED, config.get_default_setting(constants.KEY_TESTING_SPEED))
+        value = self.settings.get_int(constants.KEY_TESTING_SPEED, constants.DEFAULT_SETTINGS[constants.KEY_TESTING_SPEED])
         self.dial.setValue(value)
 
-        self.comboBox_com_port.setCurrentText(self.settings.app_settings.value(constants.KEY_COM_PORT, config.get_default_setting(constants.KEY_COM_PORT)))
-
-        for port in AIODevice.get_usb_ports():
-            self.comboBox_com_port.addItem(port)
+        self.comboBox_com_port.clear()
+        ports = AIODevice.get_usb_ports()
+        saved_port = self.settings.app_settings.value(constants.KEY_COM_PORT, constants.DEFAULT_SETTINGS[constants.KEY_COM_PORT])
+        if saved_port not in ports:
+            ports.append(saved_port)
+        self.comboBox_com_port.addItems(ports)
 
         self.spinBox_autologoff_delay.setValue(self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, config.get_default_setting(constants.KEY_INACTIVITY_TIMEOUT)))
         self.spinBox_arduino_id.setValue(self.settings.get_int(constants.KEY_ARDUINO_INSTANCE_ID, config.get_default_setting(constants.KEY_ARDUINO_INSTANCE_ID)))
@@ -1174,34 +1181,29 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.counterCheckbox.setChecked(self.settings.get_bool(constants.KEY_COUNTER_ENABLED, constants.DEFAULT_SETTINGS[constants.KEY_COUNTER_ENABLED]))
 
     def reset_to_default(self) -> None:
-        config = ConfigLoader()
-        default_settings = config.settings
-
-        self.comboBox_com_port.setCurrentText(default_settings[constants.KEY_COM_PORT])
-        self.lineEdit_serial.setText(default_settings[constants.KEY_PROGRAMMER_SERIAL_NUMBER])
-        self.comboBox_chip.setCurrentText(default_settings[constants.KEY_CHIP_PART])
-        self.dial.setValue(default_settings[constants.KEY_TESTING_SPEED])
-        self.checkBox_test.setChecked(default_settings[constants.KEY_AUTO_TEST])
-        self.checkBox_connect.setChecked(default_settings[constants.KEY_AUTO_CONNECT])
-        self.spinBox_arduino_id.setValue(default_settings[constants.KEY_ARDUINO_INSTANCE_ID])
-        self.checkBox_debug.setChecked(default_settings[constants.KEY_DEBUG])
-        self.spinBox_autologoff_delay.setValue(default_settings[constants.KEY_INACTIVITY_TIMEOUT])
-        self.spinBox_wait_time.setValue(default_settings[constants.KEY_ARDUINO_WAIT])
-        self.checkBox_shutdown_on_exception.setChecked(default_settings[constants.KEY_SHUTDOWN_ON_EXCEPTION])
-        self.checkBox_auto_find.setChecked(default_settings[constants.KEY_AUTO_FIND])
-        self.lineEdit_serial_sleep_tune.setText(str(default_settings[constants.KEY_SLEEP_TUNE]))
-        self.checkBox_fullscreen.setChecked(default_settings[constants.KEY_FULLSCREEN])
-        self.checkBox_touchscreen.setChecked(default_settings[constants.KEY_TOUCHSCREEN_ENABLED])
-        self.checkBox_frameless.setChecked(default_settings[constants.KEY_FRAMELESS])
+        self.comboBox_com_port.setCurrentText(constants.DEFAULT_SETTINGS[constants.KEY_COM_PORT])
+        self.lineEdit_serial.setText(constants.DEFAULT_SETTINGS[constants.KEY_PROGRAMMER_SERIAL_NUMBER])
+        self.comboBox_chip.setCurrentText(constants.DEFAULT_SETTINGS[constants.KEY_CHIP_PART])
+        self.dial.setValue(constants.DEFAULT_SETTINGS[constants.KEY_TESTING_SPEED])
+        self.checkBox_test.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_AUTO_TEST])
+        self.checkBox_connect.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_AUTO_CONNECT])
+        self.spinBox_arduino_id.setValue(constants.DEFAULT_SETTINGS[constants.KEY_ARDUINO_INSTANCE_ID])
+        self.checkBox_debug.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_DEBUG])
+        self.spinBox_autologoff_delay.setValue(constants.DEFAULT_SETTINGS[constants.KEY_INACTIVITY_TIMEOUT])
+        self.spinBox_wait_time.setValue(constants.DEFAULT_SETTINGS[constants.KEY_ARDUINO_WAIT])
+        self.checkBox_shutdown_on_exception.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_SHUTDOWN_ON_EXCEPTION])
+        self.checkBox_auto_find.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_AUTO_FIND])
+        self.lineEdit_serial_sleep_tune.setText(constants.DEFAULT_SETTINGS[constants.KEY_SLEEP_TUNE])
+        self.checkBox_fullscreen.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_FULLSCREEN])
+        self.checkBox_touchscreen.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_TOUCHSCREEN_ENABLED])
+        self.checkBox_frameless.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_FRAMELESS])
         self.counterCheckbox.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_COUNTER_ENABLED])
 
     def save_changes(self) -> None:
         if self.background_color:
-            self.settings.setValue(constants.KEY_BACKGROUND_COLOR,
-                                   self.background_color.name())
+            self.settings.setValue(constants.KEY_BACKGROUND_COLOR, self.background_color.name())
         if self.foreground_color:
-            self.settings.app_settings.setValue(constants.KEY_FOREGROUND_COLOR,
-                                                self.foreground_color.name())
+            self.settings.app_settings.setValue(constants.KEY_FOREGROUND_COLOR, self.foreground_color.name())
         if self.qfont:
             self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(self.qfont).family())
             self.settings.setValue(constants.KEY_FONT_SIZE, QFontInfo(self.qfont).pointSize())
@@ -1224,20 +1226,47 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
         self.settings.setValue(constants.KEY_FRAMELESS, self.checkBox_frameless.isChecked())
         self.settings.setValue(constants.KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
-        self.saved.emit((0, self))
+        # self.saved.emit((0, self))
         self.close()
 
-    def pick_color(self, *args) -> None:
-        print(args)
-        self.foreground_color = self.choose_color(
-            self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff"))
-        log.debug(f"User selected color: {self.foreground_color.name()}")
+    def apply_changes(self) -> None:
+        if self.settings.get(constants.KEY_FULLSCREEN):
+            self._parent.actionFullscreen.setChecked(True)
+            self._parent.showFullScreen()
+        else:
+            self._parent.actionFullscreen.setChecked(False)
+            self._parent.showNormal()
 
-    def pick_background_color(self, *args) -> None:
-        print(args)
-        self.background_color = self.choose_color(
-            self.settings.get(constants.KEY_BACKGROUND_COLOR, "#000000"))
-        log.debug(f"User selected color: {self.background_color.name()}")
+
+    def pick_text_color(self):
+        new_color = self.choose_color(
+            self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff")
+        ).name()
+        # update settings...
+        self.settings.setValue(constants.KEY_FOREGROUND_COLOR, new_color)
+        cs = self._parent.text_edit.styleSheet()
+        # this will replace any 6-digit hex in a color property
+        new_cs = re.sub(
+            r"(?<!-)\bcolor\s*:\s*#[0-9A-Fa-f]{6}\s*;",
+            f"color: {new_color};",
+            cs
+        )
+        self._parent.text_edit.setStyleSheet(new_cs)
+
+    def pick_background_color(self) -> None:
+        new_color = self.choose_color(
+            self.settings.get(constants.KEY_BACKGROUND_COLOR, "#000000")
+        ).name()
+        # update settings...
+        self.settings.setValue(constants.KEY_BACKGROUND_COLOR, new_color)
+        cs = self._parent.text_edit.styleSheet()
+        # this will replace any 6-digit hex in a color property
+        new_cs = re.sub(
+            r"(?<!-)\bbackground-color\s*:\s*#[0-9A-Fa-f]{6}\s*;",
+            f"background-color: {new_color};",
+            cs
+        )
+        self._parent.text_edit.setStyleSheet(new_cs)
 
     def choose_color(self, color_name: str) -> QColor:
         new_color = QColorDialog.getColor(color_name)
@@ -1253,14 +1282,8 @@ class SettingsDialog(QWidget, Ui_Settings):
             self.settings.get_int(constants.KEY_FONT_WEIGHT, self._parent.font().weight())
         ])
         if ok:
-            print(font)
+            self._parent.text_edit.setFont(font)
             self.qfont = font
-
-    def closeEvent(self, event) -> None:
-        # self.settings.load_settings()
-        self.saved.emit((0, self))
-        # self.destroy()
-        event.accept()
 
     def keyPressEvent(self, event) -> None:
         key = event.key()
@@ -1297,15 +1320,24 @@ class SaveWorker(QThread):
         self.setObjectName("SaveWorker")
 
     def run(self):
-        # logg.clear_all_logs()
+        log.clear_logs()
         for entry in self.data:
-            log_entry = f"{entry['timestamp']} - logger - {entry['level']} - {entry['message']}"
-            log.info(log_entry)
+            log_entry = f"{entry.get('timestamp')} - {entry.get('level')} - {entry.get('message')}"
+            print(log_entry)
             # logg.insert_log(entry['timestamp'], "logger", entry['level'], entry['message'])
-            log.log_to_db(entry['timestamp'], "logger", entry['level'], entry['message'])
+            # log.log_to_db(entry['timestamp'], "logger", entry['level'], entry['message'])
+            log.add_log(level=entry.get('level'), message=entry.get('message'), timestamp=entry.get('timestamp'))
             progress = ceil(self.data.index(entry) / self.length * 100)
             self.progress_changed.emit(progress)
+        
+        log.info("Logs saved successfully.")
+        self.progress_changed.emit(100)
+        self.quit()  # Stop the worker thread
+        self.deleteLater()
+        self.terminate()  # Terminate the thread if it's still running
         super(SaveWorker, self).exec()
+
+    
 
 
 class ProgressBar(QWidget, Ui_ProgressBar):
@@ -1323,30 +1355,9 @@ class ProgressBar(QWidget, Ui_ProgressBar):
 
     def update_progress(self, value: int) -> None:
         self.progressBar.setValue(value)
-        if value == 100:
+        if value >= 99:
             self.close()
 
-
-class ProgrammingThread(QThread):
-    resultReady = Signal(int)
-
-    def __init__(self, command: List[str]):
-        super(ProgrammingThread, self).__init__()
-        self.command = command
-        # set thread name
-        self.setObjectName("ProgrammingThread")
-
-    def run(self) -> None:
-        debug(f"Running command: {self.command}")
-        debug(" ".join(self.command))
-        process = subprocess.run(self.command, shell=True)
-        self.resultReady.emit(process.returncode)
-        super(ProgrammingThread, self).exec()
-
-    def quit(self):
-        """Override the quit method to ensure the thread is stopped properly."""
-        print("Stopping ProgrammingThread...")
-        return super().quit()
 
 
 class ConnectMenu(QAction):
@@ -1354,8 +1365,8 @@ class ConnectMenu(QAction):
 
     def __init__(self, parent: MainWindow):
         super().__init__(parent)
-        parent.set_icon(self, 'usb2')
-        self.triggered.connect(parent.connect_device)
+        # parent.set_icon(self, 'usb3')
+        self.triggered.connect(lambda: asyncio.create_task(parent.connect_task()))
 
 
 class TelemetrixWorker(QObject):
