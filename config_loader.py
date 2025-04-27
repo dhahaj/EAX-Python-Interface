@@ -13,7 +13,11 @@ class ConfigLoader:
         """Load the config from a YAML file."""
         with open(filename, 'r', encoding='utf-8') as stream:
             return yaml.safe_load(stream)
-
+        
+    def get(self, key: str) -> Any:
+        """Get a value from the config."""
+        return self.data.get(key, None) 
+    
     @property
     def config(self) -> Dict[str, Any]:
         """Return the config data"""
@@ -91,10 +95,19 @@ def validate_config(yaml_file: str) -> Tuple[bool, List[str]]:
 
 
 if __name__ == '__main__':
-    validate_config('config.yaml')
+    # validate_config('config.yaml')
 
     config = ConfigLoader()
-    pins = config.pins
+
+    print(config.get('logging').get("database_file", None))
+    print( config.get('logging').get('database_file', None) )
+    print( config.get('logging').get('log_file', None) )
+    print( config.get('logging').get('log_level', 'DEBUG') )
+    print( config.get('logging').get('log_format', "{time} | {level} | {message}") )
+    print( config.get('logging').get('log_rotation', "00:00") )
+    print( config.get('logging').get('log_retention', "7 days") )
+
+    # pins = config.pins
     # print(type(pins[0]))
     # print(config.version)
     # print(config.firmware_path)
