@@ -100,7 +100,7 @@ from globals import logger as log, settings
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
 """
-os.environ["QT_API"] = 'pyside6'
+# os.environ["QT_API"] = 'pyside6'
 
 
 @overload

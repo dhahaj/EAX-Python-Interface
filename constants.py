@@ -20,18 +20,17 @@ ICON_USB_YELLOW = '<html><head/><body><p><img width="52" height="52" src=":/reso
 ICON_USB_BACKGROUND_GRN = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.284091 rgba(85, 170, 0, 80), stop:0.5 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
 ICON_USB_BACKGROUND_YLW = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
 
-ORANGE = "color: rgb(229, 153, 0);"
-GREEN = "color: green;"
-YELLOW = "color: rgb(200, 195, 0);"
-RED = "color: red;"
-DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold;"
+ORANGE = "color: rgb(229, 153, 0); background-color: rgba(0, 0, 0, 0);"
+GREEN = "color: green; background-color: rgba(0, 0, 0, 0);"
+YELLOW = "color: rgb(200, 195, 0); background-color: rgba(0, 0, 0, 0);"
+RED = "color: red; background-color: rgba(0, 0, 0, 0);"
+DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold; background-color: rgba(0, 0, 0, 0);"
 
 RADIO_OFF_ICON = ":/resources/icons/images/icons/radio-off-button.png"
 RADIO_ON_ICON = ":/resources/icons/images/icons/radio-on-button.png"
 
 class State(Enum):
     """The state of the application."""
-
     IDLE                = auto()
     PROGRAMMING         = auto()
     TESTING             = auto()
@@ -44,21 +43,11 @@ class State(Enum):
     WAITING_FOR_INPUT   = auto()
 
 
-
-
 FILES = ["settings.ini", "config.yaml", "instructions.md", "logs.db"]
 
 # Default testing speed in ms. This is adjustable inside the application.
 DEFAULT_TESTING_SPEED: int = 2000
 
-
-"""
-Pin numbers for the Arduino board.
-"""
-PIN_LOW_BATTERY: int       = 2
-PIN_TESTING_INDICATOR: int = 4
-PIN_BATTERY: int           = 12
-PIN_INDICATOR: int         = 13
 
 CHIP_OPTIONS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
 
@@ -128,10 +117,6 @@ DEFAULT_SETTINGS = {
 }
 
 
-INPUT: str  = "INPUT"
-OUTPUT: str = "OUTPUT"
-
-
 """
 Keys for the firmware dictionary.
 """
@@ -144,15 +129,19 @@ KEY_FIRMWARE_VERSION: str = "version"
 KEY_PATH: str = "path"
 
 
-INSTRUCTIONS = """# EAX-500 Testing Software
+INSTRUCTIONS = """<p><img src=":/resources/detex" width="300" style="float:right;"/></p>
 
-## Equipment Needed:
+# EAX-500 Testing Software  
 
- - EAX-500 Test Fixture
- - An assembled 102605/102605-1 PWA
- - A magnet for checking the reed switches
+ *[Click Here for help.](https://)*
 
-## Setup instructions:
+## Equipment Needed
+
+- EAX-500 Test Fixture
+- An assembled 102605 PWA
+- A magnet for checking the reed switches
+
+## Setup instructions
 
 - Head unit is connected and secured to the test fixture.
 - Place battery connector in the proper position before clamping down the board.
@@ -162,13 +151,13 @@ INSTRUCTIONS = """# EAX-500 Testing Software
 - Flip both slide switches to the OFF position.
 - Press the connect button to establish a connection with the fixture
 
-## Usage instructions:
+## Usage instructions
 
 - Select the appropriate device from the Device drop down menu. *(e.g. EAX500, EAX505, etc.)*
 - Press the *Program* button to program the board. 
 - If auto test is enabled and programming was successful, testing will begin automatically.
-- If auto test is disabled, press the *Test* button to begin testing. 
-  
+- If auto test is disabled, press the *Test* button or press anywhere on the screen to begin testing.
+
 ```info
 
 ```
