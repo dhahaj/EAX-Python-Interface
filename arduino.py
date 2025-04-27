@@ -3,13 +3,11 @@ from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 from config_loader import ConfigLoader
 from settings import ApplicationSettings
 from rich import print
-# from loguru import logger as log
 from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID
 from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
 from enum import Enum
-# import imports
 from globals import logger as log
 
 class PinMode(Enum):
@@ -201,6 +199,7 @@ class AIODevice(QObject):
         return self.device.set_pin_mode_digital_input_pullup(pin_number, callback)
 
     async def digital_write(self, pin_number: int, value: int) -> None:
+        # log.debug(f'{self.__class__.__name__}: Method: {self.digital_write.__name__}, Pin: {pin_number}, Value: {value}')
         await self.device.digital_write(pin_number, value)
 
     def start_monitoring(self) -> None:
@@ -215,7 +214,7 @@ class AIODevice(QObject):
             await asyncio.sleep(1)
             try:
                 # log.debug("Pinging device...")
-                await self.digital_write(14, 0)
+                await self.device.digital_write(14, 0)
                 # log.debug("Heartbeat...")
             except Exception as e:
                 log.warning("Arduino connection lost")
@@ -228,9 +227,10 @@ class AIODevice(QObject):
     async def write_pin_by_func(self, pin_function: str, value: int) -> None:
         try:
             pin = self.get_pin_by_function(pin_function)
+            log.debug(f'{self.__class__}, Method: {self.write_pin_by_func.__name__}, Pin function: {pin_function}, Pin: {pin}, Value: {value}')
             if pin is None:
                 raise RuntimeError(f"No pin for {pin_function}")
-            await self.device.digital_write(pin, value)
+            await self.digital_write(pin, value)
         except Exception as e:
             log.error(f"Write failed: {e}")
             self.device_connected = False
@@ -285,8 +285,8 @@ async def main():
     await device.async_connect()
     # device.start_monitoring()
     # await device.set_pin_mode_digital_output(13)
-    device.load_pin_configuration()
-    await device.configure_pin_modes()
+    # device.load_pin_configuration()
+    # await device.configure_pin_modes()
     print("Device running. Waiting for input changes or disconnection...")
     print("Try unplugging the Arduino now.")
 
