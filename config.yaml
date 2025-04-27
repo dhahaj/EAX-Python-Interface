@@ -96,6 +96,14 @@ pins:
     pin_number: 13
     pullup_enabled: false
 
+logging:
+  log_file: logs/app_{time:YYYY-MM-DD}.log
+  log_level: DEBUG
+  log_format: '{time:YYYY-MM-DD HH:mm:ss} {level} {message}'
+  log_rotation: 00:00
+  log_retention: '14 days'
+  database_file: logs.db
+
 # defualt settings
 settings:
   arduino_instance_id: 1
