@@ -238,7 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setWindowIcon(QIcon(":/resources/icons/images/icons/code.ico"))
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
+        self.show_movie()
         # Settings
         self.settings: ApplicationSettings = settings
         self.settings_dialog = SettingsDialog(self)
@@ -361,26 +361,30 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if value == State.CONNECTING:
             self.test_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
-            self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
+            # self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
             self.usb_label.setText("USB connecting...")
+            self.show_movie(pause=False)
         elif value == State.CONNECTED:
             self.test_button.setEnabled(True)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
-            self.label_usb_icon.setText(constants.ICON_USB_GREEN)
+            # self.label_usb_icon.setText(constants.ICON_USB_GREEN)
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
+            self.show_movie(pause=False)
         elif value == State.IDLE:
             self.test_button.setEnabled(False)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
-            self.label_usb_icon.setText(constants.ICON_USB_RED)
+            # self.label_usb_icon.setText(constants.ICON_USB_RED)
             self.set_status("Disconnected.")
+            self.show_movie(pause=True)
         elif value == State.PROGRAMMING:
             self.test_button.setEnabled(False)
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Programming...")
+            self.show_movie(pause=False)
         elif value == State.TESTING:
             self.test_button.setEnabled(False)
             self.program_button.setEnabled(False)
@@ -548,8 +552,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.load_file_text()
             # print(self.arduino)
             # print(self.state)
-            print(self.text_edit.toPlainText())
+            # print(self.text_edit.toPlainText())
+            print(self.label_usb_icon.size())
 
+    def show_movie(self, pause: bool=False) -> None:
+        """Show or hide the GIF in the USB icon label."""
+        if self.label_usb_icon.movie() is None:
+            movie = QMovie(":/resources/images/icons/infinity-16570.gif")
+            movie.setScaledSize(self.label_usb_icon.size())
+            movie.setSpeed(200)
+            self.label_usb_icon.setMovie(movie)
+        self.label_usb_icon.movie().setPaused(pause)
+
+    def is_movie_running(self) -> bool: 
+        """Check if the movie in the USB icon label is running."""
+        if self.label_usb_icon.movie() is not None:
+            return self.label_usb_icon.movie().state() == QMovie.Running
+        return False
 
     def on_device_changed(self, device: str) -> None:
         """ Called when the device is changed. """
@@ -759,6 +778,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.program_process.setArguments(args)
         self.program_process.start()
 
+    @Slot(int, QProcess.ExitStatus)
     def handle_programming_result(self, returncode: int, previous_state: State) -> None:
         """Called when QProcess emits finished()."""
         self.state = previous_state # restore the previous state
@@ -801,6 +821,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.save_worker.finished.connect(self.on_save_finished)
         self.save_worker.start()
 
+    @Slot()
     def on_save_finished(self) -> None:
         log.info("Save finished.")
         self.progress_bar.close()
@@ -1321,7 +1342,7 @@ class SaveWorker(QThread):
 
     def run(self):
         log.clear_logs()
-        for entry in self.data:
+        for i, entry in enumerate(self.data, start=1):
             log_entry = f"{entry.get('timestamp')} - {entry.get('level')} - {entry.get('message')}"
             print(log_entry)
             # logg.insert_log(entry['timestamp'], "logger", entry['level'], entry['message'])
@@ -1332,14 +1353,8 @@ class SaveWorker(QThread):
         
         log.info("Logs saved successfully.")
         self.progress_changed.emit(100)
-        self.quit()  # Stop the worker thread
-        self.deleteLater()
-        self.terminate()  # Terminate the thread if it's still running
-        super(SaveWorker, self).exec()
 
     
-
-
 class ProgressBar(QWidget, Ui_ProgressBar):
     """
     A progress bar dialog window.
@@ -1357,7 +1372,6 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.progressBar.setValue(value)
         if value >= 99:
             self.close()
-
 
 
 class ConnectMenu(QAction):
@@ -1497,24 +1511,30 @@ def verify_files(files: List[str]) -> bool:
     return found
 
 
+def extract_file_from_resource(resource_path: str, destination_path: str = None) -> str:
+    """ Extracts a file from the resource directory to a specified destination path."""
+    file = QtCore.QFile(resource_path)
+    if not file.exists():
+        raise FileNotFoundError(f"Resource file not found: {resource_path}")
+    if not file.open(QtCore.QFile.ReadOnly):
+        raise IOError(f"Cannot open resource file: {resource_path}")
+    data = file.readAll()
+    file.close()
+    if destination_path is None:
+        destination_path = os.path.join(os.getcwd(), os.path.basename(resource_path))
+    with open(destination_path, 'wb') as dest_file:
+        dest_file.write(data.data())
+    return destination_path
 
 
 if __name__ == "__main__":
-    # with log.catch(
-    #     message="Encountered exception from main.",
-    #     reraise=True,
-    #     exception=BaseException,
-    # ):
-    # app = SingleInstanceApp(sys.argv)
-    # debug("Checking for running instances")
-    # if app.is_running:
-    #     log.critical(
-    #         "Another instance of the application is already running.")
-    #     critical(
-    #         None,
-    #         "Another instance of the application is already running.",
-    #     )
-    #     sys.exit(1)
+    if not os.path.exists('.\\settings.ini') or not os.path.exists('.\\config.yaml'):
+        import resource_rc
+        print("Settings or config file not found. Extracting defaults from resources.")
+        extract_file_from_resource(":/resources/settings.ini")
+        extract_file_from_resource(":/resources/config.yaml")
+    
+    settings = ApplicationSettings()
 
     if not verify_files([
         "settings.ini",
@@ -1531,9 +1551,7 @@ if __name__ == "__main__":
     ]):
         print("Some files are missing. Extracting defaults from resources.")
         extract_zip_from_resources('.')
-        print('Restart the application to apply the changes.')
-        # sys.exit(1)
-    
+
     app = SingleInstanceApp(sys.argv)
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
