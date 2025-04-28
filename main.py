@@ -759,9 +759,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.insert_text(f"{fw} not found!")
             return
 
-        chip = self.settings.get("chip_part")
-        programmer = self.settings.get("programmer_path")
-        args = ["/part", chip, "/p", fw, "/q1"]
+        chip = self.settings.get(constants.KEY_CHIP_PART)
+        programmer = self.settings.get(constants.KEY_PROGRAMMER_PATH)
+        programmer_serial = self.settings.get(constants.KEY_PROGRAMMER_SERIAL_NUMBER)
+        args = ["/part", chip, "/p", fw, "/q1", "/s", programmer_serial]
 
         log.info(f"Programming {self.eax_device._selected_device}, args: {[programmer] + args}")
 
@@ -892,16 +893,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.state = State.UPDATING
 
-        script_path = ".\\Scripts\\Upload.ps1"
+        script_path = ".\\Scripts\\UpdateFirmware.bat"
         self.text_edit.setHtml(f"""<h1>Updating firmware...</h1>
                                     <p>Firmware: {firmware_path}</p>
                                     <p>Port: {port}</p>
                                     """)
         # Define the command to execute
         self.update_process.run(
-            "powershell.exe",
-            # ["-ExecutionPolicy", "ByPass", "-File", script_path, firmware_path, port],
-            ["-File", script_path, firmware_path, port],
+            "cmd.exe",
+            ["/c", script_path, firmware_path, port],
         )
 
     @Slot(int, QProcess.ExitStatus, bool)
