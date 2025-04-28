@@ -4,9 +4,15 @@ from datetime import datetime
 from config_loader import ConfigLoader
 
 class AppLogger:
+
     def __init__(self, logfile="logs/app_{time:YYYY-MM-DD}.log", database="logs.db"):
-        
-        self.config = ConfigLoader().get('logging')
+
+        try:
+            self.config = ConfigLoader().get('logging')
+        except Exception as e:
+            print(f"Error loading config: {e}")
+            self.config = None
+
         if self.config:
             logger.add(
                 self.config.get('log_file', logfile),
@@ -17,7 +23,7 @@ class AppLogger:
             )
             self.database = self.config.get('database_file', database)
         else:
-            logger.add(logfile, rotation="00:00", retention="7 days", level='DEBUG', format="{time} | {level} | {message}") 
+            logger.add(logfile, rotation="00:00", retention="7 days", level='DEBUG', format="{time} | {level} | {message}")
             self.database = database
 
         self.create_log_table()
