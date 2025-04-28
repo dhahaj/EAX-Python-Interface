@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="/resources">
+    <file>images/icons/infinity-16570.gif</file>
+    <!-- <file>images/icons/galaxy.gif</file> -->
     <file>default_resources.zip</file>
     <file>README.md</file>
     <file alias="detex">images/detex.svg</file>
@@ -16,5 +18,7 @@
     <file>images/detex_dark.png</file>
     <file>images/detex_light.bmp</file>
     <file>README.html</file>
+    <file>config.yaml</file>
+    <file>settings.ini</file>
   </qresource>
 </RCC>
