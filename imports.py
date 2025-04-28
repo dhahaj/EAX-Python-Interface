@@ -95,7 +95,7 @@ from typing import List, Dict, Tuple, Union, Optional, Any, overload
 from datetime import datetime, timedelta
 from pathlib import Path
 from enum import Enum
-from globals import logger as log, settings
+from globals import logger as log
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
