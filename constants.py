@@ -83,6 +83,7 @@ KEY_DARK_THEME: str                 = "dark_mode"
 KEY_COUNTER_ENABLED: str           = "counter_enabled"
 KEY_TEST_COUNT: str              = "test_count" 
 KEY_BUTTON_TIMEOUT: str             = "button_timeout"
+KEY_PROGRAMMER_PATH: str             = "programmer_path"
 
 
 """
