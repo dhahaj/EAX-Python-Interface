@@ -127,9 +127,9 @@
     <file>setting.gif</file>
     <file>testing.gif</file>
     <file>images/DeviceMenu.png</file>
+    <file>images/ManualControl.png</file>
     <file>images/MainWindow.png</file>
     <file>images/SettingsMenu.png</file>
-    <file>images/ManualControl.png</file>
     <file>images/SettingsDialog.png</file>
     <file>images/FirmwareUpdate.png</file>
   </qresource>
