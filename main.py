@@ -704,7 +704,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.state is not State.IDLE:
             return
         else:
-            self.arduino = AIODevice(
+            from arduino import get_device  
+            self.arduino = get_device(
                 wait=self.settings.get(constants.KEY_ARDUINO_WAIT),
                 shutdown_on_exception=self.settings.get(constants.KEY_SHUTDOWN_ON_EXCEPTION),
                 sleep_tune=self.settings.get(constants.KEY_SLEEP_TUNE),
