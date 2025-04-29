@@ -40,6 +40,12 @@ class AppLogger:
             )''')
             conn.commit()
 
+    def _emit(self, level: str, message: str, *, extra_depth: int = 0):
+        # 1 for _emit itself, 1 for the wrapper (info/debug/…)
+        skip = 2 + extra_depth
+        logger.opt(depth=skip).log(level.upper(), message)
+        self.log_to_db(level.upper(), message)
+
     def log_to_db(self, level: str, message: str):
         """Log messages explicitly to the SQLite database."""
         with sqlite3.connect(self.database) as conn:
@@ -71,35 +77,35 @@ class AppLogger:
 
     def log(self, level: str, message: str):
         """Log a message with the specified level."""
-        logger.log(level, message)
+        self._emit(level, message)
         self.log_to_db(level, message)
 
     def info(self, message: str):
-        logger.info(message)
+        self._emit("INFO", message)
         self.log_to_db("INFO", message)
 
     def error(self, message: str):
-        logger.error(message)
+        self._emit("ERROR", message)
         self.log_to_db("ERROR", message)
 
     def debug(self, message: str):
-        logger.debug(message)
+        self._emit("DEBUG", message)
         self.log_to_db("DEBUG", message)
 
     def critical(self, message: str):
-        logger.critical(message)
+        self._emit("CRITICAL", message)
         self.log_to_db("CRITICAL", message)
 
     def success(self, message: str):
-        logger.success(message)
+        self._emit("SUCCESS", message)
         self.log_to_db("SUCCESS", message)
 
     def warning(self, message: str):
-        logger.warning(message)
+        self._emit("WARNING", message)
         self.log_to_db("WARNING", message)
 
     def exception(self, message: str):
-        logger.exception(message)
+        self._emit("EXCEPTION", message, extra_depth=1)
         self.log_to_db("EXCEPTION", message)
 
     def get_logs(self) -> list:
