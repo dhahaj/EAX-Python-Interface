@@ -259,6 +259,12 @@ class AIODevice(QObject):
             if pin.get('io_mode') == 'output':
                 await self.digital_write(pin.get('pin_number'), value)
 
+    async def ensure_connected(self) -> None:
+        """Connect if not already connected."""
+        if not self.device_connected:
+            await self.async_connect()
+
+
     def __str__(self) -> str:
         return f'AIODevice(port={self.device.com_port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
 
@@ -277,6 +283,21 @@ class AIODevice(QObject):
         """
         config = ConfigLoader()
         return config.pins
+
+
+_singleton: "AIODevice|None" = None
+
+
+def get_device(**kwargs) -> "AIODevice":
+    """
+    Return the process-wide AIODevice.
+    The first call constructs it, later calls hand bac  k the same object.
+    Extra kwargs are silently ignored after the first call.
+    """
+    global _singleton
+    if _singleton is None:
+        _singleton = AIODevice(**kwargs)
+    return _singleton
 
 
 async def main():
