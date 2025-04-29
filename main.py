@@ -1,4 +1,3 @@
-from re import A
 import re
 from qtpy import (
     QtCore,
@@ -59,10 +58,7 @@ from imports import (
     get_theme,
     get_font,
     take_screenshot,
-    error,
-    info,
     warning,
-    debug,
 )
 import sys
 import subprocess
@@ -622,7 +618,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         (ok, font) = get_font(old_font)
 
         if ok:
-            debug(f"User selected font: {font.toString()}")
+            log.debug(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
             self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(font).family())
             self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(font).family())
@@ -633,12 +629,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         current_chip = self.settings.get(constants.KEY_CHIP_PART)
         current_selection = constants.CHIP_OPTIONS.index(current_chip)
         item, okPressed = QInputDialog.getItem(
-            self, "Get item", "Chip Select:", constants.CHIP_OPTIONS, current_selection, False
+            self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False
         )
         if okPressed and item:
             self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
             self.settings.setValue(constants.KEY_CHIP_PART, item)
-            self.settings.app_settings.setValue(constants.KEY_CHIP_PART, item)
             log.debug(f"saved chip settings: {item}")
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
@@ -669,7 +664,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def handle_inactivity_timeout(self) -> None:
         """ Called when the inactivity timer times out. """
-        debug("Inactivity timeout.")
+        log.debug("Inactivity timeout.")
 
         icon = QIcon()
         icon.addFile(constants.RADIO_OFF_ICON, QSize(), QIcon.Normal, QIcon.On)
@@ -725,7 +720,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.state = State.CONNECTED
         else:
             self.usb_label.setText("USB disconnected")
-            error(f"USB: connection lost. Error: {message}")
+            log.error(f"USB: connection lost. Error: {message}")
             self.insert_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
             self.state = State.IDLE
@@ -738,8 +733,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionConnect.setText("Connect")
 
     def control_manually(self) -> None:
-        self.manual = ManualWidget(self.arduino)
-        self.manual.show()
+        ManualWidget(self.arduino).show()
 
     def modify_settings(self) -> None:
         self.settings_dialog.show()
@@ -881,7 +875,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         self.set_status("Updating tester firmware...")
-        info("Updating tester firmware...")
+        log.info("Updating tester firmware...")
 
         # Get the COM port from the settings or the Arduino device
         if self.arduino.device_connected:
@@ -1106,7 +1100,6 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         if self._arduino is not None:
             if self._arduino.device_connected:
                 await self._arduino.set_all_pins_to_value(0)
-                await self._arduino.write_pin_by_func("test indicator", 1)
 
     def closeEvent(self, event):
         # Close the dialog and reset the pins
@@ -1558,6 +1551,6 @@ if __name__ == "__main__":
     asyncio.set_event_loop(loop)
     window = MainWindow(app)
     window.show()
-    info("Application started.")
+    log.info("Application started.")
     with loop:
         loop.run_forever()
