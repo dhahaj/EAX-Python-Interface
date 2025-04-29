@@ -159,25 +159,6 @@ def get_stylesheet(settings: ApplicationSettings) -> str:
     return qdarkstyle.load_stylesheet(palette)
 
 
-def debug(msg: str) -> None:
-    """ Logs a debug message. """
-    log.debug(msg)
-
-
-def error(msg: str) -> None:
-    """ Logs an error message. """
-    log.error(msg)
-
-
-def log_info(msg: str) -> None:
-    """ Logs an info message. """
-    log.log('INFO', msg)
-
-
-def info(msg: str) -> None:
-    """ Logs an info message. """
-    log.info(msg)
-
 
 def str_to_bool(s: str) -> bool:
     """ Converts a string to a boolean value. """
