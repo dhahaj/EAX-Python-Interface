@@ -44,6 +44,7 @@ from qtpy.QtWidgets import (
     QLabel,
     QStatusBar,
 )
+import settings
 from ui import (
     Ui_MainWindow,
     Ui_HelpDialog,
@@ -76,9 +77,10 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Any
 import constants
 from constants import State
-from settings import ApplicationSettings
+from settings import ApplicationSettings, get_settings
 from device import Device
-from globals import logger as log, settings
+from globals import logger as log
+from util.resources import extract_zip_from_resources
 
 
 class LogView(QWidget, Ui_LogView):
@@ -236,7 +238,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.show_movie()
         # Settings
-        self.settings: ApplicationSettings = settings
+        self.settings: ApplicationSettings = get_settings()
         self.settings_dialog = SettingsDialog(self)
 
         # Restore the window geometry and state
@@ -549,7 +551,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(self.arduino)
             # print(self.state)
             # print(self.text_edit.toPlainText())
-            print(self.label_usb_icon.size())
+            # print(self.label_usb_icon.size())
+            print(self.arduino)
+            print(get_settings())
+            print(self.settings)
 
     def show_movie(self, pause: bool=False) -> None:
         """Show or hide the GIF in the USB icon label."""
@@ -724,6 +729,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.insert_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
             self.state = State.IDLE
+            self.arduino.connection_changed.disconnect(self.on_connection_changed)
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
@@ -1074,7 +1080,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-        self.settings = ApplicationSettings()
+        self.settings = get_settings()
         if get_theme(self.settings) == "dark":
             self.setStyleSheet(qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette))
         else:
@@ -1137,9 +1143,8 @@ class SettingsDialog(QWidget, Ui_Settings):
 
     def __init__(self, parent: MainWindow = None):
         super().__init__()
-        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
         self.setupUi(self)
-        # self.app_settings = settings.app_settings
+
         self.settings: ApplicationSettings = parent.settings
         self._parent = parent
 
@@ -1241,7 +1246,6 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
         self.settings.setValue(constants.KEY_FRAMELESS, self.checkBox_frameless.isChecked())
         self.settings.setValue(constants.KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
-        # self.saved.emit((0, self))
         self.close()
 
     def apply_changes(self) -> None:
@@ -1359,7 +1363,7 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setupUi(self)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
-        self.settings = ApplicationSettings()
+        self.settings =  get_settings()
         self.setStyleSheet(get_stylesheet(self.settings))
 
     def update_progress(self, value: int) -> None:
@@ -1391,7 +1395,6 @@ class SingleInstanceApp(QApplication):
         super().__init__(argv)
         self.semaphore = QSystemSemaphore("EAXInterfaceSemaphore", 1)
         self.semaphore.acquire()
-
         self.shared_memory = QSharedMemory("EAXInterface")
         self.shared_memory.attach()
         self.shared_memory.detach()
@@ -1408,7 +1411,6 @@ class StatusWidget(QWidget, Ui_StatusBarWidget):
     """
     A custom status bar widget that displays a message and a counter.
     """
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -1418,14 +1420,13 @@ class CustomStatusBar(QStatusBar):
     """
     A custom status bar that is able to display a persistant message.
     """
-
     def __init__(self):
         super().__init__()
         self.widget = StatusWidget()
         self.addPermanentWidget(self.widget, 1)
 
         self.widget.lcdNumber.setDigitCount(5)
-        self.settings = ApplicationSettings()
+        self.settings = get_settings()
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
             self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
 
@@ -1470,24 +1471,7 @@ class CustomStatusBar(QStatusBar):
             self.widget.lcdNumber.display(current_value + 1)
 
 
-def extract_zip_from_resources(path: str) -> None:
-    """Extracts a ZIP file from the resources and extracts its contents to the specified path."""
-    # Open the ZIP file stored in resources
-    zip_file = QFile(":/resources/default_resources.zip")
-    if zip_file.open(QIODevice.ReadOnly):
-        # Read the contents into a QByteArray
-        zip_data = zip_file.readAll()
-        # Use BytesIO to treat the QByteArray as a file-like object
-        zip_file_like = io.BytesIO(zip_data)
-        # Now, use the zipfile module to extract files from the ZIP archive
-        with zipfile.ZipFile(zip_file_like, 'r') as zip_ref:
-            # List all files in the ZIP file
-            zip_ref.printdir()
-            # Extract all files (you can specify a directory if you want to extract it somewhere)
-            zip_ref.extractall(path)
-            print("ZIP file extracted successfully.")
-    else:
-        print("Failed to open the ZIP file from resources.")
+
 
 
 def verify_files(files: List[str]) -> bool:
@@ -1522,14 +1506,12 @@ def extract_file_from_resource(resource_path: str, destination_path: str = None)
 
 
 if __name__ == "__main__":
-    if not os.path.exists('.\\settings.ini') or not os.path.exists('.\\config.yaml'):
-        import resource_rc
-        print("Settings or config file not found. Extracting defaults from resources.")
-        extract_file_from_resource(":/resources/settings.ini")
-        extract_file_from_resource(":/resources/config.yaml")
+    # if not os.path.exists('.\\settings.ini') or not os.path.exists('.\\config.yaml'):
+    #     import resource_rc
+    #     print("Settings or config file not found. Extracting defaults from resources.")
+    #     extract_file_from_resource(":/resources/settings.ini")
+    #     extract_file_from_resource(":/resources/config.yaml")
     
-    settings = ApplicationSettings()
-
     if not verify_files([
         "settings.ini",
         "instructions.md",
