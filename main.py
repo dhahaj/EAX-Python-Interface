@@ -28,8 +28,6 @@ from qtpy.QtCore import (
     QObject,
     QThread,
     Signal,
-    QFile,
-    QIODevice,
     Slot,
 )
 from qtpy.QtWidgets import (
@@ -69,8 +67,6 @@ from arduino import AIODevice
 from config_loader import ConfigLoader
 import asyncio
 from qasync import QEventLoop
-import io
-import zipfile
 import os
 from pathlib import Path
 from typing import List, Dict, Tuple, Any
@@ -361,12 +357,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
             self.usb_label.setText("USB connecting...")
+            self.usb_label.setStyleSheet(constants.YELLOW)
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
             self.test_button.setEnabled(True)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
-            # self.label_usb_icon.setText(constants.ICON_USB_GREEN)
+            self.usb_label.setStyleSheet(constants.GREEN)  # Updated line
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
         elif value == State.IDLE:
@@ -555,7 +552,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(get_settings())
             print(self.settings)
 
-    def show_movie(self, pause: bool=False) -> None:
+    def show_movie(self, pause: bool = False) -> None:
         """Show or hide the GIF in the USB icon label."""
         if self.label_usb_icon.movie() is None:
             movie = QMovie(":/resources/images/icons/infinity-16570.gif")
@@ -564,7 +561,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_usb_icon.setMovie(movie)
         self.label_usb_icon.movie().setPaused(pause)
 
-    def is_movie_running(self) -> bool: 
+    def is_movie_running(self) -> bool:
         """Check if the movie in the USB icon label is running."""
         if self.label_usb_icon.movie() is not None:
             return self.label_usb_icon.movie().state() == QMovie.Running
@@ -703,13 +700,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif self.state is not State.IDLE:
             return
         else:
-            from arduino import get_device  
-            self.arduino = get_device(
-                wait=self.settings.get(constants.KEY_ARDUINO_WAIT),
-                shutdown_on_exception=self.settings.get(constants.KEY_SHUTDOWN_ON_EXCEPTION),
-                sleep_tune=self.settings.get(constants.KEY_SLEEP_TUNE),
-                debug=self.settings.get(constants.KEY_DEBUG),
-            )
+            from arduino import get_device
+            self.arduino = get_device()
             self.arduino.connection_changed.connect(self.on_connection_changed)
             self.state = State.CONNECTING
             await self.arduino.async_connect()
@@ -720,10 +712,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log.info(f"Connection changed: {connected}, message: {message}")
         if connected:  # device is connected
             self.usb_label.setText(f"USB connected: {message}")
+            self.usb_label.setStyleSheet(constants.GREEN)
             self.actionConnect.setText("Disconnect")
             self.state = State.CONNECTED
         else:
             self.usb_label.setText("USB disconnected")
+            self.usb_label.setStyleSheet(constants.RED)
             log.error(f"USB: connection lost. Error: {message}")
             self.insert_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
@@ -782,7 +776,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @Slot(int, QProcess.ExitStatus)
     def handle_programming_result(self, returncode: int, previous_state: State) -> None:
         """Called when QProcess emits finished()."""
-        self.state = previous_state # restore the previous state
+        self.state = previous_state  # restore the previous state
         if returncode == 0:
             self.insert_text("<p>Programming successful.</p>")
             log.info(f"Programming {self.eax_device._selected_device} successful")
@@ -828,7 +822,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.progress_bar.close()
         self.save_worker.quit()  # Stop the worker thread
         self.save_worker.deleteLater()  # Clean up the worker thread
-
 
     def closeEvent(self, event) -> None:
         reply = QMessageBox.question(
@@ -885,7 +878,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Get the COM port from the settings or the Arduino device
         if self.arduino.device_connected:
             port = self.arduino.device.com_port
-            self.update_process.device_connected = True 
+            self.update_process.device_connected = True
             asyncio.create_task(self.arduino.async_disconnect())
         else:
             self.update_process.device_connected = False
@@ -908,13 +901,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_finished(self, exit_code: int, exit_status: QProcess.ExitStatus, was_connected: bool) -> None:
         """Called when the update process is finished."""
         self.state = State.IDLE
-        
+
         if exit_code != 0:
             log.error(f"Update process failed with exit code {exit_code}.")
             self.insert_text(f"<p>Update process failed with exit code {exit_code}.</p>")
         else:
             log.success("Firmware update complete.")
-            self.insert_text("<p>Firmware update complete.</p>")        
+            self.insert_text("<p>Firmware update complete.</p>")
 
         if was_connected:
             asyncio.create_task(self.connect_task())
@@ -922,7 +915,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_status("Firmware update complete.")
 
         QTimer.singleShot(2500, self.load_file_text)
-        
+
     def increment_counter(self) -> None:
         """Set the progress value in the status bar."""
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
@@ -930,7 +923,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 constants.KEY_TEST_COUNT, self.settings.get_int(constants.KEY_TEST_COUNT) + 1)
         sb = self.statusBar()
         sb.update_counter()
-
 
     """ Test Functions """
 
@@ -1021,7 +1013,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.load_file_text()
 
 
-
 class UpdateProcess(QProcess):
     """Process to update the firmware."""
 
@@ -1057,7 +1048,7 @@ class UpdateProcess(QProcess):
         self.finishedWithCode.emit(exit_code, exit_status, self.device_connected)
 
     @Slot(QProcess.ProcessError)
-    def _on_error(self, error: QProcess.ProcessError):  
+    def _on_error(self, error: QProcess.ProcessError):
         self.parent.on_error(error)
         self.finishedWithCode.emit(-1, QProcess.ExitStatus.NormalExit, self.device_connected)
 
@@ -1066,6 +1057,7 @@ class UpdateProcess(QProcess):
         self.setProgram(program)
         self.setArguments(args or [])
         self.start()
+
 
 class ManualWidget(QWidget, Ui_ManualControlDialog):
     """
@@ -1255,7 +1247,6 @@ class SettingsDialog(QWidget, Ui_Settings):
             self._parent.actionFullscreen.setChecked(False)
             self._parent.showNormal()
 
-
     def pick_text_color(self):
         new_color = self.choose_color(
             self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff")
@@ -1347,11 +1338,11 @@ class SaveWorker(QThread):
             log.add_log(level=entry.get('level'), message=entry.get('message'), timestamp=entry.get('timestamp'))
             progress = ceil(self.data.index(entry) / self.length * 100)
             self.progress_changed.emit(progress)
-        
+
         log.info("Logs saved successfully.")
         self.progress_changed.emit(100)
 
-    
+
 class ProgressBar(QWidget, Ui_ProgressBar):
     """
     A progress bar dialog window.
@@ -1362,7 +1353,7 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setupUi(self)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
-        self.settings =  get_settings()
+        self.settings = get_settings()
         self.setStyleSheet(get_stylesheet(self.settings))
 
     def update_progress(self, value: int) -> None:
@@ -1410,6 +1401,7 @@ class StatusWidget(QWidget, Ui_StatusBarWidget):
     """
     A custom status bar widget that displays a message and a counter.
     """
+
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -1419,6 +1411,7 @@ class CustomStatusBar(QStatusBar):
     """
     A custom status bar that is able to display a persistant message.
     """
+
     def __init__(self):
         super().__init__()
         self.widget = StatusWidget()
@@ -1470,9 +1463,6 @@ class CustomStatusBar(QStatusBar):
             self.widget.lcdNumber.display(current_value + 1)
 
 
-
-
-
 def verify_files(files: List[str]) -> bool:
     """
     Verify if the files exist in the current directory.
@@ -1486,22 +1476,6 @@ def verify_files(files: List[str]) -> bool:
             print(f"File {file} does not exist.")
             found = False
     return found
-
-
-def extract_file_from_resource(resource_path: str, destination_path: str = None) -> str:
-    """ Extracts a file from the resource directory to a specified destination path."""
-    file = QtCore.QFile(resource_path)
-    if not file.exists():
-        raise FileNotFoundError(f"Resource file not found: {resource_path}")
-    if not file.open(QtCore.QFile.ReadOnly):
-        raise IOError(f"Cannot open resource file: {resource_path}")
-    data = file.readAll()
-    file.close()
-    if destination_path is None:
-        destination_path = os.path.join(os.getcwd(), os.path.basename(resource_path))
-    with open(destination_path, 'wb') as dest_file:
-        dest_file.write(data.data())
-    return destination_path
 
 
 if __name__ == "__main__":
@@ -1519,6 +1493,7 @@ if __name__ == "__main__":
         "firmware/EAX525_591.hex",
     ]):
         print("Some files are missing. Extracting defaults from resources.")
+        import util.config_resources_rc
         extract_zip_from_resources('.')
 
     app = SingleInstanceApp(sys.argv)
