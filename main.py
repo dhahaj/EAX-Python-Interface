@@ -308,7 +308,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menuDevice.removeAction(action)
 
         # Load the devices from the config file and add them to the menu
-        config = ConfigLoader()
+        config = ConfigLoader.get_instance()
         for device in config.devices:
             action = QAction(device, self)
             action.setFont(self.font())
@@ -1155,7 +1155,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.setStyleSheet(get_stylesheet(self.settings))
 
     def initialize_settings(self) -> None:
-        config = ConfigLoader()
+        config = ConfigLoader.get_instance()
 
         self.lineEdit_serial.setText(self.settings.app_settings.value(
             constants.KEY_PROGRAMMER_SERIAL_NUMBER, constants.DEFAULT_SETTINGS[constants.KEY_PROGRAMMER_SERIAL_NUMBER]))
@@ -1485,6 +1485,7 @@ if __name__ == "__main__":
         critical(None, "Another instance of the application is already running.", "Error")
         sys.exit(1)
 
+    print(ConfigLoader.get_instance())
     settings = get_instance()
 
     if not verify_files([

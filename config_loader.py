@@ -6,6 +6,7 @@ from util.resources import extract_file_from_resource
 class ConfigLoader:
     """Load the config from a YAML file."""
 
+
     def __init__(self, filename: str = "config.yaml") -> None:
         # If the config file does not exist, try to extract it from resources
         if not os.path.exists(filename):
@@ -82,30 +83,20 @@ class ConfigLoader:
         """Return the test instructions."""
         return self.data.get('testing', [])
 
+    def __str__(self):
+        """Return the string representation of the config."""
+        return str(self.data)
 
-def validate_config(yaml_file: str) -> Tuple[bool, List[str]]:
-    """Validate the config file contains the required keys."""
-    required_keys = ["firmware", "testing", "settings", "pins"]
+    @staticmethod
+    def get_instance() -> "ConfigLoader":
+        """Return the singleton instance of ConfigLoader."""
+        if not hasattr(ConfigLoader, "_instance"):
+            ConfigLoader._instance = ConfigLoader()
+        return ConfigLoader._instance
 
-    # Load the YAML file
-    with open(yaml_file, 'r', encoding='utf-8') as f:
-        data = yaml.safe_load(f)
-
-    # Check for required keys
-    missing_keys = [key for key in required_keys if key not in data]
-
-    if missing_keys:
-        print(
-            f"Error: The following keys are missing from the YAML file: {', '.join(missing_keys)}")
-        return False, missing_keys
-    else:
-        print("YAML file is valid!")
-        return True, []
 
 
 if __name__ == '__main__':
-    # validate_config('config.yaml')
-
     config = ConfigLoader()
 
     print(config.get('logging').get("database_file", None))

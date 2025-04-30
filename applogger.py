@@ -8,7 +8,7 @@ class AppLogger:
     def __init__(self, logfile="logs/app_{time:YYYY-MM-DD}.log", database="logs.db"):
 
         try:
-            self.config = ConfigLoader().get('logging')
+            self.config = ConfigLoader.get_instance().get('logging')
         except Exception as e:
             print(f"Error loading config: {e}")
             self.config = None

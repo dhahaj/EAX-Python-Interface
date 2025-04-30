@@ -139,7 +139,7 @@ class AIODevice(QObject):
 
         param filename: str - The name of the configuration file.
         """
-        config = ConfigLoader(filename=filename)
+        config = ConfigLoader.get_instance()
         self.pins = config.pins
 
     async def configure_pin_modes(self) -> None:
@@ -241,7 +241,7 @@ class AIODevice(QObject):
         """
         Get the pin configuration from the settings.
         """
-        config = ConfigLoader()
+        config = ConfigLoader.get_instance()
         return config.pins
 
 
