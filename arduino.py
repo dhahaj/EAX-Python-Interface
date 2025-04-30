@@ -1,7 +1,7 @@
 import asyncio
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 from config_loader import ConfigLoader
-from settings import get_settings
+from settings import get_instance
 from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID, KEY_SHUTDOWN_ON_EXCEPTION, KEY_ARDUINO_WAIT, KEY_SLEEP_TUNE, KEY_DEBUG
 from serial.tools import list_ports
 from typing import List
@@ -50,7 +50,7 @@ class AIODevice(QObject):
     def __init__(self):
         super().__init__()
 
-        self.settings = get_settings()
+        self.settings = get_instance()
 
         self._device_connected = False
         self.debug = self.settings.get_bool(KEY_DEBUG, False)

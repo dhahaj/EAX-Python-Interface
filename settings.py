@@ -1,4 +1,5 @@
 import os
+from re import A
 from PySide6.QtCore import QSettings
 from typing import Any
 import os
@@ -99,6 +100,10 @@ class ApplicationSettings():
             value = settings.value(key)
             self.app_settings.setValue(key, value)
 
+    @staticmethod
+    def get_instance() -> "ApplicationSettings":
+        return _settings_singleton
+
     # def __str__(self) -> str:
     #     """Return a string representation of the settings."""
     #     settings_str = ""
@@ -110,7 +115,7 @@ class ApplicationSettings():
 
 _settings_singleton: "ApplicationSettings|None" = None
 
-def get_settings(**kwargs) -> "ApplicationSettings":
+def get_instance(**kwargs) -> "ApplicationSettings":
     """
     Return the process-wide ApplicationSettings.
     The first call constructs it, later calls hand bac  k the same object.
@@ -123,7 +128,7 @@ def get_settings(**kwargs) -> "ApplicationSettings":
 
 
 if __name__ == "__main__":
-    settings = get_settings()
+    settings = get_instance()
 
 
     # print(settings.deserialize(bytes))

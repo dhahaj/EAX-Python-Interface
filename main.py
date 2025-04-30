@@ -72,7 +72,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Any
 import constants
 from constants import State
-from settings import ApplicationSettings, get_settings
+from settings import ApplicationSettings, get_instance
 from device import Device
 from globals import logger as log
 from util.resources import extract_zip_from_resources
@@ -233,7 +233,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.show_movie()
         # Settings
-        self.settings: ApplicationSettings = get_settings()
+        self.settings: ApplicationSettings = get_instance()
         self.settings_dialog = SettingsDialog(self)
 
         # Restore the window geometry and state
@@ -549,7 +549,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(self.text_edit.toPlainText())
             # print(self.label_usb_icon.size())
             print(self.arduino)
-            print(get_settings())
+            print(ApplicationSettings.get_instance())
             print(self.settings)
 
     def show_movie(self, pause: bool = False) -> None:
@@ -1070,7 +1070,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-        self.settings = get_settings()
+        self.settings = get_instance()
         if get_theme(self.settings) == "dark":
             self.setStyleSheet(qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette))
         else:
@@ -1352,7 +1352,7 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setupUi(self)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
-        self.settings = get_settings()
+        self.settings = get_instance()
         self.setStyleSheet(get_stylesheet(self.settings))
 
     def update_progress(self, value: int) -> None:
@@ -1417,7 +1417,7 @@ class CustomStatusBar(QStatusBar):
         self.addPermanentWidget(self.widget, 1)
 
         self.widget.lcdNumber.setDigitCount(5)
-        self.settings = get_settings()
+        self.settings = get_instance()
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
             self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
 
@@ -1485,7 +1485,7 @@ if __name__ == "__main__":
         critical(None, "Another instance of the application is already running.", "Error")
         sys.exit(1)
 
-    settings = get_settings()
+    settings = get_instance()
 
     if not verify_files([
         "instructions.md",
