@@ -1,6 +1,6 @@
 from applogger import AppLogger
-from settings import ApplicationSettings
+# from settings import ApplicationSettings
 
 logger = AppLogger()
 
-settings = ApplicationSettings()
+# settings = ApplicationSettings()
