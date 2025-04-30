@@ -1,16 +1,21 @@
 import os
 from PySide6.QtCore import QSettings
 from typing import Any
-import constants
-# from globals import logger as log
+import os
+from util.resources import extract_file_from_resource   
 
 class ApplicationSettings():
     """The settings class, used to store settings."""
 
     def __init__(self, filename: str = "settings.ini"):
+        if not os.path.exists(filename):
+            try:
+                filename = extract_file_from_resource(":/settings.ini")
+            except FileNotFoundError as e:
+                print(f"Error: {e}")
+                raise FileNotFoundError(f"Settings file not found: {filename}")
         self.app_settings: QSettings = QSettings(filename, QSettings.Format.IniFormat)
         self.filename = filename
-        self.default_settings = constants.DEFAULT_SETTINGS.copy()
 
     @property
     def path(self) -> str:
@@ -92,28 +97,27 @@ class ApplicationSettings():
             value = settings.value(key)
             self.app_settings.setValue(key, value)
 
-    def __str__(self) -> str:
-        """Return a string representation of the settings."""
-        settings_str = ""
-        for key in self.app_settings.allKeys():
-            value = self.app_settings.value(key)
-            settings_str += f"{key}: {value}\n"
-        return settings_str
+    # def __str__(self) -> str:
+    #     """Return a string representation of the settings."""
+    #     settings_str = ""
+    #     for key in self.app_settings.allKeys():
+    #         value = self.app_settings.value(key)
+    #         settings_str += f"{key}: {value}\n"
+    #     return settings_str
 
-from typing import List
 
-def read_array() -> List:
-    array = []
-    settings = ApplicationSettings()
-    app_settings = settings.app_settings
-    keys = list(constants.DEFAULT_SETTINGS.keys())
-    size = app_settings.beginReadArray("settings")
-    for i in range(size):
-        key = keys[i]
-        app_settings.setArrayIndex(i)
-        array.append(app_settings.value(key))
-    app_settings.endArray()
-    return array
+_settings_singleton: "ApplicationSettings|None" = None
+
+def get_settings(**kwargs) -> "ApplicationSettings":
+    """
+    Return the process-wide ApplicationSettings.
+    The first call constructs it, later calls hand bac  k the same object.
+    Extra kwargs are silently ignored after the first call.
+    """
+    global _settings_singleton
+    if _settings_singleton is None:
+        _settings_singleton = ApplicationSettings(**kwargs)
+    return _settings_singleton
 
 
 if __name__ == "__main__":

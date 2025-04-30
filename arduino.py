@@ -1,7 +1,7 @@
 import asyncio
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 from config_loader import ConfigLoader
-from settings import ApplicationSettings
+from settings import get_settings
 from rich import print
 from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID
 from serial.tools import list_ports
@@ -55,7 +55,7 @@ class AIODevice(QObject):
         debug: bool = True,
     ):
         super().__init__()
-        self.settings = ApplicationSettings()
+        self.settings = get_settings()
 
         # Determine connection parameters from settings.
         if self.settings.get(KEY_AUTO_FIND):
@@ -265,8 +265,8 @@ class AIODevice(QObject):
             await self.async_connect()
 
 
-    def __str__(self) -> str:
-        return f'AIODevice(port={self.device.com_port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
+    # def __str__(self) -> str:
+    #     return f'AIODevice(port={self.device.com_port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
 
     @staticmethod
     def get_usb_ports() -> List[str]:
