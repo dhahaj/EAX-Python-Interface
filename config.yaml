@@ -57,7 +57,7 @@ pins:
   #   pullup_enabled: false
   - function: battery
     io_mode: output
-    pin_number: 10
+    pin_number: 4
     pullup_enabled: false
   # - function: remote
   #   io_mode: output
