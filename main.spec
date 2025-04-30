@@ -9,6 +9,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
+        ('util/resources.py', '.'),
+        ('util', 'util'),
         ('config_loader.py', '.'), 
         ('imports.py', '.'), 
         ('ui', 'ui'), 
@@ -33,8 +35,6 @@ a = Analysis(
         'sqlite3', 
         'bcrypt', 
         'shutil',
-        'telemetrix_aio',
-        'telemetrix_aio.telemetrix_aio',
         'serial',
         'serial.serialutil',
         'serial.tools.list_ports',
