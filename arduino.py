@@ -2,17 +2,19 @@ import asyncio
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 from config_loader import ConfigLoader
 from settings import get_settings
-from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID
+from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID, KEY_SHUTDOWN_ON_EXCEPTION, KEY_ARDUINO_WAIT, KEY_SLEEP_TUNE, KEY_DEBUG
 from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
 from enum import Enum
 from globals import logger as log
 
+
 class PinMode(Enum):
     INPUT = 'input'
     OUTPUT = 'output'
     INPUT_PULLUP = 'input_pullup'
+
 
 class Pin:
     def __init__(self, pin_number: int, mode: PinMode, function: str = None, pullup_enabled: bool = False):
@@ -45,51 +47,22 @@ class AIODevice(QObject):
     DEBOUNCE_TIME = 0.05
     connection_changed = Signal(bool, object)
 
-    def __init__(
-        self,
-        wait: int = 4,
-        shutdown_on_exception: bool = True,
-        sleep_tune: float = 1e-6,
-        debug: bool = True,
-    ):
+    def __init__(self):
         super().__init__()
+
         self.settings = get_settings()
 
-        # Determine connection parameters from settings.
-        if self.settings.get(KEY_AUTO_FIND):
-            self.port = None
-            self.arduino_instance_id = self.settings.get_int(KEY_ARDUINO_INSTANCE_ID)
-        else:
-            self.port = self.settings.get(KEY_COM_PORT)
-            self.arduino_instance_id = None
-        log.info(f'Port is set to {self.port}')
-        self.shutdown_on_exception = shutdown_on_exception
-        self.arduino_wait = wait
-        self.sleep_tune = float(sleep_tune)  # Ensure a float.
         self._device_connected = False
-        self.debug = debug
+        self.debug = self.settings.get_bool(KEY_DEBUG, False)
         self.input_pin = None
         self.callback = None
 
         self.pins: List[Pin] = []
 
         self.inputs = []
-        self.last_input_times = {}
-        self._connect_callback = None
 
         # Will hold the TelemetrixAIO instance.
         self.device: TelemetrixAIO = None
-
-        print(
-            f"[bold green]AIODevice[/bold green]\n"
-            f"initialize with port: {self.port}\n"
-            f"arduino_instance_id: {self.arduino_instance_id}\n"
-            f"debug: {self.debug}\n"
-            f"shutdown_on_exception: {self.shutdown_on_exception}\n"
-            f"arduino_wait: {self.arduino_wait}\n"
-            f"sleep_tune: {self.sleep_tune}\n"
-            f"device_connected: {self._device_connected}\n"
-        )
 
     @property
     def device_connected(self) -> bool:
@@ -107,16 +80,15 @@ class AIODevice(QObject):
         try:
             # Instantiate the asynchronous Telemetrix device.
             self.device = TelemetrixAIO(
-                com_port=self.port,
-                arduino_instance_id=self.settings.get_int(KEY_ARDUINO_INSTANCE_ID),
-                arduino_wait=int(self.arduino_wait),
-                shutdown_on_exception=self.shutdown_on_exception,
-                sleep_tune=self.sleep_tune,
+                com_port=None if self.settings.get_bool(KEY_AUTO_FIND, True) else self.settings.get(KEY_COM_PORT, None),
+                arduino_instance_id=self.settings.get_int(KEY_ARDUINO_INSTANCE_ID, 1),
+                arduino_wait=self.settings.get_int(KEY_ARDUINO_WAIT, 4),
+                shutdown_on_exception=self.settings.get(KEY_SHUTDOWN_ON_EXCEPTION, True),
+                sleep_tune=self.settings.get_float(KEY_SLEEP_TUNE, 0.000001),
                 autostart=False,
                 close_loop_on_shutdown=False
             )
 
-            self._connect_callback = callback
             # Await the connection—assuming TelemetrixAIO.connect() is an async method.
             await self.device.start_aio()
             self.device_connected = True
@@ -153,10 +125,6 @@ class AIODevice(QObject):
         log.debug(f'{self}: Method: {self.input_callback.__name__}, Pin: {pin_number}, Value: {value}')
         if pin_number != self.input_pin:
             return
-
-        # self.input_changed.emit([pin_number, value])
-        if self.callback:
-            self.callback([pin_number, value])
 
     def attach_callback(self, callback: callable, pin_number: int) -> None:
         """
@@ -217,10 +185,7 @@ class AIODevice(QObject):
             except Exception as e:
                 log.warning("Arduino connection lost")
                 self.device_connected = False
-                if self._connect_callback:
-                    self._connect_callback(False, "Connection lost")
                 break
-        # self.connection_changed.emit(self._device_connected, 'Connection lost')
 
     async def write_pin_by_func(self, pin_function: str, value: int) -> None:
         try:
@@ -232,8 +197,6 @@ class AIODevice(QObject):
         except Exception as e:
             log.error(f"Write failed: {e}")
             self.device_connected = False
-            if self._connect_callback:
-                self._connect_callback(False, str(e))
             raise
 
     def get_pin_by_function(self, function: str) -> int:
@@ -261,7 +224,6 @@ class AIODevice(QObject):
         """Connect if not already connected."""
         if not self.device_connected:
             await self.async_connect()
-
 
     # def __str__(self) -> str:
     #     return f'AIODevice(port={self.device.com_port}, arduino_instance_id={self.arduino_instance_id}, device_connected={self._device_connected})'
