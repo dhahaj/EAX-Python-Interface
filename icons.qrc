@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/resources/icons">
+  <qresource prefix="/">
     <file>images/icons/light/gear.png</file>
     <file>images/icons/dark/gear.png</file>
     <file>images/icons/dark/folder.png</file>
@@ -114,7 +114,6 @@
     <file>images/icons/forward-button.png</file>
     <file>images/icons/help.png</file>
     <file>images/FirmwareUpdate.png</file>
-    <file>main.qml</file>
   </qresource>
   <qresource prefix="/resources">
     <file>README.html</file>
