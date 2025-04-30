@@ -51,46 +51,46 @@ pins:
     io_mode: output
     pin_number: 2
     pullup_enabled: false
-  - function: test mode
-    io_mode: output
-    pin_number: 3
-    pullup_enabled: false
+  # - function: test mode
+  #   io_mode: output
+  #   pin_number: 3
+  #   pullup_enabled: false
   - function: battery
     io_mode: output
-    pin_number: 4
+    pin_number: 10
     pullup_enabled: false
-  - function: remote
-    io_mode: output
-    pin_number: 5
-    pullup_enabled: false
-  - function: pad
-    io_mode: output
-    pin_number: 6
-    pullup_enabled: false
-  - function: relay in
-    io_mode: input_pullup
-    pin_number: 7
-    pullup_enabled: true
-  - function: okc
-    io_mode: output
-    pin_number: 8
-    pullup_enabled: false
-  - function: ac
-    io_mode: output
-    pin_number: 9
-    pullup_enabled: false
+  # - function: remote
+  #   io_mode: output
+  #   pin_number: 5
+  #   pullup_enabled: false
+  # - function: pad
+  #   io_mode: output
+  #   pin_number: 6
+  #   pullup_enabled: false
+  # - function: relay in
+  #   io_mode: input_pullup
+  #   pin_number: 7
+  #   pullup_enabled: true
+  # - function: okc
+  #   io_mode: output
+  #   pin_number: 8
+  #   pullup_enabled: false
+  # - function: ac
+  #   io_mode: output
+  #   pin_number: 9
+  #   pullup_enabled: false
   - function: indicator
     io_mode: output
     pin_number: 10
     pullup_enabled: false
-  - function: relay1
-    io_mode: output
-    pin_number: 11
-    pullup_enabled: false
-  - function: relay2
-    io_mode: output
-    pin_number: 12
-    pullup_enabled: false
+  # - function: relay1
+  #   io_mode: output
+  #   pin_number: 11
+  #   pullup_enabled: false
+  # - function: relay2
+  #   io_mode: output
+  #   pin_number: 12
+  #   pullup_enabled: false
   - function: test indicator
     io_mode: output
     pin_number: 13
@@ -99,7 +99,7 @@ pins:
 logging:
   log_file: logs/app_{time:YYYY-MM-DD}.log
   log_level: DEBUG
-  log_format: '{time:YYYY-MM-DD HH:mm:ss} {level} {message}'
+  log_format: '{time:YYYY-MM-DD HH:mm:ss} | {level} | {file}:{function}:{line} | {message}'
   log_rotation: 00:00
   log_retention: '14 days'
   database_file: logs.db
@@ -189,20 +189,6 @@ testing:
     delay: 10
     description: Load Instructions
     params: [instructions.md]
-
-users:
-  - admin: true
-    password: $2b$12$ccVAflXRZEz4U5spRCyHv.Z5lAWu8P6cLbRSmlpKBck1SlzR3yV7O
-    username: dmh
-  - admin: true
-    password: $2b$12$S35v7teOYbxZvWmdkqCzu.fqejX4Lzpe2uTaZMolhh7fXpHwmdOVG
-    username: sm
-  - admin: true
-    password: $2b$12$.RWCdkSOLyGzXzFtqlY//Ow4GRMD2j4CcRGOCfa.fG/OP2P6B5UGW
-    username: admin
-  - admin: false
-    password: $2b$12$GxFOW/zBSQmdSq3Y9lIxE.pLPOFCIl9dQd0rmgu.Ofg3nSJke8Hpm
-    username: user
 
 chip_options:
   - PIC16F627
