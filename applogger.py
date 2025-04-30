@@ -88,8 +88,8 @@ class AppLogger:
         self._emit("ERROR", message)
         self.log_to_db("ERROR", message)
 
-    def debug(self, message: str):
-        self._emit("DEBUG", message)
+    def debug(self, message: str, extra_depth: int = 0):
+        self._emit("DEBUG", message, extra_depth=extra_depth)
         self.log_to_db("DEBUG", message)
 
     def critical(self, message: str):
