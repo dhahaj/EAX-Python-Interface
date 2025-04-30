@@ -5,7 +5,7 @@ import io
 from typing import List, Dict
 import sys
 import os
-import util.config_resources_rc
+
 
 def extract_file_from_resource(resource_path: str, destination_path: str = None) -> str:
     """
@@ -93,7 +93,12 @@ def list_resource_directory_files_recursive(resource_path: str) -> List[Dict[str
 
 
 def extract_zip_from_resources(path: str) -> None:
-    """Extracts a ZIP file from the resources and extracts its contents to the specified path."""
+    """
+    Extracts a ZIP file from the resources directory to a specified path if it doesn't already exist.
+    
+    :param path: The path where the ZIP file should be extracted.
+    :return: None
+    """
     # Open the ZIP file stored in resources
     zip_file = QFile(":/default_resources.zip")
     if zip_file.open(QIODevice.ReadOnly):
@@ -105,8 +110,15 @@ def extract_zip_from_resources(path: str) -> None:
         with zipfile.ZipFile(zip_file_like, 'r') as zip_ref:
             # List all files in the ZIP file
             zip_ref.printdir()
-            # Extract all files (you can specify a directory if you want to extract it somewhere)
-            zip_ref.extractall(path)
+
+            for file_info in zip_ref.infolist():
+                # Extract a single file if it doesn't exist in the destination path
+                if not os.path.exists(os.path.join(path, file_info.filename)):
+                    zip_ref.extract(file_info, path)
+                    print(f"Extracted: {file_info.filename} to {path}")
+                else:
+                    print(f"File already exists: {file_info.filename}, skipping extraction.")
+
             print("ZIP file extracted successfully.")
     else:
         print("Failed to open the ZIP file from resources.")
@@ -115,16 +127,20 @@ def extract_zip_from_resources(path: str) -> None:
 if __name__ == "__main__":
     # Example usage
 
-    resource_path = ":/"  # Path to the resource file in the resource directory
+    path = "temp"  # Path to the directory where you want to extract the ZIP file
+
+    # extract_zip_from_resources(path)  # Specify the path where you want to extract the ZIP file
+
+    # resource_path = ""  # Path to the resource file in the resource directory
 
     # try:
     #     list_resource_directory_files_recursive(resource_path)
+    #     print(f"Files in resource directory: {resource_path} - {len(list_resource_directory_files_recursive(resource_path))} files found.")
     # except Exception as e:
     #     print(f"Error extracting file from resource: {e}")
 
-
-    # resource_path = ":/"
-    # file = f"{resource_path}/settings.ini"
+    # resource_path = ":/firmware"
+    # # file = f"{resource_path}/settings.ini"
     # total_size = 0
     # try:
     #     _list = list_resource_directory_files_recursive(resource_path)
@@ -141,6 +157,6 @@ if __name__ == "__main__":
     # except Exception as e:
     #     print(f"Error: {e}")
     # extract_zip_from_resources("./util/extracted_resources")  # Specify the path where you want to extract the ZIP file
-    # resource_files = extract_file_from_resource(":/default_resources.zip", destination_path="./util/extracted_resources.zip")  
+    # resource_files = extract_file_from_resource(":/default_resources.zip", destination_path="./util/extracted_resources.zip")
     # for resource_file in resource_files:
-        # print(resource_file)
+    # print(resource_file)
