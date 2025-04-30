@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1523</width>
-    <height>1120</height>
+    <width>1068</width>
+    <height>855</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -266,7 +266,7 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../icons.qrc">
+         <iconset>
           <normaloff>:/resources/icons/images/icons/light/prog-button.png</normaloff>:/resources/icons/images/icons/light/prog-button.png</iconset>
         </property>
         <property name="iconSize">
@@ -415,7 +415,7 @@ font-weight: bold;</string>
           <widget class="QLabel" name="usb_label">
            <property name="maximumSize">
             <size>
-             <width>210</width>
+             <width>16777215</width>
              <height>16777215</height>
             </size>
            </property>
@@ -765,7 +765,7 @@ font-weight: bold;</string>
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="../icons.qrc">
+         <iconset>
           <normaloff>:/resources/icons/images/icons/light/test-button.png</normaloff>:/resources/icons/images/icons/light/test-button.png</iconset>
         </property>
         <property name="iconSize">
@@ -794,7 +794,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1523</width>
+     <width>1068</width>
      <height>33</height>
     </rect>
    </property>
@@ -872,7 +872,7 @@ font-weight: bold;</string>
   </widget>
   <action name="actionConnect">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/dark/usb3.png</normaloff>
      <normalon>:/resources/icons/images/icons/dark/usb2.png</normalon>
      <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/resources/icons/images/icons/dark/usb3.png</iconset>
@@ -912,7 +912,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/logout2.png</normaloff>
      <disabledoff>:/resources/icons/images/icons/logout2.png</disabledoff>:/resources/icons/images/icons/logout2.png</iconset>
    </property>
@@ -1238,7 +1238,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionModify_Settings">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/light/settings.ico</normaloff>:/resources/icons/images/icons/light/settings.ico</iconset>
    </property>
    <property name="text">
@@ -1270,7 +1270,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionRemove_User">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/remove-user.png</normaloff>:/resources/icons/images/icons/remove-user.png</iconset>
    </property>
    <property name="text">
@@ -1284,7 +1284,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionShow_Logs">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/light/files.png</normaloff>:/resources/icons/images/icons/light/files.png</iconset>
    </property>
    <property name="text">
@@ -1325,7 +1325,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionManual_Control">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/dark/gear.png</normaloff>:/resources/icons/images/icons/dark/gear.png</iconset>
    </property>
    <property name="text">
@@ -1345,7 +1345,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionChip_Select">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/chip.png</normaloff>:/resources/icons/images/icons/chip.png</iconset>
    </property>
    <property name="text">
@@ -1416,7 +1416,7 @@ font-weight: bold;</string>
   </action>
   <action name="actionStatisitics">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/bar-chart.png</normaloff>:/resources/icons/images/icons/bar-chart.png</iconset>
    </property>
    <property name="text">
@@ -1462,7 +1462,7 @@ font-weight: bold;</string>
     <enum>QAction::MenuRole::PreferencesRole</enum>
    </property>
    <property name="Advanced" stdset="0">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/resources/icons/images/icons/dark/bar-chart.png</normaloff>
      <normalon>:/resources/icons/images/icons/light/bar-chart.png</normalon>:/resources/icons/images/icons/dark/bar-chart.png</iconset>
    </property>

@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(1523, 1120)
+        MainWindow.resize(1068, 855)
         MainWindow.setMinimumSize(QSize(650, 500))
         font = QFont()
         font.setPointSize(11)
@@ -361,7 +361,7 @@ class Ui_MainWindow(object):
 
         self.usb_label = QLabel(self.groupBox)
         self.usb_label.setObjectName(u"usb_label")
-        self.usb_label.setMaximumSize(QSize(210, 16777215))
+        self.usb_label.setMaximumSize(QSize(16777215, 16777215))
         palette1 = QPalette()
         brush1 = QBrush(QColor(255, 0, 0, 255))
         brush1.setStyle(Qt.BrushStyle.SolidPattern)
@@ -442,7 +442,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1523, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1068, 33))
         self.menubar.setFont(font)
         self.menubar.setDefaultUp(False)
         self.menubar.setNativeMenuBar(False)
