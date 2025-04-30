@@ -468,9 +468,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_icon(self, widget: QObject, icon_name: str, ext='png') -> None:
         if get_theme(self.settings) == 'dark':
-            icon_path = f":/resources/icons/images/icons/light/{icon_name}.{ext}"
+            icon_path = f":/images/icons/light/{icon_name}.{ext}"
         else:
-            icon_path = f":/resources/icons/images/icons/dark/{icon_name}.{ext}"
+            icon_path = f":/images/icons/dark/{icon_name}.{ext}"
         icon = QIcon()
         icon.addFile(icon_path, QSize(), QIcon.Normal, QIcon.On,)
         widget.setIcon(icon)
@@ -1480,6 +1480,10 @@ def verify_files(files: List[str]) -> bool:
 if __name__ == "__main__":
 
     app = SingleInstanceApp(sys.argv)
+    if app.is_running:
+        from imports import critical
+        critical(None, "Another instance of the application is already running.", "Error")
+        sys.exit(1)
 
     settings = get_settings()
 
@@ -1497,12 +1501,6 @@ if __name__ == "__main__":
         print("Some files are missing. Extracting defaults from resources.")
         import util.config_resources_rc
         extract_zip_from_resources('.')
-
-
-    if app.is_running:
-        from imports import critical
-        critical(None, "Another instance of the application is already running.",)
-        sys.exit(1)
 
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
