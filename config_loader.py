@@ -10,7 +10,9 @@ class ConfigLoader:
         # If the config file does not exist, try to extract it from resources
         if not os.path.exists(filename):
             try:
+                import util.config_resources_rc
                 filename = extract_file_from_resource(":/config.yaml")
+                print(f"Config file extracted from resources: {filename}")
             except FileNotFoundError as e:
                 print(f"Error: {e}")
                 raise FileNotFoundError(f"Config file not found: {filename}")
