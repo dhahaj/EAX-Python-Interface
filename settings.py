@@ -10,7 +10,9 @@ class ApplicationSettings():
     def __init__(self, filename: str = "settings.ini"):
         if not os.path.exists(filename):
             try:
+                import util.config_resources_rc
                 filename = extract_file_from_resource(":/settings.ini")
+                print(f"Settings file extracted from resources: {filename}")
             except FileNotFoundError as e:
                 print(f"Error: {e}")
                 raise FileNotFoundError(f"Settings file not found: {filename}")
