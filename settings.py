@@ -123,6 +123,9 @@ def get_settings(**kwargs) -> "ApplicationSettings":
 
 
 if __name__ == "__main__":
-    settings = ApplicationSettings()
-    settings.print_settings()
+    settings = get_settings()
+
+
+    # print(settings.deserialize(bytes))
+
 
