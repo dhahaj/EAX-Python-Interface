@@ -4,7 +4,8 @@
     <file>../config.yaml</file>
     <file>../instructions.md</file>
     <!-- <file>../tools/arduino-cli.zip</file> -->
-    <!-- <file>../firmware/</file> -->
+    <file>../firmware/</file>
+    <file>../Scripts/</file>
     <file>../default_resources.zip</file>
   </qresource>
 </RCC>
