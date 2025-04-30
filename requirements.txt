@@ -1,13 +1,8 @@
 bcrypt==4.0.1
 bidict==0.22.1
 bleak==0.22.3
-cffi==1.17.1
-clr-loader==0.2.5
 colorama==0.4.6
-command-runner==1.5.0
 loguru==0.7.0
-markdown-it-py==3.0.0
-mdurl==0.1.2
 packaging==23.1
 psutil==5.9.5
 pycparser==2.22
@@ -21,7 +16,6 @@ PyYAML==6.0.2
 qasync==0.27.1
 QDarkStyle==3.1
 QtPy==2.4.3
-rich==13.5.2
 shiboken6==6.9.0
 -e git+https://github.com/dhahaj/telemetrix-aio.git@f880d3d3488808be83e73e7d9d956d28eba1fd69#egg=telemetrix_aio
 win32-setctime==1.1.0
