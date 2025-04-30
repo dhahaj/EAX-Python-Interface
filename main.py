@@ -67,7 +67,6 @@ import qdarkstyle
 from math import ceil, e
 from arduino import AIODevice
 from config_loader import ConfigLoader
-from rich import print
 import asyncio
 from qasync import QEventLoop
 import io
@@ -1506,12 +1505,6 @@ def extract_file_from_resource(resource_path: str, destination_path: str = None)
 
 
 if __name__ == "__main__":
-    # if not os.path.exists('.\\settings.ini') or not os.path.exists('.\\config.yaml'):
-    #     import resource_rc
-    #     print("Settings or config file not found. Extracting defaults from resources.")
-    #     extract_file_from_resource(":/resources/settings.ini")
-    #     extract_file_from_resource(":/resources/config.yaml")
-    
     if not verify_files([
         "settings.ini",
         "instructions.md",
@@ -1529,6 +1522,12 @@ if __name__ == "__main__":
         extract_zip_from_resources('.')
 
     app = SingleInstanceApp(sys.argv)
+
+    if app.is_running:
+        from imports import critical
+        critical(None, "Another instance of the application is already running.",)
+        sys.exit(1)
+
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
     window = MainWindow(app)

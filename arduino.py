@@ -2,7 +2,6 @@ import asyncio
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 from config_loader import ConfigLoader
 from settings import get_settings
-from rich import print
 from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID
 from serial.tools import list_ports
 from typing import List
@@ -14,7 +13,6 @@ class PinMode(Enum):
     INPUT = 'input'
     OUTPUT = 'output'
     INPUT_PULLUP = 'input_pullup'
-
 
 class Pin:
     def __init__(self, pin_number: int, mode: PinMode, function: str = None, pullup_enabled: bool = False):

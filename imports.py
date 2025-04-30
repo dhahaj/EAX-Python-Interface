@@ -10,97 +10,39 @@ from qtpy import (
 )
 from qtpy.QtGui import (
     QFont,
-    QFontInfo,
-    QColor,
-    QPalette,
-    QIcon,
-    QPixmap,
-    QMovie,
-    QCursor,
-    QAction,
-    QKeyEvent,
-    QShowEvent,
-)
-from qtpy.QtCore import (
-    QCoreApplication,
-    QMetaObject,
-    QTimer,
-    QEvent,
-    Qt,
-    QSize,
-    QProcess,
-    Signal,
-    QSettings,
-    QSize,
-    QByteArray,
-    QSystemSemaphore,
-    QSharedMemory,
-    QObject,
-    QThread,
-    Signal,
-    QJsonDocument,
-    QPropertyAnimation,
-    QRect,
-    QFileInfo,
-    QDir,
-    QFile,
-    QDateTime,
-    QTime,
-    QRunnable,
-    Slot,
 )
 from qtpy.QtWidgets import (
     QApplication,
-    QMainWindow,
     QMessageBox,
-    QColorDialog,
     QWidget,
     QFontDialog,
-    QInputDialog,
-    QLineEdit,
-    QTableWidgetItem,
-    QDialog,
-    QMenu,
-    QSplashScreen,
-    QComboBox,
-    QProgressBar,
-    QLabel,
     QFileDialog,
-    QStatusBar,
-    QLCDNumber
 )
-from ui import (
-    Ui_MainWindow,
-    Ui_AddUserDialog,
-    Ui_RemoveUserDialog,
-    Ui_HelpDialog,
-    Ui_LogView,
-    Ui_Settings,
-    Ui_LoginDialog,
-    Ui_ManualControlDialog,
-    Ui_ProgressBar,
-    Ui_StatusBarWidget
-)
+# from ui import (
+#     Ui_MainWindow,
+#     Ui_AddUserDialog,
+#     Ui_RemoveUserDialog,
+#     Ui_HelpDialog,
+#     Ui_LogView,
+#     Ui_Settings,
+#     Ui_LoginDialog,
+#     Ui_ManualControlDialog,
+#     Ui_ProgressBar,
+#     Ui_StatusBarWidget
+# )
 import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
-from device import Device
 from settings import ApplicationSettings
 from constants import *
 import subprocess
-import sys
 import os
-import atexit
-import time
-from typing import List, Dict, Tuple, Union, Optional, Any, overload
-from datetime import datetime, timedelta
-from pathlib import Path
-from enum import Enum
-from globals import logger as log
+from typing import List, Tuple, Union, overload
+# from globals import logger as log
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
 """
-# os.environ["QT_API"] = 'pyside6'
+os.environ["QT_API"] = 'pyside6'
 
 
 @overload

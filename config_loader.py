@@ -1,6 +1,5 @@
 import yaml
 from typing import List, Dict, Any, Tuple
-from rich import *
 import os
 from util.resources import extract_file_from_resource
 
