@@ -1,12 +1,20 @@
 import yaml
 from typing import List, Dict, Any, Tuple
 from rich import *
-
+import os
+from util.resources import extract_file_from_resource
 
 class ConfigLoader:
     """Load the config from a YAML file."""
 
     def __init__(self, filename: str = "config.yaml") -> None:
+        # If the config file does not exist, try to extract it from resources
+        if not os.path.exists(filename):
+            try:
+                filename = extract_file_from_resource(":/config.yaml")
+            except FileNotFoundError as e:
+                print(f"Error: {e}")
+                raise FileNotFoundError(f"Config file not found: {filename}")
         self.data = self.load_from_file(filename)
 
     def load_from_file(self, filename: str) -> Dict[str, Any]:
