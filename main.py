@@ -348,9 +348,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @state.setter
     def state(self, value: State) -> None:
-        log.debug(f"Setting state to {value}")
-        self._state = value
-
+        log.debug(f"Previous state: {self._state}, New State: {value}", 1)
         if value == State.CONNECTING:
             self.test_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
@@ -389,6 +387,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Waiting for input...")
+
+        self._state = value
 
     def focusOutEvent(self, event) -> None:
         super().focusOutEvent(event)
@@ -706,7 +706,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.state = State.CONNECTING
             await self.arduino.async_connect()
 
-    @Slot(bool, str)
     def on_connection_changed(self, connected: bool, message: str = None) -> None:
         """Callback for the USB device."""
         log.info(f"Connection changed: {connected}, message: {message}")
@@ -722,10 +721,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.insert_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
             self.state = State.IDLE
-            self.arduino.connection_changed.disconnect(self.on_connection_changed)
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
+        self.usb_label.setText("USB disconnected")
+        self.usb_label.setStyleSheet(constants.RED)
+        self.arduino.connection_changed.disconnect(self.on_connection_changed)
         self.state = State.IDLE
         await self.arduino.async_disconnect()
         log.info("Device disconnected successfully.")
@@ -736,6 +737,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def modify_settings(self) -> None:
         self.settings_dialog.show()
+
 
     """ Programming Functions """
 
@@ -778,13 +780,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Called when QProcess emits finished()."""
         self.state = previous_state  # restore the previous state
         if returncode == 0:
-            self.insert_text("<p>Programming successful.</p>")
+            self.insert_text("<br><p>Programming successful.</p>")
             log.info(f"Programming {self.eax_device._selected_device} successful")
             if self.settings.get(constants.KEY_AUTO_TEST) and self.arduino.device_connected:
                 self.test_button.click()
                 return
         else:
-            self.insert_text(f"<p>Programming failed. Return code: {returncode}</p>")
+            self.insert_text(f"<br><p>Programming failed. Return code: {returncode}</p>")
             log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
 
     def show_statistics(self) -> None:
@@ -816,7 +818,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.save_worker.finished.connect(self.on_save_finished)
         self.save_worker.start()
 
-    @Slot()
     def on_save_finished(self) -> None:
         log.info("Save finished.")
         self.progress_bar.close()
@@ -879,7 +880,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.arduino.device_connected:
             port = self.arduino.device.com_port
             self.update_process.device_connected = True
-            asyncio.create_task(self.arduino.async_disconnect())
+            asyncio.create_task(self.disconnect_device())
         else:
             self.update_process.device_connected = False
             port = self.settings.get(constants.KEY_COM_PORT, constants.DEFAULT_SETTINGS[constants.KEY_COM_PORT])
@@ -891,11 +892,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     <p>Firmware: {firmware_path}</p>
                                     <p>Port: {port}</p>
                                     """)
+        
         # Define the command to execute
-        self.update_process.run(
-            "cmd.exe",
-            ["/c", script_path, firmware_path, port],
-        )
+        QTimer.singleShot(1000, lambda: self.update_process.run("cmd.exe", ["/c", script_path, firmware_path, port]))
 
     @Slot(int, QProcess.ExitStatus, bool)
     def on_finished(self, exit_code: int, exit_status: QProcess.ExitStatus, was_connected: bool) -> None:
@@ -914,7 +913,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.set_status("Firmware update complete.")
 
-        QTimer.singleShot(2500, self.load_file_text)
+        QTimer.singleShot(3000, self.load_file_text)
 
     def increment_counter(self) -> None:
         """Set the progress value in the status bar."""
@@ -977,11 +976,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.insert_text("<p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>")
         self.insert_text("<p>🔷 Press the key switch ➾ The siren sounds</p>")
 
-        await asyncio.sleep(0.5)
+        # await asyncio.sleep(0.5)
 
         self.insert_text("<p>🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides</p>")
 
-        await asyncio.sleep(speed)
+        await asyncio.sleep(speed/4)
 
         self.insert_text(f"<br><h2>⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Click here to continue...</span></a> </h2 >")
 
@@ -1479,10 +1478,13 @@ def verify_files(files: List[str]) -> bool:
 
 
 if __name__ == "__main__":
+
+    app = SingleInstanceApp(sys.argv)
+
+    settings = get_settings()
+
     if not verify_files([
-        "settings.ini",
         "instructions.md",
-        "config.yaml",
         "Scripts/Upload.ps1",
         "Scripts/UpdateFirmware.ps1",
         "sketches/Telemetrix4Arduino/build/arduino.avr.uno/Telemetrix4Arduino.ino.hex",
@@ -1496,7 +1498,6 @@ if __name__ == "__main__":
         import util.config_resources_rc
         extract_zip_from_resources('.')
 
-    app = SingleInstanceApp(sys.argv)
 
     if app.is_running:
         from imports import critical
