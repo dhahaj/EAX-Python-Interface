@@ -197,7 +197,6 @@ class HelpDialog(QDialog, Ui_HelpDialog):
         self.settings = ApplicationSettings.get_instance()
         print('HelpDialog settings =', self.settings)
 
-
         self.restoreGeometry(self.settings.app_settings.value("helpwindow/geometry", QByteArray()))
         # self.toolBox.currentChanged.connect(self.on_tab_clicked)
         self.label.installEventFilter(self)
@@ -705,7 +704,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except FileNotFoundError:
             log.error(f"Instruction file not found: {filename}")
 
-
     def aboutQt(self) -> None:
         QApplication.aboutQt()
 
@@ -754,7 +752,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def modify_settings(self) -> None:
         self.settings_dialog.show()
-
 
     """ Programming Functions """
 
@@ -912,7 +909,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                     <p>Firmware: {firmware_path}</p>
                                     <p>Port: {port}</p>
                                     """)
-        
+
         # Define the command to execute
         QTimer.singleShot(1000, lambda: self.update_process.run("cmd.exe", ["/c", script_path, firmware_path, port]))
 
@@ -1351,14 +1348,13 @@ class SaveWorker(QThread):
     def run(self):
         log.clear_logs()
         for i, entry in enumerate(self.data, start=1):
-            log_entry = f"{entry.get('timestamp')} - {entry.get('level')} - {entry.get('message')}"
+            log_entry = f"{entry.get('timestamp')} - {entry.get('function')} - {entry.get('level')} - {entry.get('message')}"
             print(log_entry)
             # logg.insert_log(entry['timestamp'], "logger", entry['level'], entry['message'])
             # log.log_to_db(entry['timestamp'], "logger", entry['level'], entry['message'])
-            log.add_log(level=entry.get('level'), message=entry.get('message'), timestamp=entry.get('timestamp'))
-            progress = ceil(self.data.index(entry) / self.length * 100)
+            log.add_log(level=entry.get('level'), message=entry.get('message'), timestamp=entry.get('timestamp'), function=entry.get('function'))
+            progress = ceil((i / self.length) * 100)
             self.progress_changed.emit(progress)
-
         log.info("Logs saved successfully.")
         self.progress_changed.emit(100)
 
