@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>919</width>
+    <width>1243</width>
     <height>639</height>
    </rect>
   </property>
@@ -20,7 +20,7 @@
    <string>Log Viewer</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../icons.qrc">
+   <iconset>
     <normaloff>:/resources/icons/images/icons/files.png</normaloff>:/resources/icons/images/icons/files.png</iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -32,7 +32,7 @@
       </font>
      </property>
      <property name="editTriggers">
-      <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed</set>
+      <set>QAbstractItemView::EditTrigger::AnyKeyPressed|QAbstractItemView::EditTrigger::DoubleClicked|QAbstractItemView::EditTrigger::EditKeyPressed</set>
      </property>
      <property name="showDropIndicator" stdset="0">
       <bool>false</bool>
@@ -44,16 +44,16 @@
       <bool>true</bool>
      </property>
      <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
      </property>
      <property name="gridStyle">
-      <enum>Qt::SolidLine</enum>
+      <enum>Qt::PenStyle::SolidLine</enum>
      </property>
      <property name="rowCount">
       <number>40</number>
      </property>
      <property name="columnCount">
-      <number>4</number>
+      <number>5</number>
      </property>
      <attribute name="horizontalHeaderCascadingSectionResizes">
       <bool>true</bool>
@@ -68,6 +68,9 @@
       <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderVisible">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderShowSortIndicator" stdset="0">
       <bool>true</bool>
      </attribute>
      <attribute name="verticalHeaderStretchLastSection">
@@ -137,6 +140,17 @@
      </column>
      <column>
       <property name="text">
+       <string>Function</string>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>11</pointsize>
+        <bold>true</bold>
+       </font>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>Level</string>
       </property>
       <property name="font">
@@ -155,6 +169,9 @@
         <pointsize>11</pointsize>
         <bold>true</bold>
        </font>
+      </property>
+      <property name="textAlignment">
+       <set>AlignLeading|AlignVCenter</set>
       </property>
      </column>
     </widget>
