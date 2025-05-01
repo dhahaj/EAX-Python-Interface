@@ -11,11 +11,13 @@ from typing import List
 from os import PathLike
 from enum import Enum, auto
 
+ICON_WINDOW = ':/images/icons/code.ico'
+
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
 
-ICON_USB_RED = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/disconnected"/></p></body></html>'
-ICON_USB_GREEN = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/connected"/></p></body></html>'
-ICON_USB_YELLOW = '<html><head/><body><p><img width="52" height="52" src=":/resources/icons/connecting"/></p></body></html>'
+ICON_USB_RED = '<html><head/><body><p><img width="52" height="52" src=":/images/icons/disconnected"/></p></body></html>'
+ICON_USB_GREEN = '<html><head/><body><p><img width="52" height="52" src=":/images/icons/connected"/></p></body></html>'
+ICON_USB_YELLOW = '<html><head/><body><p><img width="52" height="52" src=":/images/icons/connecting"/></p></body></html>'
 
 ICON_USB_BACKGROUND_GRN = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(85, 170, 0, 206), stop:0.284091 rgba(85, 170, 0, 80), stop:0.5 rgba(85, 170, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
 ICON_USB_BACKGROUND_YLW = "background-color: qradialgradient(spread:pad, cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5, stop:0 rgba(255, 255, 0, 206), stop:0.284091 rgba(255, 255, 0, 80), stop:0.5 rgba(255, 255, 0, 80), stop:0.991525 rgba(255, 255, 255, 0));"
@@ -26,8 +28,8 @@ YELLOW = "color: rgb(200, 195, 0); background-color: rgba(0, 0, 0, 0);"
 RED = "color: red; background-color: rgba(0, 0, 0, 0);"
 DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold; background-color: rgba(0, 0, 0, 0);"
 
-RADIO_OFF_ICON = ":/resources/icons/images/icons/radio-off-button.png"
-RADIO_ON_ICON = ":/resources/icons/images/icons/radio-on-button.png"
+RADIO_OFF_ICON = ":/images/icons/radio-off-button.png"
+RADIO_ON_ICON = ":/images/icons/radio-on-button.png"
 
 class State(Enum):
     """The state of the application."""
