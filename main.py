@@ -29,6 +29,7 @@ from qtpy.QtCore import (
     QThread,
     Signal,
     Slot,
+    QDateTime
 )
 from qtpy.QtWidgets import (
     QApplication,
@@ -42,7 +43,7 @@ from qtpy.QtWidgets import (
     QLabel,
     QStatusBar,
 )
-import settings
+import config_loader
 from ui import (
     Ui_MainWindow,
     Ui_HelpDialog,
@@ -64,7 +65,7 @@ import subprocess
 import qdarkstyle
 from math import ceil, e
 from arduino import AIODevice
-from config_loader import ConfigLoader
+import settings
 import asyncio
 from qasync import QEventLoop
 import os
@@ -72,7 +73,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Any
 import constants
 from constants import State
-from settings import ApplicationSettings, get_instance
+from settings import ApplicationSettings
 from device import Device
 from globals import logger as log
 from util.resources import extract_zip_from_resources
@@ -95,9 +96,11 @@ class LogView(QWidget, Ui_LogView):
         self.data = data
         self.callback = callback
         self.data_changed = False
+        self.settings = ApplicationSettings.get_instance()
+        print('LogView settings =', self.settings)
 
-        self.restoreGeometry(settings.app_settings.value("logwindow/geometry", QByteArray()))
-        self.setStyleSheet(get_stylesheet(settings))
+        self.restoreGeometry(self.settings.app_settings.value("logwindow/geometry", QByteArray()))
+        self.setStyleSheet(get_stylesheet(self.settings))
 
     def on_item_changed(self, item) -> None:
         row, col = item.row(), item.column()
@@ -125,26 +128,35 @@ class LogView(QWidget, Ui_LogView):
             self.tableWidget.removeRow(row)
 
     def load_data(self, data) -> None:
-        horHeaders = ["id", "timestamp", "level", "message"]
-        self.tableWidget.setSortingEnabled(True)
+        horHeaders = ["id", "timestamp", "function", "level", "message"]
+        self.tableWidget.setSortingEnabled(False)
         self.tableWidget.setRowCount(len(data))
         self.tableWidget.setHorizontalHeaderLabels(horHeaders)
+        fmt = "yyyy-MM-dd HH:mm:ss"
+        for i, entry in enumerate(data):
+            ts_str = entry.get("timestamp")
+            ts_item = QTableWidgetItem(ts_str)
 
-        for i in range(len(data)):
-            timestamp = QTableWidgetItem(data[i].get("timestamp"))
-            level = QTableWidgetItem(data[i].get("level"))
-            message = QTableWidgetItem(data[i].get("message"))
-            id = QTableWidgetItem(str(data[i].get("id")))
-            self.tableWidget.setItem(i, 0, id)
-            self.tableWidget.setItem(i, 1, timestamp)
-            self.tableWidget.setItem(i, 2, level)
-            self.tableWidget.setItem(i, 3, message)
+            # store a sortable key in UserRole
+            dt = QDateTime.fromString(ts_str, fmt)
+            ts_item.setData(Qt.UserRole, dt.toSecsSinceEpoch())
+
+            # the rest of the columns
+            self.tableWidget.setItem(i, 0, QTableWidgetItem(str(entry.get("id"))))
+            self.tableWidget.setItem(i, 1, ts_item)
+            self.tableWidget.setItem(i, 2, QTableWidgetItem(entry.get("function")))
+            self.tableWidget.setItem(i, 3, QTableWidgetItem(entry.get("level")))
+            self.tableWidget.setItem(i, 4, QTableWidgetItem(entry.get("message")))
 
         self.tableWidget.resizeColumnsToContents()
         self.tableWidget.resizeRowsToContents()
+        # enable sorting and force an initial “newest-first” view
+        self.tableWidget.setSortingEnabled(True)
+        self.tableWidget.sortItems(1, Qt.SortOrder.DescendingOrder)
+        self.tableWidget.resizeColumnToContents(2)
 
     def closeEvent(self, event) -> None:
-        settings.app_settings.setValue("logwindow/geometry", self.saveGeometry())
+        self.settings.app_settings.setValue("logwindow/geometry", self.saveGeometry())
         if self.data_changed and self.callback is not None:
             self.callback(self.extract_data())
         self.deleteLater()
@@ -171,9 +183,10 @@ class LogView(QWidget, Ui_LogView):
         data = []
         for i in range(self.tableWidget.rowCount()):
             timestamp = self.tableWidget.item(i, 1).text()
-            level = self.tableWidget.item(i, 2).text()
-            message = self.tableWidget.item(i, 3).text()
-            data.append({"timestamp": timestamp, "level": level, "message": message})
+            function = self.tableWidget.item(i, 2).text()
+            level = self.tableWidget.item(i, 3).text()
+            message = self.tableWidget.item(i, 4).text()
+            data.append({"timestamp": timestamp, "function": function, "level": level, "message": message})
         return data
 
 
@@ -181,13 +194,16 @@ class HelpDialog(QDialog, Ui_HelpDialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.settings = ApplicationSettings.get_instance()
+        print('HelpDialog settings =', self.settings)
 
-        self.restoreGeometry(settings.app_settings.value("helpwindow/geometry", QByteArray()))
+
+        self.restoreGeometry(self.settings.app_settings.value("helpwindow/geometry", QByteArray()))
         # self.toolBox.currentChanged.connect(self.on_tab_clicked)
         self.label.installEventFilter(self)
         self.label_2.installEventFilter(self)
         self.label_3.installEventFilter(self)
-        self.setStyleSheet(get_stylesheet(settings))
+        self.setStyleSheet(get_stylesheet(self.settings))
 
     def eventFilter(self, obj: QLabel, event: QEvent) -> bool:
         if event.type() == QEvent.MouseButtonPress:
@@ -204,7 +220,7 @@ class HelpDialog(QDialog, Ui_HelpDialog):
         return super().eventFilter(obj, event)
 
     def closeEvent(self, event: QEvent) -> None:
-        settings.app_settings.setValue("helpwindow/geometry", self.saveGeometry())
+        self.settings.app_settings.setValue("helpwindow/geometry", self.saveGeometry())
         self.deleteLater()
         event.accept()
 
@@ -226,14 +242,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     arduino: AIODevice | None = None
     eax_device: Device | None = None
 
-    def __init__(self, app) -> None:
+    def __init__(self, app, settings: ApplicationSettings = None) -> None:
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        self.setWindowIcon(QIcon(":/resources/icons/images/icons/code.ico"))
+        self.setWindowIcon(QIcon(constants.ICON_WINDOW))
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.show_movie()
         # Settings
-        self.settings: ApplicationSettings = get_instance()
+        self.settings = ApplicationSettings.get_instance() if settings is None else settings
         self.settings_dialog = SettingsDialog(self)
 
         # Restore the window geometry and state
@@ -308,7 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.menuDevice.removeAction(action)
 
         # Load the devices from the config file and add them to the menu
-        config = ConfigLoader.get_instance()
+        config = config_loader.get_instance()
         for device in config.devices:
             action = QAction(device, self)
             action.setFont(self.font())
@@ -682,12 +698,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def load_file_text(self, filename="instructions.md") -> None:
         """Load text from a file and add it to the text area"""
-        self.text_edit.setMarkdown(Path(filename).read_text() + "\n")
-        self.text_edit.moveCursor(QtGui.QTextCursor.End)
-        self.text_edit.ensureCursorVisible()
+        try:
+            self.text_edit.setMarkdown(Path(filename).read_text() + "\n")
+            self.text_edit.moveCursor(QtGui.QTextCursor.End)
+            self.text_edit.ensureCursorVisible()
+        except FileNotFoundError:
+            log.error(f"Instruction file not found: {filename}")
 
-        # with open(filename, "r") as f:
-        #     self.text_edit.setMarkdown(f.read() + "\n")
 
     def aboutQt(self) -> None:
         QApplication.aboutQt()
@@ -754,26 +771,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not os.path.exists(fw):
             self.insert_text(f"{fw} not found!")
             return
+        try:
+            chip = self.settings.get(constants.KEY_CHIP_PART)
+            programmer = self.settings.get(constants.KEY_PROGRAMMER_PATH)
+            programmer_serial = self.settings.get(constants.KEY_PROGRAMMER_SERIAL_NUMBER)
+            args = ["/part", chip, "/p", fw, "/q1", "/s", programmer_serial]
 
-        chip = self.settings.get(constants.KEY_CHIP_PART)
-        programmer = self.settings.get(constants.KEY_PROGRAMMER_PATH)
-        programmer_serial = self.settings.get(constants.KEY_PROGRAMMER_SERIAL_NUMBER)
-        args = ["/part", chip, "/p", fw, "/q1", "/s", programmer_serial]
+            log.info(f"Programming {self.eax_device._selected_device}, args: {[programmer] + args}")
 
-        log.info(f"Programming {self.eax_device._selected_device}, args: {[programmer] + args}")
-
-        # create (or reuse) a QProcess
-        self.program_process = QProcess(self)
-        # when it finishes, grab only the exit code
-        previous_state = self.state
-        self.program_process.finished.connect(
-            lambda code, status: self.handle_programming_result(code, previous_state)
-        )
-        self.state = State.PROGRAMMING
-        # start it
-        self.program_process.setProgram(programmer)
-        self.program_process.setArguments(args)
-        self.program_process.start()
+            # create (or reuse) a QProcess
+            self.program_process = QProcess(self)
+            # when it finishes, grab only the exit code
+            previous_state = self.state
+            self.program_process.finished.connect(
+                lambda code, _: self.handle_programming_result(code, previous_state)
+            )
+            self.state = State.PROGRAMMING
+            # start it
+            self.program_process.setProgram(programmer)
+            self.program_process.setArguments(args)
+            self.program_process.start()
+        except Exception as e:
+            log.exception(f"Exception during programming: {e}")
+            self.state = State.IDLE
 
     @Slot(int, QProcess.ExitStatus)
     def handle_programming_result(self, returncode: int, previous_state: State) -> None:
@@ -1070,7 +1090,8 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-        self.settings = get_instance()
+        self.settings = ApplicationSettings.get_instance()
+        print('ManualWidget settings =', self.settings)
         if get_theme(self.settings) == "dark":
             self.setStyleSheet(qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette))
         else:
@@ -1135,7 +1156,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         super().__init__()
         self.setupUi(self)
 
-        self.settings: ApplicationSettings = parent.settings
+        self.settings: ApplicationSettings = ApplicationSettings.get_instance()
         self._parent = parent
 
         self.background_color: QColor = None
@@ -1155,7 +1176,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.setStyleSheet(get_stylesheet(self.settings))
 
     def initialize_settings(self) -> None:
-        config = ConfigLoader.get_instance()
+        config = config_loader.get_instance()
 
         self.lineEdit_serial.setText(self.settings.app_settings.value(
             constants.KEY_PROGRAMMER_SERIAL_NUMBER, constants.DEFAULT_SETTINGS[constants.KEY_PROGRAMMER_SERIAL_NUMBER]))
@@ -1352,7 +1373,9 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setupUi(self)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
-        self.settings = get_instance()
+        self.settings = ApplicationSettings.get_instance()
+        print("ProgressBar settings =", self.settings)
+
         self.setStyleSheet(get_stylesheet(self.settings))
 
     def update_progress(self, value: int) -> None:
@@ -1417,7 +1440,8 @@ class CustomStatusBar(QStatusBar):
         self.addPermanentWidget(self.widget, 1)
 
         self.widget.lcdNumber.setDigitCount(5)
-        self.settings = get_instance()
+        self.settings = ApplicationSettings.get_instance()
+        print("CustomStatusBar settings =", self.settings)
         if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
             self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
 
@@ -1485,8 +1509,8 @@ if __name__ == "__main__":
         critical(None, "Another instance of the application is already running.", "Error")
         sys.exit(1)
 
-    print(ConfigLoader.get_instance())
-    settings = get_instance()
+    # print(config_loader.get_instance())
+    settings = settings.get_instance()
 
     if not verify_files([
         "instructions.md",
@@ -1505,7 +1529,7 @@ if __name__ == "__main__":
 
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
-    window = MainWindow(app)
+    window = MainWindow(app, settings)
     window.show()
     log.info("Application started.")
     with loop:
