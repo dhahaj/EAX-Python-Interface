@@ -15,10 +15,14 @@ class ApplicationSettings():
                 filename = extract_file_from_resource(":/settings.ini")
                 print(f"Settings file extracted from resources: {filename}")
             except FileNotFoundError as e:
-                print(f"Error: {e}")
+                print(f"Error extracting settings file: {e}")
                 raise FileNotFoundError(f"Settings file not found: {filename}")
-        self.app_settings: QSettings = QSettings(filename, QSettings.Format.IniFormat)
-        self.filename = filename
+        try:
+            self.app_settings: QSettings = QSettings(filename, QSettings.Format.IniFormat)
+            self.filename = filename
+        except Exception as e:
+            print.exception(f"Error initializing settings from file: {filename}, error: {e}")
+            raise
 
     @property
     def path(self) -> str:
