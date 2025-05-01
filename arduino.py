@@ -1,4 +1,5 @@
 import asyncio
+import time
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 import config_loader
 from settings import get_instance
@@ -44,7 +45,7 @@ class AIODevice(QObject):
     This class no longer relies on threading.Thread; instead,
     it performs asynchronous connection and I/O with asyncio.
     """
-    DEBOUNCE_TIME = 0.05
+    DEBOUNCE_TIME = 0.5  # seconds
     connection_changed = Signal(bool, object)
 
     def __init__(self):
@@ -63,6 +64,7 @@ class AIODevice(QObject):
 
         # Will hold the TelemetrixAIO instance.
         self.device: TelemetrixAIO = None
+        self.last_input_time = 0.0
 
     @property
     def device_connected(self) -> bool:
@@ -118,8 +120,18 @@ class AIODevice(QObject):
     async def input_callback(self, message) -> None:
         """
         Callback invoked when input changes on the Arduino.
-        Expects message to be a list with at least 3 elements: [?, pin, value].
+        Expects message to be a list with at least 3 elements: [timestamp, pin, value].
         """
+        if message[0] == 2:
+            # This is a digital input change.
+            input_time = message[3]
+            delta = input_time - self.last_input_time
+            if delta < self.DEBOUNCE_TIME:
+                # If the time since the last input is less than DEBOUNCE_TIME, ignore it.
+                print(f"Debouncing input: {delta:.2f} seconds")
+                return  # Only process if the time since the last input is greater than DEBOUNCE_TIME.
+            self.last_input_time = input_time
+
         pin_number = message[1]
         value = message[2]
         log.debug(f'{self}: Method: {self.input_callback.__name__}, Pin: {pin_number}, Value: {value}')
@@ -133,12 +145,8 @@ class AIODevice(QObject):
         self.callback = callback
         self.input_pin = pin_number
 
-    def load_pin_configuration(self, filename='config.yaml') -> None:
-        """
-        Load pin configuration from a JSON file via the ConfigLoader.
-
-        param filename: str - The name of the configuration file.
-        """
+    def load_pin_configuration(self) -> None:
+        """Load pin configuration from a YAML file via the ConfigLoader."""
         config = config_loader.get_instance()
         self.pins = config.pins
 
