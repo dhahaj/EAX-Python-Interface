@@ -1,14 +1,14 @@
 from loguru import logger
 import sqlite3
 from datetime import datetime
-from config_loader import ConfigLoader
+import config_loader
 
 class AppLogger:
 
     def __init__(self, logfile="logs/app_{time:YYYY-MM-DD}.log", database="logs.db"):
 
         try:
-            self.config = ConfigLoader.get_instance().get('logging')
+            self.config = config_loader.get_instance().get('logging')
         except Exception as e:
             print(f"Error loading config: {e}")
             self.config = None
@@ -26,6 +26,7 @@ class AppLogger:
             logger.add(logfile, rotation="00:00", retention="7 days", level='DEBUG', format="{time} | {level} | {message}")
             self.database = database
 
+        self.migrate_schema()  
         self.create_log_table()
 
     def create_log_table(self):
@@ -36,23 +37,37 @@ class AppLogger:
                 id INTEGER PRIMARY KEY,
                 timestamp TEXT,
                 level TEXT,
-                message TEXT
+                message TEXT,
+                function TEXT
             )''')
             conn.commit()
 
     def _emit(self, level: str, message: str, *, extra_depth: int = 0):
-        # 1 for _emit itself, 1 for the wrapper (info/debug/…)
-        skip = 2 + extra_depth
-        logger.opt(depth=skip).log(level.upper(), message)
-        self.log_to_db(level.upper(), message)
+        function_name = None
 
-    def log_to_db(self, level: str, message: str):
+        def capture(record):
+            nonlocal function_name
+            function_name = record["function"]
+
+        # Emit log and capture function name
+        logger.opt(depth=2 + extra_depth).patch(capture).log(level.upper(), message)
+
+        # Log to database with captured function name
+        self.log_to_db(level.upper(), message, function_name or 'unknown')
+
+    def log_to_db(self, level: str, message: str, function: str):
         """Log messages explicitly to the SQLite database."""
-        with sqlite3.connect(self.database) as conn:
-            cursor = conn.cursor()
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cursor.execute('INSERT INTO logs (timestamp, level, message) VALUES (?, ?, ?)', (timestamp, level, message))
-            conn.commit()
+        try:
+            with sqlite3.connect(self.database) as conn:
+                cursor = conn.cursor()
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cursor.execute(
+                    'INSERT INTO logs (timestamp, level, message, function) VALUES (?, ?, ?, ?)', 
+                    (timestamp, level, message, function)
+                )
+                conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"SQLite error: {e}")
 
     def clear_logs(self):
         """Clear all logs from the SQLite database."""
@@ -61,11 +76,13 @@ class AppLogger:
             cursor.execute("DELETE FROM logs")
             conn.commit()
 
-    def add_log(self, timestamp: str, level: str, message: str):
-        """Add a log entry to the SQLite database."""
+    def add_log(self, timestamp: str, level: str, message: str, function: str):
         with sqlite3.connect(self.database) as conn:
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO logs (timestamp, level, message) VALUES (?, ?, ?)', (timestamp, level, message))
+            cursor.execute(
+                'INSERT INTO logs (timestamp, level, message, function) VALUES (?, ?, ?, ?)', 
+                (timestamp, level, message, function)
+            )
             conn.commit()
 
     def get_log(self, log_id: int): 
@@ -75,41 +92,47 @@ class AppLogger:
             cursor.execute("SELECT * FROM logs WHERE id=?", (log_id,))
             return cursor.fetchone()    
 
+
+    def migrate_schema(self):
+        """Check and migrate the database schema if necessary."""
+        try:
+            with sqlite3.connect(self.database) as conn:
+                cursor = conn.cursor()
+                cursor.execute("PRAGMA table_info(logs)")
+                columns = [col[1] for col in cursor.fetchall()]
+                if 'function' not in columns:
+                    cursor.execute("ALTER TABLE logs ADD COLUMN function TEXT DEFAULT 'unknown'")
+                    conn.commit()
+                    logger.info("Database schema migrated: added 'function' column.")
+        except Exception as e:
+            logger.error(f"Error migrating schema: {e}")
+
+
     def log(self, level: str, message: str):
-        """Log a message with the specified level."""
         self._emit(level, message)
-        self.log_to_db(level, message)
 
     def info(self, message: str):
         self._emit("INFO", message)
-        self.log_to_db("INFO", message)
 
     def error(self, message: str):
         self._emit("ERROR", message)
-        self.log_to_db("ERROR", message)
 
     def debug(self, message: str, extra_depth: int = 0):
         self._emit("DEBUG", message, extra_depth=extra_depth)
-        self.log_to_db("DEBUG", message)
 
     def critical(self, message: str):
         self._emit("CRITICAL", message)
-        self.log_to_db("CRITICAL", message)
 
     def success(self, message: str):
         self._emit("SUCCESS", message)
-        self.log_to_db("SUCCESS", message)
 
     def warning(self, message: str):
         self._emit("WARNING", message)
-        self.log_to_db("WARNING", message)
 
     def exception(self, message: str):
         self._emit("EXCEPTION", message, extra_depth=1)
-        self.log_to_db("EXCEPTION", message)
 
     def get_logs(self) -> list:
-        """Fetch logs from the database for the LogView class."""
         logs = []
         with sqlite3.connect(self.database) as conn:
             cursor = conn.cursor()
@@ -120,7 +143,8 @@ class AppLogger:
                     "id": row[0],
                     "timestamp": row[1],
                     "level": row[2],
-                    "message": row[3]
+                    "message": row[3],
+                    "function": row[4]
                 }
                 logs.append(log_entry)
         return logs 
@@ -146,9 +170,9 @@ class AppLogger:
 if __name__ == "__main__":
     logger = AppLogger()
 
-    logger.read_log_into_database('logs/app_2025-04-25.log')
-    logger.dump_logs()  
-    logger.clear_logs()
+    # logger.read_log_into_database('logs/app_2025-04-25.log')
+    print(logger.get_logs())
+    # logger.clear_logs()
 
     # logs = logger.get_logs()
 
