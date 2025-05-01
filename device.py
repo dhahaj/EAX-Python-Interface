@@ -12,7 +12,7 @@ class Device:
         self._selected_device = selected_device
         self.data: List[Dict[str, Any]] = None
         self._path: str = None
-        self.config = config_loader.ConfigLoader.get_instance()
+        self.config = config_loader.get_instance()
         self.load_from_config()
 
     @property
