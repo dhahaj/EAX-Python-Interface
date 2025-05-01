@@ -1,6 +1,6 @@
 import asyncio
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
-from config_loader import ConfigLoader
+import config_loader
 from settings import get_instance
 from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID, KEY_SHUTDOWN_ON_EXCEPTION, KEY_ARDUINO_WAIT, KEY_SLEEP_TUNE, KEY_DEBUG
 from serial.tools import list_ports
@@ -139,21 +139,23 @@ class AIODevice(QObject):
 
         param filename: str - The name of the configuration file.
         """
-        config = ConfigLoader.get_instance()
+        config = config_loader.get_instance()
         self.pins = config.pins
 
     async def configure_pin_modes(self) -> None:
         """ Configure the pin modes based on the loaded configuration. """
         for pin in self.pins:
-            pin_obj = Pin(
-                pin['pin_number'],
-                PinMode(pin['io_mode']),
-                pin.get('function') or None,
-                pin.get('pullup_enabled') or False
-            )
-
-            log.debug(f'Configuring pin {pin_obj}')
-            await pin_obj.configure(self.device, self.input_callback)
+            try:
+                pin_obj = Pin(
+                    pin['pin_number'],
+                    PinMode(pin['io_mode']),
+                    pin.get('function'),
+                    pin.get('pullup_enabled', False)
+                )
+                log.debug(f'Configuring pin {pin_obj}')
+                await pin_obj.configure(self.device, self.input_callback)
+            except Exception as e:
+                log.error(f"Failed to configure pin {pin}: {e}")
 
     def set_pin_mode_digital_output(self, pin_number: int) -> None:
         return self.device.set_pin_mode_digital_output(pin_number)
@@ -241,7 +243,7 @@ class AIODevice(QObject):
         """
         Get the pin configuration from the settings.
         """
-        config = ConfigLoader.get_instance()
+        config = config_loader.get_instance()
         return config.pins
 
 
