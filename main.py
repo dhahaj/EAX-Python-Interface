@@ -729,6 +729,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.usb_label.setStyleSheet(constants.GREEN)
             self.actionConnect.setText("Disconnect")
             self.state = State.CONNECTED
+            self.settings.setValue(constants.KEY_COM_PORT, self.arduino.device.com_port) # save the port
         else:
             self.usb_label.setText("USB disconnected")
             self.usb_label.setStyleSheet(constants.RED)
