@@ -2,6 +2,7 @@ from loguru import logger
 import sqlite3
 from datetime import datetime
 import config_loader
+from device import Device
 
 
 class AppLogger:
@@ -26,6 +27,7 @@ class AppLogger:
 
         self.migrate_schema()
         self.create_log_table()
+        self.init_statistics_table()
 
     def create_log_table(self):
         """Creates a table for logs in the SQLite database if it doesn't exist."""
@@ -156,8 +158,37 @@ class AppLogger:
             for row in rows:
                 print(row)
 
+    def init_statistics_table(self):
+        with sqlite3.connect(self.database) as conn:
+            cur = conn.cursor()
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS test_runs (
+                id        INTEGER PRIMARY KEY AUTOINCREMENT,
+                device    TEXT NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+            """)
+            conn.commit()
+
+    def increment_tests_run(self, device: str = None) -> None:
+        with sqlite3.connect(self.database) as conn:
+            cur = conn.cursor()
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            cur.execute("INSERT INTO test_runs (device, timestamp) VALUES (?, ?)", (device, timestamp))
+            conn.commit()
+
+    def get_tests_run(self) -> int:
+        with sqlite3.connect(self.database) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM test_runs")
+            total, = cur.fetchone()
+            return total    
+
+
 
 if __name__ == "__main__":
     logger = AppLogger()
 
-    print(logger.get_logs())
+    logger.increment_tests_run(device="EAX500")
+    total_tests = logger.get_tests_run()    
+    print(f"Total tests run: {total_tests}")
