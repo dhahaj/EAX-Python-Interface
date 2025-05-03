@@ -1,5 +1,3 @@
-import os
-from re import A
 from PySide6.QtCore import QSettings
 from typing import Any
 import os
@@ -106,7 +104,7 @@ class ApplicationSettings():
 
     @staticmethod
     def get_instance() -> "ApplicationSettings":
-        return _settings_singleton
+        return get_instance()
 
     # def __str__(self) -> str:
     #     """Return a string representation of the settings."""
