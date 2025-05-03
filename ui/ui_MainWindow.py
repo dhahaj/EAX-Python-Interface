@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(1068, 855)
+        MainWindow.resize(1342, 919)
         MainWindow.setMinimumSize(QSize(650, 500))
         font = QFont()
         font.setPointSize(11)
@@ -301,10 +301,10 @@ class Ui_MainWindow(object):
         self.program_button.setFont(font3)
         self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
         icon18 = QIcon()
-        icon18.addFile(u":/resources/icons/images/icons/light/prog-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon18.addFile(u":/images/icons/light/prog-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.program_button.setIcon(icon18)
         self.program_button.setIconSize(QSize(100, 100))
-        self.program_button.setFlat(False)
+        self.program_button.setFlat(True)
 
         self.horizontalLayout_3.addWidget(self.program_button)
 
@@ -431,11 +431,11 @@ class Ui_MainWindow(object):
         self.test_button.setFont(font6)
         self.test_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
         icon19 = QIcon()
-        icon19.addFile(u":/resources/icons/images/icons/light/test-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon19.addFile(u":/images/icons/light/test-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.test_button.setIcon(icon19)
         self.test_button.setIconSize(QSize(100, 100))
         self.test_button.setAutoDefault(False)
-        self.test_button.setFlat(False)
+        self.test_button.setFlat(True)
 
         self.horizontalLayout_3.addWidget(self.test_button)
 
@@ -445,7 +445,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1068, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1342, 33))
         self.menubar.setFont(font)
         self.menubar.setDefaultUp(False)
         self.menubar.setNativeMenuBar(False)

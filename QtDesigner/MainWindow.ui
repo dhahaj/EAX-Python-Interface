@@ -10,8 +10,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1068</width>
-    <height>855</height>
+    <width>1342</width>
+    <height>919</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -266,8 +266,8 @@
          <string/>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>:/resources/icons/images/icons/light/prog-button.png</normaloff>:/resources/icons/images/icons/light/prog-button.png</iconset>
+         <iconset resource="../icons.qrc">
+          <normaloff>:/images/icons/light/prog-button.png</normaloff>:/images/icons/light/prog-button.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -279,7 +279,7 @@
          <string>P</string>
         </property>
         <property name="flat">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -765,8 +765,8 @@ font-weight: bold;</string>
          <string/>
         </property>
         <property name="icon">
-         <iconset>
-          <normaloff>:/resources/icons/images/icons/light/test-button.png</normaloff>:/resources/icons/images/icons/light/test-button.png</iconset>
+         <iconset resource="../icons.qrc">
+          <normaloff>:/images/icons/light/test-button.png</normaloff>:/images/icons/light/test-button.png</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -781,7 +781,7 @@ font-weight: bold;</string>
          <bool>false</bool>
         </property>
         <property name="flat">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -794,7 +794,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1068</width>
+     <width>1342</width>
      <height>33</height>
     </rect>
    </property>
