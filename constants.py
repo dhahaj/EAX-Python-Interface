@@ -46,13 +46,9 @@ class State(Enum):
     WAITING_FOR_INPUT = auto()
 
 
-FILES = ["settings.ini", "config.yaml", "instructions.md", "logs.db"]
-
-# Default testing speed in ms. This is adjustable inside the application.
-DEFAULT_TESTING_SPEED: int = 2000
-
-
 CHIP_OPTIONS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
+
+KEY_TEST_COUNT = "testing/total_count"
 
 
 """
@@ -130,7 +126,6 @@ KEY_FIRMWARE: str = "firmware"
 KEY_FIRMWARE_NAME: str = "filename"
 KEY_FIRMWARE_BASENAME: str = "basename"
 KEY_FIRMWARE_VERSION: str = "version"
-KEY_PATH: str = "path"
 
 
 INSTRUCTIONS = """<p><img src=":/resources/detex" width="300" style="float:right;"/></p>
