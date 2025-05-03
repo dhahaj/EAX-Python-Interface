@@ -15,7 +15,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QFrame, QHBoxLayout, QLCDNumber,
+from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QLCDNumber,
     QLabel, QLayout, QSizePolicy, QSpacerItem,
     QWidget)
 
@@ -23,13 +23,12 @@ class Ui_StatusBarWidget(object):
     def setupUi(self, StatusBarWidget):
         if not StatusBarWidget.objectName():
             StatusBarWidget.setObjectName(u"StatusBarWidget")
-        StatusBarWidget.resize(1100, 24)
+        StatusBarWidget.resize(1142, 24)
         StatusBarWidget.setMaximumSize(QSize(16777215, 24))
-        self.horizontalLayout = QHBoxLayout(StatusBarWidget)
-        self.horizontalLayout.setSpacing(0)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
-        self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout = QGridLayout(StatusBarWidget)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.status = QLabel(StatusBarWidget)
         self.status.setObjectName(u"status")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -41,11 +40,11 @@ class Ui_StatusBarWidget(object):
         font.setPointSize(11)
         self.status.setFont(font)
 
-        self.horizontalLayout.addWidget(self.status)
+        self.gridLayout.addWidget(self.status, 0, 0, 1, 1)
 
         self.horizontalSpacer = QSpacerItem(931, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
-        self.horizontalLayout.addItem(self.horizontalSpacer)
+        self.gridLayout.addItem(self.horizontalSpacer, 0, 1, 1, 1)
 
         self.label = QLabel(StatusBarWidget)
         self.label.setObjectName(u"label")
@@ -54,26 +53,31 @@ class Ui_StatusBarWidget(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy1)
+        self.label.setMinimumSize(QSize(0, 0))
         self.label.setFont(font)
         self.label.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
         self.label.setMargin(2)
 
-        self.horizontalLayout.addWidget(self.label)
+        self.gridLayout.addWidget(self.label, 0, 2, 1, 1)
 
         self.lcdNumber = QLCDNumber(StatusBarWidget)
         self.lcdNumber.setObjectName(u"lcdNumber")
         sizePolicy1.setHeightForWidth(self.lcdNumber.sizePolicy().hasHeightForWidth())
         self.lcdNumber.setSizePolicy(sizePolicy1)
         self.lcdNumber.setMinimumSize(QSize(46, 0))
+        self.lcdNumber.setFont(font)
         self.lcdNumber.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self.lcdNumber.setAutoFillBackground(False)
         self.lcdNumber.setStyleSheet(u"")
         self.lcdNumber.setFrameShape(QFrame.Shape.NoFrame)
-        self.lcdNumber.setDigitCount(3)
+        self.lcdNumber.setFrameShadow(QFrame.Shadow.Plain)
+        self.lcdNumber.setSmallDecimalPoint(False)
+        self.lcdNumber.setDigitCount(6)
         self.lcdNumber.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
-        self.lcdNumber.setProperty(u"intValue", 0)
+        self.lcdNumber.setProperty(u"value", 999999.000000000000000)
+        self.lcdNumber.setProperty(u"intValue", 999999)
 
-        self.horizontalLayout.addWidget(self.lcdNumber)
+        self.gridLayout.addWidget(self.lcdNumber, 0, 3, 1, 1)
 
 
         self.retranslateUi(StatusBarWidget)
