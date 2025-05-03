@@ -66,6 +66,7 @@ import qdarkstyle
 from math import ceil, e
 from arduino import AIODevice
 import settings
+from settings import get_instance
 import asyncio
 from qasync import QEventLoop
 import os
@@ -96,7 +97,7 @@ class LogView(QWidget, Ui_LogView):
         self.data = data
         self.callback = callback
         self.data_changed = False
-        self.settings = ApplicationSettings.get_instance()
+        self.settings = settings.get_instance()
         print('LogView settings =', self.settings)
 
         self.restoreGeometry(self.settings.app_settings.value("logwindow/geometry", QByteArray()))
@@ -194,8 +195,7 @@ class HelpDialog(QDialog, Ui_HelpDialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.settings = ApplicationSettings.get_instance()
-        print('HelpDialog settings =', self.settings)
+        self.settings = settings.get_instance()
 
         self.restoreGeometry(self.settings.app_settings.value("helpwindow/geometry", QByteArray()))
         # self.toolBox.currentChanged.connect(self.on_tab_clicked)
@@ -207,11 +207,11 @@ class HelpDialog(QDialog, Ui_HelpDialog):
     def eventFilter(self, obj: QLabel, event: QEvent) -> bool:
         if event.type() == QEvent.MouseButtonPress:
             if obj == self.label:
-                obj.setMovie(QMovie(":/resources/firmware_update.gif"))
+                obj.setMovie(QMovie(":/resources/images/firmware_update.gif"))
             elif obj == self.label_2:
-                obj.setMovie(QMovie(":/resources/testing.gif"))
+                obj.setMovie(QMovie(":/resources/images/testing.gif"))
             elif obj == self.label_3:
-                obj.setMovie(QMovie(":/resources/setting.gif"))
+                obj.setMovie(QMovie(":/resources/images/setting.gif"))
             obj.movie().setScaledSize(QSize(750, 750))
             obj.movie().setSpeed(180)
             obj.movie().start()
@@ -247,8 +247,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowIcon(QIcon(constants.ICON_WINDOW))
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.show_movie()
+
         # Settings
-        self.settings = ApplicationSettings.get_instance() if settings is None else settings
+        self.settings = settings.get_instance() if settings is None else settings
         self.settings_dialog = SettingsDialog(self)
 
         # Restore the window geometry and state
@@ -564,8 +565,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(self.text_edit.toPlainText())
             # print(self.label_usb_icon.size())
             print(self.arduino)
-            print(ApplicationSettings.get_instance())
+            print(settings.get_instance())
             print(self.settings)
+            self.statusBar().set_value(59999)
 
     def show_movie(self, pause: bool = False) -> None:
         """Show or hide the GIF in the USB icon label."""
@@ -622,11 +624,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_changed.emit(self.sender().text())
 
     def show_help(self) -> None:
-        try:
-            self.help_dialog.show()
-        except:
-            self.help_dialog = HelpDialog()
-            self.help_dialog.show()
+        self.help_dialog = HelpDialog()
+        self.help_dialog.show()
 
     def choose_font(self) -> None:
         old_font = self.text_edit.font()
@@ -820,8 +819,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_log(self) -> None:
         """Display the log view widget."""
         # logs = logg.get_all_logs()
-        logs = log.get_logs()
-        self.log_view = LogView(logs, self.save_logs)
+        self.log_view = LogView(log.get_logs(), self.save_logs)
         self.log_view.show()
 
     def save_logs(self, log_data: List[Dict[str, str]]) -> None:
@@ -940,6 +938,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 constants.KEY_TEST_COUNT, self.settings.get_int(constants.KEY_TEST_COUNT) + 1)
         sb = self.statusBar()
         sb.update_counter()
+
+        log.increment_tests_run()
 
     """ Test Functions """
 
@@ -1088,7 +1088,7 @@ class ManualWidget(QWidget, Ui_ManualControlDialog):
         super().__init__()
         self.setWindowFlags(self.windowFlags() | QtCore.Qt.WindowStaysOnTopHint)
         self.setupUi(self)
-        self.settings = ApplicationSettings.get_instance()
+        self.settings = settings.get_instance()
         print('ManualWidget settings =', self.settings)
         if get_theme(self.settings) == "dark":
             self.setStyleSheet(qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette))
@@ -1154,7 +1154,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         super().__init__()
         self.setupUi(self)
 
-        self.settings: ApplicationSettings = ApplicationSettings.get_instance()
+        self.settings: ApplicationSettings = parent.settings
         self._parent = parent
 
         self.background_color: QColor = None
@@ -1370,7 +1370,7 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setupUi(self)
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
-        self.settings = ApplicationSettings.get_instance()
+        self.settings = settings.get_instance()
         print("ProgressBar settings =", self.settings)
 
         self.setStyleSheet(get_stylesheet(self.settings))
@@ -1437,11 +1437,10 @@ class CustomStatusBar(QStatusBar):
         self.addPermanentWidget(self.widget, 1)
 
         self.widget.lcdNumber.setDigitCount(5)
-        self.settings = ApplicationSettings.get_instance()
-        print("CustomStatusBar settings =", self.settings)
-        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
-            self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
-
+        self.settings = get_instance()
+        # if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
+        #     self.widget.lcdNumber.display(self.settings.get_int(constants.KEY_TEST_COUNT, 0))
+        self.widget.lcdNumber.display(log.get_tests_run())
         self._persistent_message = ""
 
         app = QApplication.instance()
@@ -1482,6 +1481,9 @@ class CustomStatusBar(QStatusBar):
             current_value = self.widget.lcdNumber.value()
             self.widget.lcdNumber.display(current_value + 1)
 
+    def set_value(self, value: int) -> None:
+        """Set the value of the counter in the status bar."""
+        self.widget.lcdNumber.display(value)
 
 def verify_files(files: List[str]) -> bool:
     """
