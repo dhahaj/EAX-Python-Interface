@@ -11,6 +11,9 @@ from typing import List
 from os import PathLike
 from enum import Enum, auto
 
+
+VERSION: str = "1.1.0"
+
 ICON_WINDOW = ':/images/icons/code.ico'
 
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
