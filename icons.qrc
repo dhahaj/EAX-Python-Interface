@@ -54,7 +54,7 @@
     <file>images/icons/radio-off-button.png</file>
     <file>images/icons/radio-on-button.png</file>
     <file>images/icons/code.ico</file>
-    <file>images/icons/favicon.ico</file>
+    <!-- <file>images/icons/favicon.ico</file>
     <file>images/icons/powershell.ico</file>
     <file>images/icons/ps_black_32x32.ico</file>
     <file>images/icons/settings.ico</file>
@@ -81,20 +81,20 @@
     <file>images/icons/plug.png</file>
     <file>images/icons/files.png</file>
     <file>images/icons/information.png</file>
-    <file>images/icons/settings3.png</file>
+    <file>images/icons/settings3.png</file> -->
     <file>images/icons/foreground-color.png</file>
     <file>images/icons/background-color.png</file>
     <file>images/icons/usb.png</file>
     <file>images/icons/usb2.png</file>
     <file>images/icons/usb3.png</file>
     <file>images/icons/usb4.png</file>
-    <file>images/icons/micro.png</file>
-    <file>images/icons/test.png</file>
-    <file>images/icons/robot-arm.png</file>
+    <!-- <file>images/icons/micro.png</file> -->
+    <!-- <file>images/icons/test.png</file> -->
+    <!-- <file>images/icons/robot-arm.png</file>
     <file>images/icons/robot-arm2.png</file>
     <file>images/icons/robot-arm3.png</file>
-    <file>images/icons/automation.png</file>
-    <file>images/icons/icons8-windows11.png</file>
+    <file>images/icons/automation.png</file> -->
+    <!-- <file>images/icons/icons8-windows11.png</file>
     <file>images/icons/icons8-windows10.png</file>
     <file>images/icons/icons8-folder.png</file>
     <file>images/icons/icons8-about.png</file>
@@ -105,37 +105,25 @@
     <file>images/icons/coding.png</file>
     <file>images/icons/hex.png</file>
     <file>images/icons/ps.png</file>
-    <file>images/icons/geometric.png</file>
+    <file>images/icons/geometric.png</file> -->
     <file>images/icons/connected.png</file>
     <file alias="connected">images/icons/connected2.png</file>
     <file alias="connecting">images/icons/connecting.png</file>
     <file>images/icons/disconnected.png</file>
     <file alias="disconnected">images/icons/disconnected2.png</file>
-    <file>images/icons/forward-button.png</file>
+    <!-- <file>images/icons/forward-button.png</file>
     <file>images/icons/help.png</file>
-    <file>images/FirmwareUpdate.png</file>
+    <file>images/FirmwareUpdate.png</file> -->
   </qresource>
   <qresource prefix="/resources">
     <file>README.html</file>
-    <file>default_resources.zip</file>
+    <!-- <file>default_resources.zip</file> -->
     <file>docs/USAGE.html</file>
-    <file>animation.gif</file>
+    <!-- <file>animation.gif</file> -->
     <file>docs/Settings.html</file>
-    <file>animation2.gif</file>
-    <file>firmware_update.gif</file>
-    <file>setting.gif</file>
-    <file>testing.gif</file>
-    <file>images/DeviceMenu.png</file>
-    <file>images/ManualControl.png</file>
-    <file>images/MainWindow.png</file>
-    <file>images/SettingsMenu.png</file>
-    <file>images/SettingsDialog.png</file>
-    <file>images/FirmwareUpdate.png</file>
-  </qresource>
-  <qresource prefix="resources/images">
-    <file>images/ManualControl.png</file>
-    <file>images/DeviceMenu.png</file>
-    <file>images/SettingsMenu.png</file>
-    <file>images/FirmwareUpdate.png</file>
+    <!-- <file>animation2.gif</file> -->
+    <file>images/firmware_update.gif</file>
+    <file>images/setting.gif</file>
+    <file>images/testing.gif</file>
   </qresource>
 </RCC>
