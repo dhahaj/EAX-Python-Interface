@@ -17,7 +17,7 @@ qasync==0.27.1
 QDarkStyle==3.1
 QtPy==2.4.3
 shiboken6==6.9.0
--e git+https://github.com/dhahaj/telemetrix-aio.git@f880d3d3488808be83e73e7d9d956d28eba1fd69#egg=telemetrix_aio
+-e git+https://github.com/dhahaj/telemetrix-aio.git@339cb71634a494141d8ff4543663bdf3bcac0a2b#egg=telemetrix_aio
 win32-setctime==1.1.0
 winrt-runtime==2.3.0
 winrt-Windows.Devices.Bluetooth==2.3.0
