@@ -37,7 +37,6 @@ from constants import *
 import subprocess
 import os
 from typing import List, Tuple, Union, overload
-# from globals import logger as log
 
 """
 Set the QT_API environment variable to "pyside6" to use PySide6
