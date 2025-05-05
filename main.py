@@ -652,30 +652,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.debug(f"saved chip settings: {item}")
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        # Handle mouse clicks on the scroll area
-        # if watched.objectName() == "qt_scrollarea_viewport":
-        #     if event.type() == QEvent.MouseButtonPress:
-        #         if event.button() == Qt.LeftButton:
-        #             log.info("Left mouse button clicked!")
-        #             if self.settings.get_bool(constants.KEY_TOUCHSCREEN_ENABLED):
-        #                 self.test_button.click()
-        #                 return True  # event was handled
-
-        # Reset the inactivity timer if a mouse movement or key press event is detected
+        """Event filter to handle inactivity timeout."""
         if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
-            self.inactivityTimer.start(
-                self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000
-            )  # 60 seconds of inactivity before timeout
+            self.inactivityTimer.start(self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000) 
         return super(MainWindow, self).eventFilter(watched, event)
-
-    def showEvent(self, event: QShowEvent) -> None:
-        super().showEvent(event)
-        self.activateWindow()
-        self.setFocus()
-
-    def _pass(self):
-        """Dummy function."""
-        pass
 
     def handle_inactivity_timeout(self) -> None:
         """ Called when the inactivity timer times out. """
@@ -687,6 +667,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         [action.setIcon(icon) for action in self.menuDevice.actions()]
         self.device_label.setText("")  # clear the device label
         self.eax_device.name = None  # reset the device
+
+    # def showEvent(self, event: QShowEvent) -> None:
+    #     super().showEvent(event)
+    #     self.activateWindow()
+    #     self.setFocus()
 
     def insert_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
@@ -706,7 +691,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def aboutQt(self) -> None:
         QApplication.aboutQt()
 
-    ''' Connection Functions '''
+    # ----- Connection Functions ----- #
 
     async def connect_task(self) -> None:
         if self.state == State.CONNECTED:
@@ -753,10 +738,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def modify_settings(self) -> None:
         self.settings_dialog.show()
 
-    """ Programming Functions """
+    # ----- Programming Functions ----- #
 
     def program(self) -> None:
-        """Program the device using QProcess instead of a QThread."""
+        """Program the selected device with the firmware."""
         if not self.eax_device.is_selected:
             warning(self, "Please select a device.")
             return
@@ -780,9 +765,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.program_process = QProcess(self)
             # when it finishes, grab only the exit code
             previous_state = self.state
-            self.program_process.finished.connect(
-                lambda code, _: self.handle_programming_result(code, previous_state)
-            )
+            self.program_process.finished.connect(lambda code, _: self.handle_programming_result(code, previous_state))
             self.state = State.PROGRAMMING
             # start it
             self.program_process.setProgram(programmer)
@@ -798,22 +781,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.state = previous_state  # restore the previous state
         if returncode == 0:
             self.insert_text("<br><p>Programming successful.</p>")
-            log.info(f"Programming {self.eax_device._selected_device} successful")
+            log.info(f"Programming successful for {self.eax_device._selected_device}.")
             if self.settings.get(constants.KEY_AUTO_TEST) and self.arduino.device_connected:
                 self.test_button.click()
                 return
         else:
             self.insert_text(f"<br><p>Programming failed. Return code: {returncode}</p>")
-            log.error(f"Programming {self.eax_device._selected_device} failed. Error code: {returncode}")
+            log.error(f"Programming failed for {self.eax_device._selected_device}. Return code: {returncode}")
 
     def show_statistics(self) -> None:
-        # (fail, success) = logg.count_programming_errors(
-        # ), logg.count_programming_successes()
-        # tested = logg.count_devices_tested()
+        """Display the statistics of the programming results."""
+        failed = len(log.search_logs("failed", "handle_programming_result"))
+        success = len(log.search_logs("success", "handle_programming_result"))
         QMessageBox().information(
             self,
             "Statistics",
-            # f"Total Tests: {tested}\nSuccessful: {success}\nFailed: {fail}",
+            f"Failures: {failed}\n"
+            f"Successes: {success}\n"
         )
 
     def show_log(self) -> None:
