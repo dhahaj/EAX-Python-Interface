@@ -63,7 +63,7 @@ from imports import (
 import sys
 import subprocess
 import qdarkstyle
-from math import ceil, e
+from math import ceil
 from arduino import AIODevice
 import settings
 from settings import get_instance
@@ -71,7 +71,7 @@ import asyncio
 from qasync import QEventLoop
 import os
 from pathlib import Path
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Any
 import constants
 from constants import State
 from settings import ApplicationSettings
@@ -668,11 +668,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_label.setText("")  # clear the device label
         self.eax_device.name = None  # reset the device
 
-    # def showEvent(self, event: QShowEvent) -> None:
-    #     super().showEvent(event)
-    #     self.activateWindow()
-    #     self.setFocus()
-
     def insert_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
         self.text_edit.append(prepend + text)
@@ -800,9 +795,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             f"Successes: {success}\n"
         )
 
+
+    #----- Log Functions ----- #
+
     def show_log(self) -> None:
         """Display the log view widget."""
-        # logs = logg.get_all_logs()
         self.log_view = LogView(log.get_logs(), self.save_logs)
         self.log_view.show()
 
@@ -845,6 +842,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
+
+    #----- Firmware Update Functions ----- #
+
     def update_firmware(self) -> None:
         """Update the firmware on the test fixture."""
         dialog = QMessageBox(self)
@@ -862,10 +862,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         dialog.exec()
 
-        if dialog.clickedButton() == cancelBtn:
-            log.info("Firmware update cancelled.")
-            return
-        elif dialog.clickedButton() == btnFirmata:
+        if dialog.clickedButton() == btnFirmata:
             firmware_path = ".\\sketches\\StandardFirmata\\build\\arduino.avr.uno\\StandardFirmata.ino.hex"
         elif dialog.clickedButton() == btnTelemetrix:
             firmware_path = ".\\sketches\\Telemetrix4Arduino\\build\\arduino.avr.uno\\Telemetrix4Arduino.ino.hex"
@@ -913,6 +910,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.set_status("Firmware update complete.")
 
+        # Reload the instructions after a delay
         QTimer.singleShot(3000, self.load_file_text)
 
     def increment_counter(self) -> None:
@@ -925,7 +923,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         log.increment_tests_run()
 
-    """ Test Functions """
+    #---------- Test Functions ----------#
 
     def on_test_clicked(self) -> None:
         """Called when the test button is clicked."""
