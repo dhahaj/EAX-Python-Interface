@@ -184,7 +184,26 @@ class AppLogger:
             total, = cur.fetchone()
             return total    
 
-
+    def search_logs(self, search_term: str, function: str = None) -> list:
+        """Search logs in the SQLite database for a specific term."""
+        results = []
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            if function:
+                cursor.execute("SELECT * FROM logs WHERE message LIKE ? AND function LIKE ?", ('%' + search_term + '%', '%' + function + '%'))
+            else:
+                cursor.execute("SELECT * FROM logs WHERE message LIKE ?", ('%' + search_term + '%',))
+            rows = cursor.fetchall()
+            for row in rows:
+                log_entry = {
+                    "id": row[0],
+                    "timestamp": row[1],
+                    "level": row[2],
+                    "message": row[3],
+                    "function": row[4]
+                }
+                results.append(log_entry)
+        return results
 
 if __name__ == "__main__":
     logger = AppLogger()
