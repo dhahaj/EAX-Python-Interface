@@ -18,13 +18,4 @@ QDarkStyle==3.1
 QtPy==2.4.3
 shiboken6==6.9.0
 -e git+https://github.com/dhahaj/telemetrix-aio.git@339cb71634a494141d8ff4543663bdf3bcac0a2b#egg=telemetrix_aio
-win32-setctime==1.1.0
-winrt-runtime==2.3.0
-winrt-Windows.Devices.Bluetooth==2.3.0
-winrt-Windows.Devices.Bluetooth.Advertisement==2.3.0
-winrt-Windows.Devices.Bluetooth.GenericAttributeProfile==2.3.0
-winrt-Windows.Devices.Enumeration==2.3.0
-winrt-Windows.Foundation==2.3.0
-winrt-Windows.Foundation.Collections==2.3.0
-winrt-Windows.Storage.Streams==2.3.0
 zipp==3.15.0
