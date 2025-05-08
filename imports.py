@@ -95,10 +95,8 @@ def get_theme(settings: ApplicationSettings) -> str:
 
 
 def get_stylesheet(settings: ApplicationSettings) -> str:
-    """ Returns the stylesheet for the current theme. """
-    palette = DarkPalette if get_theme(settings) == 'dark' else LightPalette
-    return qdarkstyle.load_stylesheet(palette)
-
+    """ Loads the stylesheet based on the current theme. """
+    return qdarkstyle.load_stylesheet(DarkPalette if get_theme(settings) == 'dark' else LightPalette)
 
 
 def str_to_bool(s: str) -> bool:
