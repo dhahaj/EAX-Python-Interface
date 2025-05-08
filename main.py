@@ -340,7 +340,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set the default device
         if not self.eax_device.verify_firmware():
             self.insert_text("Missing firmware!")
-            # log.critical("Missing firmware!")
 
         # Set the theme
         self.set_theme(get_theme(self.settings))
@@ -406,9 +405,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._state = value
 
-    def focusOutEvent(self, event) -> None:
-        super().focusOutEvent(event)
-
     def focusInEvent(self, event) -> None:
         # Close the settings dialog if the user clicks outside of it
         if event.reason() == Qt.FocusReason.ActiveWindowFocusReason:
@@ -438,8 +434,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Set the theme."""
         log.info(f"Setting theme to {theme}")
         if theme == 'dark':
-            style = qdarkstyle.load_stylesheet(qt_api='pyside2')
-            # style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
+            # style = qdarkstyle.load_stylesheet(qt_api='pyside2')
+            style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
             self.actionDark_Theme.setChecked(True)
         else:
             style = qdarkstyle.load_stylesheet(palette=qdarkstyle.LightPalette)
@@ -1467,19 +1463,6 @@ class CustomStatusBar(QStatusBar):
         """Set the value of the counter in the status bar."""
         self.widget.lcdNumber.display(value)
 
-def verify_files(files: List[str]) -> bool:
-    """
-    Verify if the files exist in the current directory.
-    :param files: List of file names to verify.
-    """
-    found = True
-    print("checking for missing files…")
-    for file in files:
-        file_path = os.path.join('.', file)
-        if not os.path.exists(file_path):
-            print(f"File {file} does not exist.")
-            found = False
-    return found
 
 
 if __name__ == "__main__":
@@ -1490,8 +1473,22 @@ if __name__ == "__main__":
         critical(None, "Another instance of the application is already running.", "Error")
         sys.exit(1)
 
-    # print(config_loader.get_instance())
     settings = settings.get_instance()
+
+
+    def verify_files(files: List[str]) -> bool:
+        """
+        Verify if the files exist in the current directory.
+        :param files: List of file names to verify.
+        """
+        found = True
+        print("checking for missing files…")
+        for file in files:
+            file_path = os.path.join('.', file)
+            if not os.path.exists(file_path):
+                print(f"File {file} does not exist.")
+                found = False
+        return found
 
     if not verify_files([
         "instructions.md",
@@ -1511,6 +1508,7 @@ if __name__ == "__main__":
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
     window = MainWindow(app, settings)
+    window.setWindowTitle(f"{constants.APP_NAME} v{constants.APP_VERSION}")
     window.show()
     log.info("Application started.")
     with loop:
