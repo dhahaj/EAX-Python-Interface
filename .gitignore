@@ -5,7 +5,4 @@ build/
 logs/
 tools/
 logs.db
-icons_rc.py
-resource_rc.py
 settings.ini
-config_resources_rc.py
