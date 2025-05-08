@@ -11,8 +11,8 @@ from typing import List
 from os import PathLike
 from enum import Enum, auto
 
-
-VERSION: str = "1.1.0"
+APP_NAME: str = "EAX Interface"
+APP_VERSION: str = "1.1.0"
 
 ICON_WINDOW = ':/images/icons/code.ico'
 
