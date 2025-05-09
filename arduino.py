@@ -9,30 +9,31 @@ from typing import List
 from PySide6.QtCore import QObject, Signal
 from enum import Enum
 from globals import logger as log
+from collections import defaultdict
 
 
-class PinMode(Enum):
+class Mode(Enum):
     INPUT = 'input'
     OUTPUT = 'output'
     INPUT_PULLUP = 'input_pullup'
 
 
 class Pin:
-    def __init__(self, pin_number: int, mode: PinMode, function: str = None, pullup_enabled: bool = False):
+    def __init__(self, pin_number: int, mode: Mode, function: str = None, pullup_enabled: bool = False):
         self.pin_number = pin_number
         self.mode = mode
         self.function = function
         self.pullup_enabled = pullup_enabled
-        if self.mode == PinMode.OUTPUT and self.pullup_enabled:
+        if self.mode == Mode.OUTPUT and self.pullup_enabled:
             raise ValueError(
                 "Pull-up resistors cannot be enabled for output pins.")
 
     async def configure(self, device: TelemetrixAIO, callback=None):
-        if self.mode == PinMode.OUTPUT:
+        if self.mode == Mode.OUTPUT:
             await device.set_pin_mode_digital_output(self.pin_number)
-        elif self.mode == PinMode.INPUT:
+        elif self.mode == Mode.INPUT:
             await device.set_pin_mode_digital_input(self.pin_number, callback)
-        elif self.mode == PinMode.INPUT_PULLUP:
+        elif self.mode == Mode.INPUT_PULLUP:
             await device.set_pin_mode_digital_input_pullup(self.pin_number, callback)
 
     def __repr__(self):
@@ -156,7 +157,7 @@ class AIODevice(QObject):
             try:
                 pin_obj = Pin(
                     pin['pin_number'],
-                    PinMode(pin['io_mode']),
+                    Mode(pin['io_mode']),
                     pin.get('function'),
                     pin.get('pullup_enabled', False)
                 )
@@ -255,8 +256,55 @@ class AIODevice(QObject):
         return config.pins
 
 
-_singleton: "AIODevice|None" = None
 
+class DummyAIODevice(AIODevice):
+    """
+    Mock class for AIODevice to simulate behavior without actual hardware.
+    This is useful for testing purposes.
+    """
+
+    class Device:
+        com_port: str = "COM3"
+
+    connection_changed = Signal(bool, object)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._device_connected = True  # Simulate a connected device
+        self.device = self.Device()
+        self._pin_callbacks = defaultdict(lambda: lambda msg: None)  # Default to no-op callback
+
+    async def write_pin_by_func(self, func, val): print(f"MOCK WRITE: Func={func}, Val={val}")
+    async def digital_write(self, pin, val): print(f"MOCK WRITE: Pin={pin}, Val={val}")
+    def get_pin_by_function(self, func): return {'relay in': 7}.get(func)  # Example
+    def attach_callback(self, cb, pin):
+        if self.debug: print(f"MOCK ATTACH: Pin={pin}, CB={cb}")
+        self._pin_callbacks[pin] = cb
+    def detach_callback(self, pin):
+        self._pin_callbacks[pin] = lambda msg: None
+        print(f"MOCK DETACH: Pin={pin}")
+    async def async_connect(self, callback=None): print("MOCK CONNECT")
+    async def async_disconnect(self): self._device_connected = False
+    async def set_pin_mode_digital_output(self, pin): print(f"MOCK SET OUTPUT: Pin={pin}")
+    async def set_pin_mode_digital_input(self, pin, cb):
+        print(f"MOCK SET INPUT: Pin={pin}, CB={cb}")
+        self._pin_callbacks[pin] = cb
+    async def set_pin_mode_digital_input_pullup(self, pin, cb):
+        print(f"MOCK SET INPUT PULLUP: Pin={pin}, CB={cb}")
+        self._pin_callbacks[pin] = cb
+    def load_pin_configuration(self, filename='config.yaml'): print(f"MOCK LOAD CONFIG: {filename}")
+    async def configure_pin_modes(self): print("MOCK CONFIGURE PIN MODES")
+    async def set_all_pins_to_value(self, value): print(f"MOCK SET ALL PINS TO {value}")
+    @property
+    def device_connected(self) -> bool: return self._device_connected
+    async def ensure_connected(self):
+        print("MOCK ENSURE CONNECTED")
+        self._device_connected = True
+        self.connection_changed.emit(True, self.device.com_port)
+
+
+
+_singleton: "AIODevice|None" = None
 
 def get_device(**kwargs) -> "AIODevice":
     """
@@ -266,8 +314,13 @@ def get_device(**kwargs) -> "AIODevice":
     """
     global _singleton
     if _singleton is None:
-        _singleton = AIODevice(**kwargs)
+        if config_loader.get_instance().get('use_mock_device'):
+            _singleton = DummyAIODevice(**kwargs)
+        else:
+            _singleton = AIODevice(**kwargs)
     return _singleton
+
+
 
 
 async def main():
