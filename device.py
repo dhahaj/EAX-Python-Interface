@@ -80,10 +80,15 @@ class Device:
                 print(f"Firmware file {filename} not found in {self._path}.")
                 return_val = False
         return return_val
+    
+    def __str__(self) -> str:
+        """ Returns a string representation of the device. """
+        return self.selected_device if self.selected_device else "No device selected."
 
 
 if __name__ == '__main__':
     dev = Device()
+    print(dev)
     for d in dev.names:
         dev.name = d
         print(dev.name)
