@@ -9,7 +9,7 @@ from constants import (
 from typing import Dict, Any, List, Callable  # Added Callable
 from enum import Enum, auto
 from globals import logger as log  # Use the global logger instance
-from settings import get_settings  # Use the global settings instance accessor
+from settings import get_instance  # Use the global settings instance accessor
 
 
 class TestState(Enum):
@@ -24,11 +24,7 @@ class TestState(Enum):
     ERROR = auto()          # An unexpected error occurred during the test.
 
 
-class ControllerMessage(Enum):
-    """
-    Enum representing the types of messages emitted by the TestController's `sendMessage` signal.
-    Used by the MainWindow to update the UI accordingly.
-    """
+class MessageType(Enum):
     INFO = auto()               # General informational message.
     WARNING = auto()            # Warning message.
     ERROR = auto()              # Error message (often non-fatal to test sequence).
@@ -45,6 +41,15 @@ class ControllerMessage(Enum):
     APPEND_TEXT = auto()        # Instructs the UI to append text to the main display. Data: text (str).
     INPUT_OK = auto()           # Signals that the expected input was received. Data: pin function (str).
     INPUT_FAIL = auto()         # Signals that input was received but didn't match expected, or timed out. Data: pin function (str).
+
+class ControllerMessage:
+    """
+    Class representing a message emitted by the TestController to the UI or other components.
+    Contains a type (ControllerMessageType) and an optional payload (object).
+    """
+    def __init__(self, msg_type: MessageType, payload: str = ""):
+        self.type = msg_type  # Type of message (ControllerMessageType)
+        self.data = payload  # Optional payload (str)
 
 
 class TestController(QObject):
@@ -81,13 +86,14 @@ class TestController(QObject):
         super().__init__(parent)
 
         # Assign settings instance
-        self.settings = settings or get_settings()
+        self.settings = settings or get_instance()
 
         self._aio_device = aio_device
         self.debug = self.settings.get_bool(KEY_DEBUG, False)  # Get debug flag from settings
 
         # Load configuration using the global singleton accessor
         self._config_loader = config_loader.get_instance()
+        print(self._config_loader)
         self._test_sequence: List[Dict[str, Any]] = []  # Initialize empty
         self._load_config()  # Load initial config
 
@@ -119,16 +125,16 @@ class TestController(QObject):
         try:
             loaded = self._config_loader.reload()  # Use reload method from ConfigLoader
             if loaded:
-                self._test_sequence = self._config_loader.get_test_sequence()
-                if not self._test_sequence:
-                    log.warning("Test sequence loaded but is empty.")
-                else:
-                    log.info(f"Successfully loaded test sequence with {len(self._test_sequence)} steps.")
-                return True
+                self._test_sequence = self._config_loader.test_sequence  # Get the test sequence from the config loader
+            if not self._test_sequence:
+                log.warning("Test sequence loaded but is empty.")
             else:
-                log.error("ConfigLoader failed to reload configuration.")
-                self._test_sequence = []
-                return False
+                log.info(f"Successfully loaded test sequence with {len(self._test_sequence)} steps.")
+            return True
+            # else:
+            #     log.error("ConfigLoader failed to reload configuration.")
+            #     self._test_sequence = []
+            #     return False
         except Exception as e:
             log.exception("Exception during configuration loading.")
             self._test_sequence = []
@@ -208,13 +214,13 @@ class TestController(QObject):
         # 1. Pre-checks
         if self.is_busy:
             log.warning("TestController.async_run_test called while busy.")
-            self.sendMessage.emit(ControllerMessage.TEST_ERROR, "Test already in progress.")
+            self.sendMessage.emit(ControllerMessage(MessageType.WARNING, "TestController.async_run_test called while busy."))
             return
 
         # Reload config and ensure sequence exists
         if not self._load_config() or not self._test_sequence:
             log.error("Cannot run test: Test sequence missing or failed to load.")
-            self.sendMessage.emit(ControllerMessage.TEST_ERROR, "Test sequence missing or failed to load.")
+            self.sendMessage.emit(ControllerMessage(MessageType.ERROR, "Test sequence missing or failed to load."))
             return
 
         # 2. Initialization
@@ -224,7 +230,7 @@ class TestController(QObject):
         # model = self._current_device.model
         log.info(f"Starting test sequence for {device}")
         # self.testStarted.emit(device)  # Emit legacy signal if needed
-        self.sendMessage.emit(ControllerMessage.TEST_STARTED)  # Emit consolidated signal
+        self.sendMessage.emit(ControllerMessage(MessageType.TEST_STARTED))
 
         try:
             # --- 3. Execute Test Steps ---
@@ -247,14 +253,14 @@ class TestController(QObject):
                 else:
                     log.warning(f"Unknown action type '{action_type}' in step {i}: {step}")
                     # Optionally emit an error or warning message
-                    self.sendMessage.emit(ControllerMessage.WARNING, f"Unknown test action: {action_type}")
+                    self.sendMessage.emit(ControllerMessage(MessageType.WARNING, f"Unknown test action: {action_type}"))
 
             # --- 4. Test Completion (Success) ---
             log.info(f"Test sequence completed successfully for {self._current_device}.")
             self._state = TestState.FINISHED
             success_message = f"Test for {self._current_device} Passed"
             self.testFinished.emit(True, success_message)  # Legacy signal
-            self.sendMessage.emit(ControllerMessage.TEST_PASSED, success_message)  # Consolidated signal
+            self.sendMessage.emit(ControllerMessage(MessageType.TEST_PASSED, success_message))  # Consolidated signal
 
         # --- 5. Error Handling ---
         except asyncio.TimeoutError as e:
@@ -265,7 +271,7 @@ class TestController(QObject):
             self.errorOccurred.emit(fail_msg)  # Legacy signal
             self._state = TestState.ERROR
             self.testFinished.emit(False, f"Test Failed: {fail_msg}")  # Legacy signal
-            self.sendMessage.emit(ControllerMessage.TEST_FAILED, f"Test Failed: {fail_msg}")  # Consolidated signal
+            self.sendMessage.emit(ControllerMessage(MessageType.TEST_ERROR, fail_msg))  # Consolidated signal
         except Exception as e:
             # General exception handling for errors during step execution
             log.exception(f"Unexpected error during test for {self._current_device}: {e}")
@@ -273,10 +279,10 @@ class TestController(QObject):
             self.errorOccurred.emit(error_details)  # Legacy signal
             self._state = TestState.ERROR
             self.testFinished.emit(False, f"Test Failed: {error_details}")  # Legacy signal
-            self.sendMessage.emit(ControllerMessage.TEST_ERROR, error_details)  # Consolidated signal
+            self.sendMessage.emit(ControllerMessage(MessageType.TEST_ERROR, error_details))  # Consolidated signal
         except asyncio.CancelledError:
             log.info("Test interrupted by user")
-            self.sendMessage.emit(ControllerMessage.TEST_ERROR, "Test interrupted")
+            self.sendMessage.emit(ControllerMessage(MessageType.NOTICE, "Test interrupted by user."))
             self._state = TestState.ERROR
 
         finally:
@@ -287,7 +293,7 @@ class TestController(QObject):
             final_state = self._state  # Capture state before reset
             self._reset_state()
             # Emit the final overall finished signal *after* cleanup and reset
-            self.sendMessage.emit(ControllerMessage.TEST_FINISHED, final_state == TestState.FINISHED)
+            self.sendMessage.emit(ControllerMessage(MessageType.TEST_FINISHED, f"Test finished with state: {final_state.name}"))  # Consolidated signal
 
     def _should_execute_step(self, step: Dict[str, Any]) -> bool:
         """
@@ -301,11 +307,14 @@ class TestController(QObject):
         Returns:
             True if the step should be executed, False otherwise.
         """
+        
+        return True  # Not implemented with this version
+        
         if self._current_device is None:
             log.warning("Cannot check step condition: No current device set.")
             return False  # Cannot execute without device context
 
-        model = self._current_device.model
+        model = self._current_device
         execute = True
 
         # Check 'if_has' condition: Step runs only if ALL specified features are True on the model.
@@ -341,12 +350,13 @@ class TestController(QObject):
         if self._current_device:
             try:
                 # Format the message using the current device's model name
-                text = text.format(model_name=self._current_device.model.name)
+                text = text.format(model_name=self._current_device)
             except KeyError as e:
                 log.warning(f"Placeholder key error in message '{text}': {e}. Leaving as is.")
         # Emit the formatted text for UI display
+        print(f"Message: {text}")
         self.updateText.emit(text)  # Legacy
-        self.sendMessage.emit(ControllerMessage.APPEND_TEXT, text)
+        self.sendMessage.emit(ControllerMessage(MessageType.APPEND_TEXT, text))
 
     async def _handle_write_pin(self, step: Dict[str, Any]):
         """Handles the 'write_pin' action: writes a value to a pin identified by its function."""
@@ -441,8 +451,7 @@ class TestController(QObject):
         if "text" in step:
             await self._handle_message(step)  # Show initial prompt if provided
         self.waitingForInput.emit(pin_function, prompt)  # Legacy signal
-        self.sendMessage.emit(ControllerMessage.WAITING_FOR_INPUT, pin_function)  # Consolidated signal
-
+        self.sendMessage.emit(ControllerMessage(MessageType.WAITING_FOR_INPUT, prompt))
         self._input_event.clear()
         self._state = TestState.AWAITING_RELAY  # Consider renaming state to AWAITING_INPUT
         self._current_wait_step = step  # Store step details for the callback
@@ -463,16 +472,16 @@ class TestController(QObject):
                 input_match = True
                 log.info(f"Input value matched expectation ({expected_value}).")
                 self.updateText.emit(message_on_pass)  # Legacy
-                self.sendMessage.emit(ControllerMessage.INPUT_OK, pin_function)
-                self.sendMessage.emit(ControllerMessage.APPEND_TEXT, message_on_pass)
+                self.sendMessage.emit(ControllerMessage(MessageType.INPUT_OK, pin_function))
+                # self.sendMessage.emit(ControllerMessage.APPEND_TEXT, message_on_pass)
             else:
                 # Value received but did not match expectation
                 input_match = False
                 mismatch_msg = f"Input value mismatch on {pin_function}: received {self._input_received_value}, expected {expected_value}."
                 log.warning(mismatch_msg)
                 self.updateText.emit(mismatch_msg)  # Legacy
-                self.sendMessage.emit(ControllerMessage.INPUT_FAIL, pin_function)  # Signal failure type
-                self.sendMessage.emit(ControllerMessage.APPEND_TEXT, mismatch_msg)
+                self.sendMessage.emit(ControllerMessage(MessageType.INPUT_FAIL, pin_function))  # Signal failure type
+                # self.sendMessage.emit(ControllerMessage.APPEND_TEXT, mismatch_msg)
                 if fail_on_mismatch:
                     log.error("Failing test due to input value mismatch.")
                     raise ValueError(mismatch_msg)  # Raise error to fail the test run
@@ -481,8 +490,8 @@ class TestController(QObject):
         except asyncio.TimeoutError:
             log.warning(f"Timeout occurred while waiting for input on {pin_function}.")
             self.updateText.emit(message_on_fail)  # Legacy
-            self.sendMessage.emit(ControllerMessage.INPUT_FAIL, pin_function)  # Signal failure type
-            self.sendMessage.emit(ControllerMessage.APPEND_TEXT, message_on_fail)
+            self.sendMessage.emit(ControllerMessage(MessageType.INPUT_FAIL, pin_function))  # Signal failure type
+            # self.sendMessage.emit(ControllerMessage(MessageType.APPEND_TEXT, message_on_fail))
             if fail_on_timeout:
                 log.error("Failing test due to input timeout.")
                 raise  # Re-raise the TimeoutError to fail the test run
@@ -557,8 +566,8 @@ class TestController(QObject):
         prompt = step.get("text", "Waiting for user confirmation...")
         if "text" in step:
             await self._handle_message(step)  # Display prompt message
-        self.waitingForButton.emit(prompt)  # Legacy signal
-        self.sendMessage.emit(ControllerMessage.WAITING_FOR_BUTTON, prompt)  # Consolidated signal
+        # self.waitingForButton.emit(prompt)  # Legacy signal
+        self.sendMessage.emit(ControllerMessage(MessageType.WAITING_FOR_BUTTON, prompt))
 
         self._input_event.clear()
         self._state = TestState.AWAITING_BUTTON
@@ -569,14 +578,14 @@ class TestController(QObject):
             await asyncio.wait_for(self._input_event.wait(), timeout=timeout_sec)
             # --- Button Pressed ---
             log.info("Button press confirmed by UI.")
-            self.updateText.emit("User confirmation received.")  # Legacy
-            self.sendMessage.emit(ControllerMessage.APPEND_TEXT, "User confirmation received.")
+            self.updateText.emit("Testing complete.")
+            self.sendMessage.emit(ControllerMessage(MessageType.APPEND_TEXT, "Testing complete."))
 
         # --- 5. Handle Timeout ---
         except asyncio.TimeoutError:
             log.warning("Timeout occurred while waiting for button confirmation.")
             self.updateText.emit(message_on_fail)  # Legacy
-            self.sendMessage.emit(ControllerMessage.APPEND_TEXT, message_on_fail)
+            self.sendMessage.emit(ControllerMessage(MessageType.APPEND_TEXT, message_on_fail))
             if fail_on_timeout:
                 log.error("Failing test due to button confirmation timeout.")
                 raise  # Re-raise the TimeoutError to fail the test run
@@ -610,7 +619,7 @@ class TestController(QObject):
         if not self._test_sequence:
             return "No test sequence loaded."
 
-        config_str = f"Loaded Test Sequence ({len(self._test_sequence)} steps from {self._config_loader.filename}):"
+        config_str = f"Loaded Test Sequence ({len(self._test_sequence)} steps from {self._config_loader}):"
         for i, step in enumerate(self._test_sequence, start=1):
             # Basic formatting, could use pprint or json.dumps for better structure
             config_str += f"\n Step {i:02d}: {step}"
