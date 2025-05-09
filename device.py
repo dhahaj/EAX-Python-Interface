@@ -61,13 +61,13 @@ class Device:
     def get_firmware(self) -> str:
         """ Returns the path to the firmware file for the current device. """
         for firmware in self.data:
-            if firmware.get(KEY_FIRMWARE_BASENAME) == self.selected_device:
+            if firmware.get(KEY_FIRMWARE_DEVICE_NAME) == self.selected_device:
                 name = firmware.get(KEY_FIRMWARE_NAME)
                 return f'{self._path}/{name}'
         return None
 
     def load_from_config(self) -> None:
-        """Load the settings from a JSON file."""
+        """Load the settings from a file."""
         self.data = self.config.get_firmware()
         self._path = self.config.firmware_path
 
