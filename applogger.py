@@ -121,7 +121,7 @@ class AppLogger:
         self._emit("WARNING", message)
 
     def exception(self, message: str):
-        self._emit("EXCEPTION", message, extra_depth=1)
+        self._emit("ERROR", message, extra_depth=1)
 
     def get_logs(self) -> list:
         logs = []
@@ -205,9 +205,19 @@ class AppLogger:
                 results.append(log_entry)
         return results
 
-if __name__ == "__main__":
-    logger = AppLogger()
 
-    logger.increment_tests_run(device="EAX500")
-    total_tests = logger.get_tests_run()    
+_singleton: AppLogger = None
+
+def get_logger() -> AppLogger:
+    global _singleton
+    if _singleton is None:
+        _singleton = AppLogger()
+    return _singleton
+
+
+if __name__ == "__main__":
+    log = get_logger()   
+    log.exception("This is an exception message")
+    log.increment_tests_run(device="EAX500")
+    total_tests = log.get_tests_run()    
     print(f"Total tests run: {total_tests}")
