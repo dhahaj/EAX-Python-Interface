@@ -130,65 +130,85 @@ settings:
   sleep_tune: 0.000001
   testing_speed: 2100
   touchscreen_enabled: false
-# defines the test sequence
 
+
+# defines the test sequence
 testing:
-  - command: digital_write
-    delay: 1
-    description: Test Indicator On
-    params: [13, 1]
-  - command: insert_text
-    delay: 1
-    description: Show Text
-    params: ["\n • Battery power on → Siren chirps and both LEDs flash  \n"]
-  - command: digital_write
-    delay: 1
-    description: Battery On
-    params: [4, 1]
-  - command: insert_text
-    delay: null
-    description: Show Text
-    params: ["\n • Starting low battery test → LEDs flash alternating \n"]
-  - command: digital_write
-    delay: 1
-    description: Low Battery On
-    params: [2, 1]
-  - command: insert_text
-    delay: null
-    description: Show Text
-    params: ["\n • Low battery test off → LEDs turn off.\n"]
-  - command: digital_write
-    delay: 1
-    description: Low Battery Off
-    params: [2, 0]
-  - command: insert_text
-    delay: 500
-    description: Show Text
-    params: [" • Perform the following:\n \t1. Press the key switch → The siren sounds\n \t2. Press the cylinder switch → The LEDs turn on\n"]
-  - command: insert_text
-    delay: 200
-    description: Show Text
-    params: ["\n\nPress the Continue button to finish testing..."]
-  - command: wait_for_button
-    delay: 1
-    description: Wait for Button
-    params: [15000]
-  - command: insert_text
-    delay: 1
-    description: Show Text
-    params: ["\n Test complete.\n"]
-  - command: digital_write
-    delay: 1
-    description: Test Indicator Off
-    params: [13, 0]
-  - command: digital_write
-    delay: 1
-    description: Battery Off
-    params: [4, 0]
-  - command: load_instructions
-    delay: 10
-    description: Load Instructions
-    params: [instructions.md]
+  sequence:
+
+    - action: message # Display the Detex logo
+      text: "<html><head></head><body><img src=\":/resources/detex\" width=\"280\" style=\"float:right;\" />"
+
+
+    - action: message # Display text to the user
+      text: "<h1>Starting test for {model_name}...</h1><br>"
+
+    - action: write_pin # Control an output pin
+      function: test indicator # Use the function name from 'pins' section
+      value: 1 # Set the pin to HIGH (1)
+
+    # --- Battery Power ---
+    - action: write_pin
+      function: battery
+      value: 1
+      if_has: ["hasBatt"]
+    - action: message
+      text: "<p>- Battery power on</p>"
+    - action: delay # Pause execution
+      duration_ms: 1000 # Specific delay overrides default speed
+
+    # --- Low Battery Test ---
+    - action: message
+      text: "<p>- Testing Low battery function 🢧 The LED's blink alternately</p>"
+    - action: write_pin
+      function: low battery
+      value: 1
+
+    - action: delay # Uses default_speed_ms if duration_ms is omitted
+    
+    - action: write_pin
+      function: low battery
+      value: 0
+    - action: message
+      text: "<p>- Stopping Low Battery Test 🢧 Both LED's should be OFF</p>"
+    - action: delay
+      duration_ms: 500
+
+  
+    - action: message
+      text: <p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>
+
+    - action: message
+      text: <p>🔷 Press the key switch ➾ The siren sounds</p>
+
+    - action: delay
+      duration_ms: 500
+
+    - action: message
+      text: <p>🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides</p>
+
+    - action: delay
+      duration_ms: 500
+
+    # --- Wait for Button Confirmation ---
+    - action: message
+      text: "<br><h3>⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Press the Test Button or Click here to continue...</span></a> </h3>"
+
+    - action: wait_for_button
+      timeout_key: button_timeout # Key from settings.ini for timeout duration
+      message_on_fail: <p>Timeout waiting for button confirmation. Continuing test.</p>
+      fail_on_timeout: false
+  cleanup:
+    - action: write_pin
+      function: test indicator
+      value: 0
+    - action: write_pin
+      function: battery
+      value: 0
+    - action: write_pin
+      function: low battery
+      value: 0
+
 
 chip_options:
   - PIC16F627
