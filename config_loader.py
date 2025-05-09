@@ -2,12 +2,14 @@ import yaml
 from typing import List, Dict, Any, Tuple
 import os
 from util.resources import extract_file_from_resource
+import copy
 
 class ConfigLoader:
     """Load the config from a YAML file."""
 
 
     def __init__(self, filename: str = "config.yaml") -> None:
+        self.filename = filename
         # If the config file does not exist, try to extract it from resources
         if not os.path.exists(filename):
             try:
@@ -86,20 +88,33 @@ class ConfigLoader:
         """Return a list of chip options."""
         return self.data.get('chip_options', [])
 
-    def get_testing_config(self) -> List[Dict[str, Any]]:
-        """Return the test instructions."""
-        return self.data.get('testing', [])
+    def get_test_sequence(self) -> List[Dict[str, Any]]:
+        """Return the list of test steps."""
+        return self.data.get('testing', {}).get('sequence', [])
 
-    # def __str__(self):
-    #     """Return the string representation of the config."""
-    #     return str(self.data)
+    @property
+    def test_sequence(self) -> List[Dict[str, Any]]:
+        """Return the test sequence."""
+        return self.get_test_sequence()
 
-    # @staticmethod
-    # def get_instance() -> "ConfigLoader":
-    #     """Return the singleton instance of ConfigLoader."""
-    #     if not hasattr(ConfigLoader, "_instance"):
-    #         ConfigLoader._instance = ConfigLoader()
-    #     return ConfigLoader._instance
+    def get_cleanup_sequence(self) -> List[Dict[str, Any]]:
+        """Return the list of cleanup steps."""
+        return self.data.get('testing', {}).get('cleanup', [])
+    
+    def reload(self) -> bool:
+        """Reload the config from the file, do nothing if the file has an error."""
+        # keep the old config data in case of error
+        old_config = copy.deepcopy(self.data)
+        try:
+            new = self.load_from_file(self.filename)
+            if not new:
+                raise ValueError("Loaded empty config")
+            self.data = new
+            return True
+        except Exception as e:
+            print(f"Error reloading config file: {e}")
+            self.data = old_config
+            return False
 
 
 
@@ -117,18 +132,16 @@ def get_instance(**kwargs) -> "ConfigLoader":
     return _config_singleton
 
 
-
-
 if __name__ == '__main__':
     config = ConfigLoader()
-
-    print(config.get('logging').get("database_file", None))
-    print( config.get('logging').get('database_file', None) )
-    print( config.get('logging').get('log_file', None) )
-    print( config.get('logging').get('log_level', 'DEBUG') )
-    print( config.get('logging').get('log_format', "{time} | {level} | {message}") )
-    print( config.get('logging').get('log_rotation', "00:00") )
-    print( config.get('logging').get('log_retention', "7 days") )
+    print(config.get_test_sequence())
+    # print(config.get('logging').get("database_file", None))
+    # print( config.get('logging').get('database_file', None) )
+    # print( config.get('logging').get('log_file', None) )
+    # print( config.get('logging').get('log_level', 'DEBUG') )
+    # print( config.get('logging').get('log_format', "{time} | {level} | {message}") )
+    # print( config.get('logging').get('log_rotation', "00:00") )
+    # print( config.get('logging').get('log_retention', "7 days") )
 
     # pins = config.pins
     # print(type(pins[0]))
