@@ -126,8 +126,8 @@ Keys for the firmware dictionary.
 FIRMWARE_NAME: str = "name"
 FIRMWARE_VERSION: str = "version"
 KEY_FIRMWARE: str = "firmware"
-KEY_FIRMWARE_NAME: str = "filename"
-KEY_FIRMWARE_BASENAME: str = "basename"
+KEY_FIRMWARE_NAME: str = "firmware_file"
+KEY_FIRMWARE_DEVICE_NAME: str = "device_name"
 KEY_FIRMWARE_VERSION: str = "version"
 
 
