@@ -75,7 +75,7 @@ class ConfigLoader:
         """Return a list of devices."""
         firmware = self.data.get('firmware', {})
         files = firmware.get('files', [])
-        return [entry.get('basename', '') for entry in files if 'basename' in entry]
+        return [entry.get('device_name', '') for entry in files if 'device_name' in entry]
 
     @property
     def default_device(self) -> str:
