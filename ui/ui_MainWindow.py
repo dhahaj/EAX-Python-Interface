@@ -263,10 +263,10 @@ class Ui_MainWindow(object):
         self.text_edit.setStyleSheet(u"background-color: rgba(0, 0, 0, 100);")
         self.text_edit.setFrameShape(QFrame.Shape.WinPanel)
         self.text_edit.setFrameShadow(QFrame.Shadow.Sunken)
-        self.text_edit.setAutoFormatting(QTextEdit.AutoFormattingFlag.AutoAll)
+        self.text_edit.setAutoFormatting(QTextEdit.AutoFormattingFlag.AutoNone)
         self.text_edit.setUndoRedoEnabled(False)
         self.text_edit.setReadOnly(True)
-        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByKeyboard|Qt.TextInteractionFlag.LinksAccessibleByMouse|Qt.TextInteractionFlag.TextBrowserInteraction|Qt.TextInteractionFlag.TextSelectableByKeyboard|Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByKeyboard|Qt.TextInteractionFlag.LinksAccessibleByMouse)
 
         self.verticalLayout.addWidget(self.text_edit)
 
