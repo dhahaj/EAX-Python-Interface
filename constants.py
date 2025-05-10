@@ -9,7 +9,6 @@ values can be adjusted here to make the application more modular.
 import enum
 from typing import List
 from os import PathLike
-from enum import Enum, auto
 
 APP_NAME: str = "EAX Interface"
 APP_VERSION: str = "1.1.0"
@@ -35,18 +34,18 @@ RADIO_OFF_ICON = ":/images/icons/radio-off-button.png"
 RADIO_ON_ICON = ":/images/icons/radio-on-button.png"
 
 
-class State(Enum):
+class State(enum.Enum):
     """The state of the application."""
-    IDLE = auto()
-    PROGRAMMING = auto()
-    TESTING = auto()
-    WAITING_FOR_BUTTON = auto()
-    BLOCKED = auto()
-    CONNECTING = auto()
-    CONNECTED = auto()
-    DISCONNECTED = auto()
-    UPDATING = auto()
-    WAITING_FOR_INPUT = auto()
+    IDLE = enum.auto()
+    PROGRAMMING = enum.auto()
+    TESTING = enum.auto()
+    WAITING_FOR_BUTTON = enum.auto()
+    BLOCKED = enum.auto()
+    CONNECTING = enum.auto()
+    CONNECTED = enum.auto()
+    DISCONNECTED = enum.auto()
+    UPDATING = enum.auto()
+    WAITING_FOR_INPUT = enum.auto()
 
 
 CHIP_OPTIONS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
@@ -61,6 +60,7 @@ KEY_DEBUG: str = "debug"
 KEY_COM_PORT: str = "serial_port"
 KEY_PROGRAMMER_SERIAL_NUMBER: str = "programmer_serial_number"
 KEY_CHIP_PART: str = "chip_part"
+KEY_CHIP_OPTIONS: str = "chip_options"
 KEY_LAST_USER: str = "last_user"
 KEY_TESTING_SPEED: str = "testing_speed"
 KEY_AUTO_TEST: str = "auto_test"
