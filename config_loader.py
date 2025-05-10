@@ -1,8 +1,20 @@
 import yaml
 from typing import List, Dict, Any, Tuple
 import os
+from constants import KEY_FIRMWARE
 from util.resources import extract_file_from_resource
 import copy
+
+class Keys:
+    """Keys used in the config file."""
+    KEY_DEBUG: str = "debug"
+    KEY_CHIP_OPTIONS: str = "chip_options"
+    KEY_PINS: str = "pins"
+    KEY_FIRMWARE: str = "firmware"
+    KEY_CLEANUP_SEQUENCE: str = "cleanup"
+    KEY_TESTING: str = "testing"
+    KEY_TESTING_SEQUENCE: str = "sequence"
+    KEY_DEVICE_NAME: str = "device_name"
 
 class ConfigLoader:
     """Load the config from a YAML file."""
@@ -28,7 +40,7 @@ class ConfigLoader:
                 return yaml.safe_load(stream)
         except FileNotFoundError:
             print(f"Config file not found: {filename}")
-            raise
+            raise 
         except yaml.YAMLError as e:
             print(f"YAML parsing error in file {filename}: {e}")
             raise
@@ -59,38 +71,38 @@ class ConfigLoader:
     @property
     def pins(self) -> List[Dict[str, Any]]:
         """Return the pins configuration."""
-        return self.data.get('pins', [])
+        return self.data.get(Keys.KEY_PINS, [])
 
     @property
     def firmware_path(self) -> str:
         """Return the firmware path."""
-        return self.data.get('firmware', {}).get('path', None)
+        return self.data.get(Keys.KEY_FIRMWARE, {}).get('path', None)
 
     def get_firmware(self) -> List[Dict[str, Any]]:
         """Return the firmware data."""
-        return self.data.get('firmware', {}).get('files', [])
+        return self.data.get(Keys.KEY_FIRMWARE, {}).get('files', [])
 
     @property
     def devices(self) -> List[str]:
         """Return a list of devices."""
-        firmware = self.data.get('firmware', {})
+        firmware = self.data.get(Keys.KEY_FIRMWARE, {})
         files = firmware.get('files', [])
-        return [entry.get('device_name', '') for entry in files if 'device_name' in entry]
+        return [entry.get(Keys.KEY_DEVICE_NAME, '') for entry in files if Keys.KEY_DEVICE_NAME in entry]
 
     @property
     def default_device(self) -> str:
         """Return the default device."""
-        firmware = self.data.get('firmware', {})
+        firmware = self.data.get(Keys.KEY_FIRMWARE, {})
         return firmware.get('default_device', '')
 
     @property
     def chip_options(self) -> List[str]:
         """Return a list of chip options."""
-        return self.data.get('chip_options', [])
+        return self.data.get(Keys.KEY_CHIP_OPTIONS, [])
 
     def get_test_sequence(self) -> List[Dict[str, Any]]:
         """Return the list of test steps."""
-        return self.data.get('testing', {}).get('sequence', [])
+        return self.data.get(Keys.KEY_TESTING, {}).get(Keys.KEY_TESTING_SEQUENCE, [])
 
     @property
     def test_sequence(self) -> List[Dict[str, Any]]:
@@ -99,8 +111,8 @@ class ConfigLoader:
 
     def get_cleanup_sequence(self) -> List[Dict[str, Any]]:
         """Return the list of cleanup steps."""
-        return self.data.get('testing', {}).get('cleanup', [])
-    
+        return self.data.get(Keys.KEY_TESTING, {}).get(Keys.KEY_CLEANUP_SEQUENCE, [])
+
     def reload(self) -> bool:
         """Reload the config from the file, do nothing if the file has an error."""
         # keep the old config data in case of error
@@ -117,13 +129,12 @@ class ConfigLoader:
             return False
 
 
-
 _config_singleton: "ConfigLoader|None" = None
 
 def get_instance(**kwargs) -> "ConfigLoader":
     """
     Return the process-wide ApplicationSettings.
-    The first call constructs it, later calls hand bac  k the same object.
+    The first call constructs it, later calls hand back the same object.
     Extra kwargs are silently ignored after the first call.
     """
     global _config_singleton
@@ -133,8 +144,10 @@ def get_instance(**kwargs) -> "ConfigLoader":
 
 
 if __name__ == '__main__':
-    config = ConfigLoader()
-    print(config.get_test_sequence())
+    config = get_instance   ()
+    from pprint import pprint
+    pprint(config.get_test_sequence(), indent=4, width=120)
+    pprint(config.get_cleanup_sequence(), indent=4, width=120, sort_dicts=False)
     # print(config.get('logging').get("database_file", None))
     # print( config.get('logging').get('database_file', None) )
     # print( config.get('logging').get('log_file', None) )
