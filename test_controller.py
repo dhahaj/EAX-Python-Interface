@@ -1,52 +1,52 @@
-import asyncio
 from PySide6.QtCore import QObject, Signal
 from device import Device
 from arduino import AIODevice
-import config_loader  # Keep for get_instance()
-from constants import (
-    KEY_DEBUG, KEY_TESTING_SPEED, DEFAULT_SETTINGS
-)
+from constants import KEY_DEBUG, KEY_TESTING_SPEED, DEFAULT_SETTINGS
 from typing import Dict, Any, List, Callable  # Added Callable
-from enum import Enum, auto
 from globals import logger as log  # Use the global logger instance
 from settings import get_instance  # Use the global settings instance accessor
+import config_loader  # Keep for get_instance()
+import asyncio
+import enum
 
 
-class TestState(Enum):
+class TestState(enum.Enum):
     """
     Enum representing the internal states of the TestController during test execution.
     """
-    IDLE = auto()           # Controller is inactive, ready for a test.
-    RUNNING = auto()        # Test sequence is actively executing steps.
-    AWAITING_RELAY = auto()  # Paused, waiting for a specific input signal (historically relay). Renamed to AWAITING_INPUT in newer constants.
-    AWAITING_BUTTON = auto()  # Paused, waiting for user confirmation via button press.
-    FINISHED = auto()       # Test sequence completed (pass or fail determined later).
-    ERROR = auto()          # An unexpected error occurred during the test.
+    IDLE = enum.auto()           # Controller is inactive, ready for a test.
+    RUNNING = enum.auto()        # Test sequence is actively executing steps.
+    AWAITING_RELAY = enum.auto()  # Paused, waiting for a specific input signal (historically relay). Renamed to AWAITING_INPUT in newer constants.
+    AWAITING_BUTTON = enum.auto()  # Paused, waiting for user confirmation via button press.
+    FINISHED = enum.auto()       # Test sequence completed (pass or fail determined later).
+    ERROR = enum.auto()          # An unexpected error occurred during the test.
 
 
-class MessageType(Enum):
-    INFO = auto()               # General informational message.
-    WARNING = auto()            # Warning message.
-    ERROR = auto()              # Error message (often non-fatal to test sequence).
-    NOTICE = auto()             # Notable event or status update.
-    DEBUG = auto()              # Debugging information.
-    TEST_STARTED = auto()       # Signals the beginning of a test run. Data: model name (str).
-    TEST_FINISHED = auto()      # Signals the end of a test run. Data: success (bool).
-    TEST_PROGRESS = auto()      # General progress message during the test. Data: message (str). Deprecated, use APPEND_TEXT.
-    TEST_PASSED = auto()        # Signals the test completed successfully. Data: final message (str).
-    TEST_FAILED = auto()        # Signals the test failed. Data: failure reason (str).
-    TEST_ERROR = auto()         # Signals an unexpected error during the test. Data: error details (str).
-    WAITING_FOR_INPUT = auto()  # Signals the controller is waiting for hardware input. Data: pin function (str).
-    WAITING_FOR_BUTTON = auto()  # Signals the controller is waiting for user button press. Data: prompt text (str).
-    APPEND_TEXT = auto()        # Instructs the UI to append text to the main display. Data: text (str).
-    INPUT_OK = auto()           # Signals that the expected input was received. Data: pin function (str).
-    INPUT_FAIL = auto()         # Signals that input was received but didn't match expected, or timed out. Data: pin function (str).
+class MessageType(enum.Enum):
+    INFO = enum.auto()               # General informational message.
+    WARNING = enum.auto()            # Warning message.
+    ERROR = enum.auto()              # Error message (often non-fatal to test sequence).
+    NOTICE = enum.auto()             # Notable event or status update.
+    DEBUG = enum.auto()              # Debugging information.
+    TEST_STARTED = enum.auto()       # Signals the beginning of a test run. Data: model name (str).
+    TEST_FINISHED = enum.auto()      # Signals the end of a test run. Data: success (bool).
+    TEST_PROGRESS = enum.auto()      # General progress message during the test. Data: message (str). Deprecated, use APPEND_TEXT.
+    TEST_PASSED = enum.auto()        # Signals the test completed successfully. Data: final message (str).
+    TEST_FAILED = enum.auto()        # Signals the test failed. Data: failure reason (str).
+    TEST_ERROR = enum.auto()         # Signals an unexpected error during the test. Data: error details (str).
+    WAITING_FOR_INPUT = enum.auto()  # Signals the controller is waiting for hardware input. Data: pin function (str).
+    WAITING_FOR_BUTTON = enum.auto()  # Signals the controller is waiting for user button press. Data: prompt text (str).
+    APPEND_TEXT = enum.auto()        # Instructs the UI to append text to the main display. Data: text (str).
+    INPUT_OK = enum.auto()           # Signals that the expected input was received. Data: pin function (str).
+    INPUT_FAIL = enum.auto()         # Signals that input was received but didn't match expected, or timed out. Data: pin function (str).
+
 
 class ControllerMessage:
     """
     Class representing a message emitted by the TestController to the UI or other components.
     Contains a type (ControllerMessageType) and an optional payload (object).
     """
+
     def __init__(self, msg_type: MessageType, payload: str = ""):
         self.type = msg_type  # Type of message (ControllerMessageType)
         self.data = payload  # Optional payload (str)
@@ -153,7 +153,8 @@ class TestController(QObject):
 
     def _reset_state(self):
         """Resets the controller's internal state variables after a test run or error."""
-        if self.debug: log.debug("Resetting TestController state.")
+        if self.debug:
+            log.debug("Resetting TestController state.")
         self._state = TestState.IDLE
         self._input_event.clear()
         # Don't clear _current_device here, keep it until the next run starts
@@ -172,7 +173,8 @@ class TestController(QObject):
 
     async def _cleanup_pins(self):
         """Executes the 'cleanup' sequence defined in the configuration file."""
-        if self.debug: log.debug("Executing configured cleanup sequence...")
+        if self.debug:
+            log.debug("Executing configured cleanup sequence...")
         cleanup_sequence = self._config_loader.get_cleanup_sequence()  # Assumes method exists in ConfigLoader
         if not cleanup_sequence:
             log.warning("No cleanup sequence found in configuration.")
@@ -192,14 +194,16 @@ class TestController(QObject):
                     action_type = step.get("action")
                     if action_type in self._action_handlers:
                         handler = self._action_handlers[action_type]
-                        if self.debug: log.debug(f"Running cleanup step: {step}")
+                        if self.debug:
+                            log.debug(f"Running cleanup step: {step}")
                         await handler(step)  # Execute the cleanup action
                     else:
                         log.warning(f"Unknown action type '{action_type}' in cleanup step: {step}")
                 except Exception as e:
                     # Log errors during cleanup but don't stop other cleanup steps
                     log.error(f"Error during configured cleanup step {step}: {e}")
-        if self.debug: log.debug("Cleanup sequence finished.")
+        if self.debug:
+            log.debug("Cleanup sequence finished.")
 
     # --- Main Test Execution Logic ---
     async def async_run_test(self, device: Device):
@@ -235,14 +239,16 @@ class TestController(QObject):
         try:
             # --- 3. Execute Test Steps ---
             for i, step in enumerate(self._test_sequence, 1):
-                if self.debug: log.debug(f"Processing Step {i}/{len(self._test_sequence)}: {step}")
+                if self.debug:
+                    log.debug(f"Processing Step {i}/{len(self._test_sequence)}: {step}")
 
                 progress = i / len(self._test_sequence) * 100
                 self.testProgress.emit(f"Executing step {i}/{len(self._test_sequence)}", int(progress))  # Legacy signal
 
                 # Check conditional execution flags (if_has, if_missing)
                 if not self._should_execute_step(step):
-                    if self.debug: log.debug(f"Skipping step {i} due to condition.")
+                    if self.debug:
+                        log.debug(f"Skipping step {i} due to condition.")
                     continue
 
                 # Find and execute the handler for the step's action
@@ -287,7 +293,8 @@ class TestController(QObject):
 
         finally:
             # --- 6. Cleanup ---
-            if self.debug: log.debug("Entering test cleanup phase.")
+            if self.debug:
+                log.debug("Entering test cleanup phase.")
             await self._cleanup_pins()  # Execute cleanup actions
             # Reset state *after* cleanup, emit final finished message based on outcome
             final_state = self._state  # Capture state before reset
@@ -307,9 +314,9 @@ class TestController(QObject):
         Returns:
             True if the step should be executed, False otherwise.
         """
-        
+
         return True  # Not implemented with this version
-        
+
         if self._current_device is None:
             log.warning("Cannot check step condition: No current device set.")
             return False  # Cannot execute without device context
@@ -325,7 +332,8 @@ class TestController(QObject):
             # Check if all required features exist and are True on the model object
             execute = all(hasattr(model, feature) and getattr(model, feature, False) for feature in required_features)
             if not execute:
-                if self.debug: log.debug(f"Step skipped: Missing required feature(s) {required_features}")
+                if self.debug:
+                    log.debug(f"Step skipped: Missing required feature(s) {required_features}")
                 return False  # Skip early if 'if_has' fails
 
         # Check 'if_missing' condition: Step runs only if ALL specified features are False on the model.
@@ -369,7 +377,8 @@ class TestController(QObject):
             value = int(value_str)  # Ensure value is an integer (0 or 1)
             if value not in [0, 1]:
                 raise ValueError("Pin value must be 0 or 1")
-            if self.debug: log.debug(f"Writing pin func '{pin_function}' to {value}")
+            if self.debug:
+                log.debug(f"Writing pin func '{pin_function}' to {value}")
             await self._aio_device.write_pin_by_func(pin_function, value)
         except ValueError as e:
             log.error(f"Invalid value '{value_str}' for pin function '{pin_function}': {e}")
@@ -389,7 +398,8 @@ class TestController(QObject):
             value = int(value_str)
             if value not in [0, 1]:
                 raise ValueError("Pin value must be 0 or 1")
-            if self.debug: log.debug(f"Writing direct pin {pin_number} to {value}")
+            if self.debug:
+                log.debug(f"Writing direct pin {pin_number} to {value}")
             await self._aio_device.digital_write(pin_number, value)
         except ValueError as e:
             log.error(f"Invalid pin number '{pin_number_str}' or value '{value_str}': {e}")
@@ -408,7 +418,8 @@ class TestController(QObject):
             if duration_s < 0:
                 log.warning(f"Negative delay requested ({duration_ms}ms), using 0s.")
                 duration_s = 0
-            if self.debug: log.debug(f"Delaying for {duration_s:.3f} seconds")
+            if self.debug:
+                log.debug(f"Delaying for {duration_s:.3f} seconds")
             await asyncio.sleep(duration_s)
         except (ValueError, TypeError):
             log.error(f"Invalid duration '{duration_ms}' specified for delay step: {step}. Using default.")
@@ -444,7 +455,8 @@ class TestController(QObject):
             raise ValueError(f"Invalid expected_value for {pin_function}")
 
         timeout_sec = self.settings.get_int(timeout_key, DEFAULT_SETTINGS.get(timeout_key, 10))
-        if self.debug: log.debug(f"Wait timeout set to {timeout_sec}s for {pin_function} (from key: {timeout_key})")
+        if self.debug:
+            log.debug(f"Wait timeout set to {timeout_sec}s for {pin_function} (from key: {timeout_key})")
 
         # --- 3. Setup Wait ---
         prompt = step.get("text", f"Waiting for input on {pin_function}...")
@@ -498,7 +510,8 @@ class TestController(QObject):
 
         # --- 6. Cleanup Wait ---
         finally:
-            if self.debug: log.debug(f"Detaching input handler from pin {pin_number} for {pin_function}")
+            if self.debug:
+                log.debug(f"Detaching input handler from pin {pin_number} for {pin_function}")
             self._aio_device.detach_callback(pin_number)
             self._last_attached_pin = None
             self._state = TestState.RUNNING  # Transition back to running state
@@ -534,7 +547,8 @@ class TestController(QObject):
             expected_pin = self._aio_device.get_pin_by_function(self._current_wait_step["function"])
 
             if pin_number == expected_pin:
-                if self.debug: log.debug(f"Input handler received: Pin={pin_number}, Value={value} (Waiting step: {self._current_wait_step.get('function')})")
+                if self.debug:
+                    log.debug(f"Input handler received: Pin={pin_number}, Value={value} (Waiting step: {self._current_wait_step.get('function')})")
                 self._input_received_value = value  # Store the received value
 
                 # Signal the asyncio event that *some* input was received on the target pin.
@@ -560,7 +574,8 @@ class TestController(QObject):
             raise ValueError(f"Invalid wait_for_button step config: {step}")
 
         timeout_sec = self.settings.get_int(timeout_key, DEFAULT_SETTINGS.get(timeout_key, 20))
-        if self.debug: log.debug(f"Wait for button timeout set to {timeout_sec}s (from key: {timeout_key})")
+        if self.debug:
+            log.debug(f"Wait for button timeout set to {timeout_sec}s (from key: {timeout_key})")
 
         # --- 3. Setup Wait ---
         prompt = step.get("text", "Waiting for user confirmation...")
@@ -605,10 +620,12 @@ class TestController(QObject):
         if self._state == TestState.AWAITING_BUTTON:
             # Check if event hasn't already been set (e.g., by timeout)
             if not self._input_event.is_set():
-                if self.debug: log.debug("notify_button_pressed: Setting button confirmation event.")
+                if self.debug:
+                    log.debug("notify_button_pressed: Setting button confirmation event.")
                 self._input_event.set()  # Set the event to release the wait
             else:
-                if self.debug: log.debug("notify_button_pressed: Event already set, likely timeout occurred.")
+                if self.debug:
+                    log.debug("notify_button_pressed: Event already set, likely timeout occurred.")
         else:
             log.warning(f"notify_button_pressed called but controller not in AWAITING_BUTTON state (State: {self._state.name})")
 
