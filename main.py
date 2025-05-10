@@ -373,7 +373,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def state(self, value: State) -> None:
         log.debug(f"Previous state: {self._state}, New State: {value}", 1)
         if value == State.CONNECTING:
-            self.test_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             # self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
@@ -381,27 +380,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.usb_label.setStyleSheet(constants.YELLOW)
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
-            self.test_button.setEnabled(True)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
             self.usb_label.setStyleSheet(constants.GREEN)  # Updated line
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
         elif value == State.IDLE:
-            self.test_button.setEnabled(False)
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
             # self.label_usb_icon.setText(constants.ICON_USB_RED)
             self.set_status("Disconnected.")
             self.show_movie(pause=True)
         elif value == State.PROGRAMMING:
-            self.test_button.setEnabled(False)
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Programming...")
             self.show_movie(pause=False)
         elif value == State.TESTING:
-            self.test_button.setEnabled(False)
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Testing...")
@@ -567,13 +562,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.text_edit.setAcceptRichText(True)
             # self.load_file_text()
             # print(self.arduino)
-            # print(self.state)
+            print(self.state)
+            print(self.testController.state)
             # print(self.text_edit.toPlainText())
             # print(self.label_usb_icon.size())
-            print(self.arduino)
-            print(settings.get_instance())
-            print(self.settings)
-            self.statusBar().set_value(59999)
+            # print(self.arduino)
+            # print(settings.get_instance())
+            # print(self.settings)
+            # self.statusBar().set_value(59999)
 
     def show_movie(self, pause: bool = False) -> None:
         """Show or hide the GIF in the USB icon label."""
@@ -945,8 +941,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             warning(self, "Please select a device.")
         elif self.state == State.IDLE:
             warning(self, f"USB device not connected.")
-        elif self.state is not State.CONNECTED:
-            warning(self, f"Cannot run test.")
         elif self.testController and self.testController.state == TestState.AWAITING_BUTTON:
             self.testController.notify_button_pressed()
             return
@@ -1037,9 +1031,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Test Error: {message.data}")
         elif message.type == MessageType.WAITING_FOR_BUTTON:
             print(f"Waiting for button press...")
+        elif message.type == MessageType.TEST_STARTED:
+            print(f"Test started: {message.data}")
+            self.state = State.TESTING
         elif message.type == MessageType.TEST_FINISHED:
             print(f"Test finished: {message.data}")
+            self.state = State.CONNECTED
             QTimer.singleShot(2500, self.load_file_text)
+
         else:
             print(f"{message.type}: {message.data}")
 
