@@ -854,6 +854,8 @@ font-weight: bold;</string>
     <addaction name="actionDark_Theme"/>
     <addaction name="actionFullscreen"/>
     <addaction name="actionScreenshot"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_UP_exe"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1474,6 +1476,20 @@ font-weight: bold;</string>
    </property>
    <property name="statusTip">
     <string>Capture a screenshot </string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionOpen_UP_exe">
+   <property name="icon">
+    <iconset resource="../icons.qrc">
+     <normaloff>:/up</normaloff>:/up</iconset>
+   </property>
+   <property name="text">
+    <string>Open UP.exe</string>
    </property>
    <property name="font">
     <font>
