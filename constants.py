@@ -86,6 +86,7 @@ KEY_COUNTER_ENABLED: str = "counter_enabled"
 KEY_TEST_COUNT: str = "test_count"
 KEY_BUTTON_TIMEOUT: str = "button_timeout"
 KEY_PROGRAMMER_PATH: str = "programmer_path"
+KEY_VIRTUAL_COM_PORT: str = "virtual_com_port"
 
 
 """
@@ -117,6 +118,7 @@ DEFAULT_SETTINGS = {
     KEY_COUNTER_ENABLED: True,
     KEY_TEST_COUNT: 0,
     KEY_BUTTON_TIMEOUT: 15,
+    KEY_VIRTUAL_COM_PORT: "virtual_com_port",
 }
 
 
