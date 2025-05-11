@@ -312,7 +312,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
         self.actionConnect.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
-        self.actionAbout.triggered.connect(self.aboutQt)
+        self.actionAbout.triggered.connect(lambda: QApplication.aboutQt())
         self.actionChip_Select.triggered.connect(self.get_chip_part)
         self.actionShow_Logs.triggered.connect(self.show_log)
         self.actionChange_font.triggered.connect(self.choose_font)
@@ -324,6 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
+        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached("C:/Program Files (x86)/ASIX/UP/up.exe", workingDirectory=os.getcwd()))
 
         # Remove the default actions from the device menu
         for action in self.menuDevice.actions():
@@ -684,9 +685,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.text_edit.ensureCursorVisible()
         except FileNotFoundError:
             log.error(f"Instruction file not found: {filename}")
-
-    def aboutQt(self) -> None:
-        QApplication.aboutQt()
 
     # ----- Connection Functions ----- #
 
@@ -1186,17 +1184,33 @@ class SettingsDialog(QWidget, Ui_Settings):
         # Set the theme
         self.setStyleSheet(get_stylesheet(self.settings))
 
+        self.checkBoxVirtualCom.toggled.connect(self.on_virtual_com_toggled)
+        self.toggle_virtual_com = False
+
+
+    def on_virtual_com_toggled(self, checked: bool) -> None:
+        """Handle the toggling of the virtual COM port checkbox."""
+        if checked != self.settings.get_bool(constants.KEY_VIRTUAL_COM_PORT):
+            self.toggle_virtual_com = True
+        else:
+            self.toggle_virtual_com = False
+
+    async def disconnect_device(self) -> None:
+        await self._parent.disconnect_device()
+        import arduino
+        arduino._singleton = None
+        self._parent.arduino = None
+
     def initialize_settings(self) -> None:
         config = config_loader.get_instance()
 
-        self.lineEdit_serial.setText(self.settings.app_settings.value(
-            constants.KEY_PROGRAMMER_SERIAL_NUMBER, constants.DEFAULT_SETTINGS[constants.KEY_PROGRAMMER_SERIAL_NUMBER]))
+        self.lineEdit_serial.setText(self.settings.app_settings.value(constants.KEY_PROGRAMMER_SERIAL_NUMBER, constants.DEFAULT_SETTINGS[constants.KEY_PROGRAMMER_SERIAL_NUMBER]))
 
+        self.comboBox_chip.clear()
         for chip_part in constants.CHIP_OPTIONS:
             self.comboBox_chip.addItem(chip_part)
 
-        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(
-            constants.KEY_CHIP_PART, constants.DEFAULT_SETTINGS[constants.KEY_CHIP_PART]))
+        self.comboBox_chip.setCurrentText(self.settings.app_settings.value(constants.KEY_CHIP_PART, constants.DEFAULT_SETTINGS[constants.KEY_CHIP_PART]))
 
         value = self.settings.get_int(constants.KEY_TESTING_SPEED, constants.DEFAULT_SETTINGS[constants.KEY_TESTING_SPEED])
         self.dial.setValue(value)
@@ -1218,7 +1232,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.lineEdit_serial_sleep_tune.setText(str(self.settings.app_settings.value(constants.KEY_SLEEP_TUNE, config.get_default_setting(constants.KEY_SLEEP_TUNE))))
         self.spinBox_wait_time.setValue(self.settings.get_int(constants.KEY_ARDUINO_WAIT, config.get_default_setting(constants.KEY_ARDUINO_WAIT)))
         self.checkBox_fullscreen.setChecked(self.settings.get_bool(constants.KEY_FULLSCREEN, config.get_default_setting(constants.KEY_FULLSCREEN)))
-        self.checkBox_touchscreen.setChecked(self.settings.get_bool(constants.KEY_TOUCHSCREEN_ENABLED, config.get_default_setting(constants.KEY_TOUCHSCREEN_ENABLED)))
+        self.checkBoxVirtualCom.setChecked(self.settings.get_bool(constants.KEY_VIRTUAL_COM_PORT, config.get_default_setting(constants.KEY_VIRTUAL_COM_PORT)))
         self.checkBox_frameless.setChecked(self.settings.get_bool(constants.KEY_FRAMELESS, config.get_default_setting(constants.KEY_FRAMELESS)))
         self.counterCheckbox.setChecked(self.settings.get_bool(constants.KEY_COUNTER_ENABLED, constants.DEFAULT_SETTINGS[constants.KEY_COUNTER_ENABLED]))
         self.buttonTimeoutSpinBox.setValue(self.settings.get_int(constants.KEY_BUTTON_TIMEOUT, constants.DEFAULT_SETTINGS[constants.KEY_BUTTON_TIMEOUT]))
@@ -1238,12 +1252,13 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.checkBox_auto_find.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_AUTO_FIND])
         self.lineEdit_serial_sleep_tune.setText(str(constants.DEFAULT_SETTINGS[constants.KEY_SLEEP_TUNE]))  
         self.checkBox_fullscreen.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_FULLSCREEN])
-        self.checkBox_touchscreen.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_TOUCHSCREEN_ENABLED])
+        self.checkBoxVirtualCom.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_VIRTUAL_COM_PORT    ])
         self.checkBox_frameless.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_FRAMELESS])
         self.counterCheckbox.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_COUNTER_ENABLED])
         self.buttonTimeoutSpinBox.setValue(constants.DEFAULT_SETTINGS[constants.KEY_BUTTON_TIMEOUT])
 
     def save_changes(self) -> None:
+
         self.settings.setValue(constants.KEY_COM_PORT, self.comboBox_com_port.currentText())
         self.settings.setValue(constants.KEY_CHIP_PART, self.comboBox_chip.currentText())
         self.settings.setValue(constants.KEY_PROGRAMMER_SERIAL_NUMBER, self.lineEdit_serial.text())
@@ -1258,11 +1273,16 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.settings.setValue(constants.KEY_SLEEP_TUNE, float(self.lineEdit_serial_sleep_tune.text()))
         self.settings.setValue(constants.KEY_ARDUINO_WAIT, self.spinBox_wait_time.value())
         self.settings.setValue(constants.KEY_FULLSCREEN, self.checkBox_fullscreen.isChecked())
-        self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
-        self.settings.setValue(constants.KEY_TOUCHSCREEN_ENABLED, self.checkBox_touchscreen.isChecked())
+        self.settings.setValue(constants.KEY_VIRTUAL_COM_PORT, self.checkBoxVirtualCom.isChecked())
         self.settings.setValue(constants.KEY_FRAMELESS, self.checkBox_frameless.isChecked())
         self.settings.setValue(constants.KEY_COUNTER_ENABLED, self.counterCheckbox.isChecked())
         self.settings.setValue(constants.KEY_BUTTON_TIMEOUT, self.buttonTimeoutSpinBox.value())
+        self.settings.setValue(constants.KEY_VIRTUAL_COM_PORT, self.checkBoxVirtualCom.isChecked())
+
+        self.apply_changes()
+        if self.toggle_virtual_com:
+            asyncio.create_task(self.disconnect_device())
+
         self.close()
 
     def apply_changes(self) -> None:
