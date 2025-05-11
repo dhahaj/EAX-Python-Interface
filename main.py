@@ -1236,7 +1236,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.spinBox_wait_time.setValue(constants.DEFAULT_SETTINGS[constants.KEY_ARDUINO_WAIT])
         self.checkBox_shutdown_on_exception.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_SHUTDOWN_ON_EXCEPTION])
         self.checkBox_auto_find.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_AUTO_FIND])
-        self.lineEdit_serial_sleep_tune.setText(constants.DEFAULT_SETTINGS[constants.KEY_SLEEP_TUNE])
+        self.lineEdit_serial_sleep_tune.setText(str(constants.DEFAULT_SETTINGS[constants.KEY_SLEEP_TUNE]))  
         self.checkBox_fullscreen.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_FULLSCREEN])
         self.checkBox_touchscreen.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_TOUCHSCREEN_ENABLED])
         self.checkBox_frameless.setChecked(constants.DEFAULT_SETTINGS[constants.KEY_FRAMELESS])
