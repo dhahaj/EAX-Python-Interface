@@ -105,8 +105,6 @@ logging:
     database_file: logs.db
 
 
-use_mock_device: True
-
 # defines the test sequence
 testing:
     sequence:
