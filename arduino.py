@@ -3,7 +3,7 @@ import time
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 import config_loader
 from settings import get_instance
-from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID, KEY_SHUTDOWN_ON_EXCEPTION, KEY_ARDUINO_WAIT, KEY_SLEEP_TUNE, KEY_DEBUG
+from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID, KEY_SHUTDOWN_ON_EXCEPTION, KEY_ARDUINO_WAIT, KEY_SLEEP_TUNE, KEY_DEBUG, KEY_VIRTUAL_COM_PORT
 from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
@@ -314,7 +314,8 @@ def get_device(**kwargs) -> "AIODevice":
     """
     global _singleton
     if _singleton is None:
-        if config_loader.get_instance().get('use_mock_device'):
+        if get_instance().get_bool(KEY_VIRTUAL_COM_PORT, False):
+            # Use the DummyAIODevice for testing purposes.
             _singleton = DummyAIODevice(**kwargs)
         else:
             _singleton = AIODevice(**kwargs)
