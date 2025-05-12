@@ -104,7 +104,6 @@ logging:
     log_retention: '14 days'
     database_file: logs.db
 
-
 # defines the test sequence
 testing:
     sequence:
@@ -181,6 +180,21 @@ testing:
         - action: write_pin
           function: low battery
           value: 0
+
+programmer_config:
+    executable: C:\Program Files (x86)\ASIX\UP\UP.exe
+    programmer: PRESTO
+    arguments:
+        - '/part' # Chip part number
+        - '{chip_part}' # Stored in settings.ini
+        - '/p' # Firmware file
+        - '{firmware_file}'
+        - '/s' # Serial number of the programmer
+        - '{serial_number}' # Stored in settings.ini
+        - '/progname' # Name of the programmer
+        - '{programmer}'
+        - '/q1' # Quiet mode
+
 
 chip_options:
     - PIC16F627
