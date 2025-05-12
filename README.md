@@ -1,13 +1,191 @@
+# EAX Device Test & Programming Interface
+
+This application provides a graphical user interface for testing and programming EAX hardware devices (e.g., EAX300, EAX500 series). It interacts with an Arduino-based test fixture using the TelemetrixAIO library and allows users to execute configurable test sequences, program firmware onto target devices, and manually control I/O pins.
+
+## Features
+
+*   **Graphical User Interface:** Built with PySide6 (Qt6) for intuitive operation.
+*   **Configurable Test Sequences:** Define test steps, including pin manipulation, delays, user prompts, and input waiting, via a `config.yaml` file.
+*   **Hardware Interaction:** Controls an Arduino (via TelemetrixAIO) for digital I/O to the device under test.
+*   **Device Programming:** Supports programming target EAX devices using an external programmer tool (path and arguments configurable).
+*   **Device Management:** Select different EAX device models, each potentially having different test sequences or firmware.
+*   **Manual Control:** A dialog to manually toggle output pins on the test fixture.
+*   **Asynchronous Operations:** Utilizes `asyncio` and `qasync` to ensure a responsive UI during I/O operations and tests.
+*   **Logging:** Comprehensive logging of application events and test progress.
+*   **Settings Management:** Persistent application settings (COM port, programmer paths, UI preferences, etc.).
+*   **Theming:** Supports dark and light themes.
+*   **Single Instance:** Prevents multiple instances of the application from running simultaneously.
+*   **Firmware Update:** Capability to update the firmware on the Arduino test fixture itself.
+*   **Resource Bundling:** Essential configuration files and images can be bundled within the application.
+
+## Prerequisites
+
+*   Python 3.8+
+*   An Arduino board flashed with [Telemetrix4Arduino](https://github.com/MrYsLab/Telemetrix4Arduino) (or StandardFirmata for older test fixture firmware, if supported by configuration).
+*   External programmer for the target EAX devices (e.g., ASIX PRESTO or similar).
+
+## Dependencies
+
+The application relies on the following Python libraries:
+
+*   `PySide6`: For the graphical user interface (Qt6 bindings).
+*   `qtpy`: Abstraction layer for Qt bindings (though PySide6 is explicitly used).
+*   `qasync`: To integrate `asyncio` with the Qt event loop.
+*   `telemetrix-aio`: For asynchronous communication with the Arduino.
+*   `PyYAML`: For loading `config.yaml`.
+*   `qdarkstyle`: For dark/light theming.
+*   `pyserial`: For serial port listing (dependency of Telemetrix).
+
+You can typically install these using pip:
+```bash
+pip install PySide6 qtpy qasync telemetrix-aio PyYAML qdarkstyle pyserial
+
+```
+
+## Configuration (config.yaml)
+
+The application uses a YAML configuration file (`config.yaml`) to define various settings, including pin mappings, test sequences, and device definitions. This file is crucial for the application's operation and should be customized according to your hardware setup and testing requirements.
+The configuration file is structured into several sections:
+
+```yaml
+┏━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                       ┃
+┣━app_name              ┃
+┣━app_version           ┃
+┣━firmware              ┃
+┃   ┣━path              ┃
+┃   ┣━default_device    ┃
+┃   ┗━files             ┃
+┃       ┣━device_name   ┃
+┃       ┣━firmware_file ┃
+┃       ┗━version       ┃
+┣━pins                  ┃
+┃   ┣━function          ┃
+┃   ┣━io_mode           ┃
+┃   ┣━pin_number        ┃
+┃   ┗━pullup_enabled    ┃
+┣━testing               ┃
+┃   ┣━cleanup           ┃
+┃   ┃   ┣━action        ┃
+┃   ┃   ┣━function      ┃
+┃   ┃   ┗━value         ┃
+┃   ┗━sequence          ┃
+┃       ┣━action        ┃
+┃       ┣━params        ┃
+┃       ┣━description   ┃
+┃       ┣━condition     ┃
+┃       ┗━delay         ┃
+┣━logging               ┃
+┃   ┣━log_file          ┃
+┃   ┣━log_level         ┃
+┃   ┣━log_format        ┃
+┃   ┣━log_rotation      ┃
+┃   ┣━log_retention     ┃
+┃   ┗━database_file     ┃
+┃                       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
+```
+
+The application's behavior is heavily driven by config.yaml. This file defines:
+* **Pin Mappings: Maps functional names (e.g., "battery", "low battery") to Arduino pin numbers and I/O modes.
+* **Test Sequences: A list of steps for automated testing. Each step defines an action (e.g., write_pin, delay, wait_for_input, wait_for_button, message).
+* **Cleanup Sequences: Steps to run after a test to reset hardware.
+* **Device Definitions: Information about supported EAX devices, including firmware paths.
+* **Chip Options: List of microcontroller part numbers for the programmer.
+* **Logging: Configuration for logging, including log file path, log level, and log format.
+
+A default config.yaml is expected. If not found, the application may attempt to extract a bundled version.
+
+## Installation
+
+* Clone this repository or download the source code.
+* Install Python 3 if you haven't already.
+* Install the required dependencies (see Dependencies).
+* Ensure your Arduino is flashed with the appropriate Telemetrix firmware.
+* Configure your external EAX device programmer and ensure its path is correctly set in the application settings or config.yaml.
+* Review and customize config.yaml for your specific hardware setup and test requirements.
+
+
+## Usage
+
+Run the main application script:
+```bash
+python main.py
+```
+Use code with caution.
+Bash
+1. Connect to Arduino:
+   - Connect the Arduino to your computer via USB.
+   - Select the appropriate COM port in the application settings.
+   - Click "Connect" to establish communication with the Arduino.
+2. Select Device:
+   - Choose the target EAX device model from the "Device" menu.
+3. Program Device (Optional):
+   - If you need to program firmware onto the EAX device, click the "Program" button. This uses the configured external programmer.
+4. Run Test:
+   - Click the "Test" button to start the automated test sequence for the selected device.
+   - Follow any on-screen prompts. The main text area will display test progress and messages.
+   - If the test sequence includes a wait_for_button step, the "Test" button may also act as the "Continue" button.
+  
+Use the "Connect" menu item or button. The application can auto-detect the COM port or use a configured one.
+The USB status indicator will show the connection state.
+Select Device:
+Choose the target EAX device model from the "Device" menu.
+Program Device (Optional):
+If you need to program firmware onto the EAX device, click the "Program" button. This uses the configured external programmer.
+Run Test:
+Click the "Test" button to start the automated test sequence for the selected device.
+Follow any on-screen prompts. The main text area will display test progress and messages.
+If the test sequence includes a wait_for_button step, the "Test" button may also act as the "Continue" button.
+Manual Control (Optional):
+Access "Manual Control" from the menu to directly toggle output pins on the Arduino.
+Settings:
+Access "Modify Settings" from the menu to configure COM ports, programmer paths, UI preferences, test parameters, etc.
+
+
+## Modules
+* **main.py**: The main application entry point. Initializes the UI (MainWindow), handles user interactions, and orchestrates the overall application flow.
+* **test_controller.py**: Manages the execution of automated test sequences. Reads steps from config.yaml, interacts with AIODevice for hardware control, and emits signals to update the UI.
+* **arduino.py**: Provides the AIODevice class, an abstraction layer for communicating with the Arduino test fixture using TelemetrixAIO. Handles pin configuration, digital I/O, and input callbacks.
+* **config_loader.py**: Loads and provides access to configurations from config.yaml (pin definitions, test sequences, device settings).
+* **settings.py (assumed)**: Manages persistent application settings.
+* **constants.py (assumed)**: Defines shared constants used throughout the application.
+* **globals.py (assumed)**: Provides global instances like the logger.
+* **ui/ (assumed directory)**: Contains UI files generated from Qt Designer (.ui files converted to .py).
+* **util/ (assumed directory)**: Utility functions, possibly including resource management.
+* **device.py (assumed)**: Defines the Device class representing the EAX device under test.
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Please make sure to update tests as appropriate.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+
 # EAX Test Fixture Interface
 
 This is a Python version of the EAX Test Fixture Interface. It is a GUI built on the Qt framework that allows the user to control the EAX Test Fixture. It is designed to be used with the telemetrix Arduino library. See the [firmware](#test-fixture-firmware) section for more information.
 
 ## Table of Contents
 
+- [EAX Device Test \& Programming Interface](#eax-device-test--programming-interface)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Dependencies](#dependencies)
+  - [Configuration (config.yaml)](#configuration-configyaml)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Modules](#modules)
+  - [Contributing](#contributing)
+  - [License](#license)
 - [EAX Test Fixture Interface](#eax-test-fixture-interface)
   - [Table of Contents](#table-of-contents)
   - [Key Bindings](#key-bindings)
-  - [Installation](#installation)
+  - [Installation](#installation-1)
   - [Test Fixture Firmware](#test-fixture-firmware)
   - [Configuration File](#configuration-file)
     - [Firmware Configuration](#firmware-configuration)
