@@ -1,7 +1,7 @@
 import yaml
 from typing import List, Dict, Any, Tuple
 import os
-from constants import KEY_FIRMWARE
+from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMING_CONFIG, KEY_PROGRAMMER_SERIAL_NUMBER
 from util.resources import extract_file_from_resource
 import copy
 
@@ -128,6 +128,30 @@ class ConfigLoader:
             self.data = old_config
             return False
 
+    def get_program_config(self) -> Dict[str, Any]:
+        """Return the program configuration."""
+        return self.data.get(KEY_PROGRAMMING_CONFIG, {})
+    
+    def get_programmer_path(self) -> str:
+        """Return the programmer path."""
+        config = self.get_program_config()
+        if not config:
+            raise ValueError("No programmer configuration found in the config file.")
+        return config.get("executable", None)
+    
+    def generate_program_arguments(self, settings, device) -> List[str]:
+        """Generate the command line arguments for the programmer."""     
+        config = self.get_program_config()
+        if not config:
+            raise ValueError("No programmer configuration found in the config file.")
+        vars_ = dict(
+            chip_part=settings.get(KEY_CHIP_PART, DEFAULT_SETTINGS[KEY_CHIP_PART]),
+            firmware_file=device.firmware_path,
+            serial_number=settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER]),
+            programmer=config["programmer"],
+        )
+        return [config["executable"]] + [a.format(**vars_) for a in config["arguments"]]
+
 
 _config_singleton: "ConfigLoader|None" = None
 
@@ -144,10 +168,10 @@ def get_instance(**kwargs) -> "ConfigLoader":
 
 
 if __name__ == '__main__':
-    config = get_instance   ()
-    from pprint import pprint
-    pprint(config.get_test_sequence(), indent=4, width=120)
-    pprint(config.get_cleanup_sequence(), indent=4, width=120, sort_dicts=False)
+    config = get_instance()
+    # from pprint import pprint
+    # pprint(config.get_test_sequence(), indent=4, width=120)
+    # pprint(config.get_cleanup_sequence(), indent=4, width=120, sort_dicts=False)
     # print(config.get('logging').get("database_file", None))
     # print( config.get('logging').get('database_file', None) )
     # print( config.get('logging').get('log_file', None) )
