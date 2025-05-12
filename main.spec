@@ -13,6 +13,7 @@ a = Analysis(
         ('util', 'util'),
         ('config_loader.py', '.'), 
         ('imports.py', '.'), 
+        ('test_controller.py', '.'), 
         ('ui', 'ui'), 
         ('resource_rc.py', '.'), 
         ('icons_rc.py', '.'), 
