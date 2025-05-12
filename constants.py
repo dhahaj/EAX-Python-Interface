@@ -30,9 +30,6 @@ YELLOW = "color: rgb(200, 195, 0); background-color: rgba(0, 0, 0, 0);"
 RED = "color: red; background-color: rgba(0, 0, 0, 0);"
 DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold; background-color: rgba(0, 0, 0, 0);"
 
-RADIO_OFF_ICON = ":/images/icons/radio-off-button.png"
-RADIO_ON_ICON = ":/images/icons/radio-on-button.png"
-
 
 class State(enum.Enum):
     """The state of the application."""
@@ -40,10 +37,8 @@ class State(enum.Enum):
     PROGRAMMING = enum.auto()
     TESTING = enum.auto()
     WAITING_FOR_BUTTON = enum.auto()
-    BLOCKED = enum.auto()
     CONNECTING = enum.auto()
     CONNECTED = enum.auto()
-    DISCONNECTED = enum.auto()
     UPDATING = enum.auto()
     WAITING_FOR_INPUT = enum.auto()
 
@@ -61,13 +56,11 @@ KEY_COM_PORT: str = "serial_port"
 KEY_PROGRAMMER_SERIAL_NUMBER: str = "programmer_serial_number"
 KEY_CHIP_PART: str = "chip_part"
 KEY_CHIP_OPTIONS: str = "chip_options"
-KEY_LAST_USER: str = "last_user"
 KEY_TESTING_SPEED: str = "testing_speed"
 KEY_AUTO_TEST: str = "auto_test"
 KEY_FONT_FAMILY: str = "font_family"
 KEY_FONT_SIZE: str = "font_size"
 KEY_FONT_WEIGHT: str = "font_weight"
-KEY_AUTO_LOGIN: str = "skip_login"
 KEY_AUTO_CONNECT: str = "auto_connect"
 KEY_ARDUINO_INSTANCE_ID: str = "arduino_instance_id"
 KEY_FIRMWARE_FOLDER: str = "firmware_folder"
@@ -79,15 +72,13 @@ KEY_SHUTDOWN_ON_EXCEPTION: str = "shutdown_on_exception"
 KEY_AUTO_FIND: str = "auto_find"
 KEY_SLEEP_TUNE: str = "sleep_tune"
 KEY_FULLSCREEN: str = "full_screen"
-KEY_TOUCHSCREEN_ENABLED: str = "touchscreen_enabled"
 KEY_FRAMELESS: str = "frameless"
 KEY_DARK_THEME: str = "dark_mode"
 KEY_COUNTER_ENABLED: str = "counter_enabled"
 KEY_TEST_COUNT: str = "test_count"
 KEY_BUTTON_TIMEOUT: str = "button_timeout"
-KEY_PROGRAMMER_PATH: str = "programmer_path"
 KEY_VIRTUAL_COM_PORT: str = "virtual_com_port"
-
+KEY_PROGRAMMING_CONFIG: str = "programmer_config"
 
 """
 Default settings for the application.
@@ -113,12 +104,10 @@ DEFAULT_SETTINGS = {
     KEY_AUTO_FIND: True,
     KEY_SLEEP_TUNE: 0.000001,
     KEY_FULLSCREEN: False,
-    KEY_TOUCHSCREEN_ENABLED: False,
     KEY_FRAMELESS: False,
     KEY_COUNTER_ENABLED: True,
     KEY_TEST_COUNT: 0,
     KEY_BUTTON_TIMEOUT: 15,
-    KEY_VIRTUAL_COM_PORT: "virtual_com_port",
 }
 
 
