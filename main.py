@@ -407,13 +407,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._state = value
 
-    # def focusInEvent(self, event) -> None:
-    #     # Close the settings dialog if the user clicks outside of it
-    #     if event.reason() == Qt.FocusReason.ActiveWindowFocusReason:
-    #         if self.settings_dialog.isVisible():
-    #             self.settings_dialog.close()
-    #     super().focusInEvent(event)
-
     def check_for_link(self) -> None:
         """Check if the cursor is over a link."""
         cursor = self.text_edit.textCursor()
@@ -492,7 +485,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         widget.setIcon(icon)
 
     def toggleFullScreen(self) -> bool:
-        if self.settings.app_settings.value(constants.KEY_FULLSCREEN, defaultValue=False) == False:
+        if not self.settings.app_settings.value(constants.KEY_FULLSCREEN, defaultValue=False):
             self.showFullScreen()
             self.settings.app_settings.setValue(constants.KEY_FULLSCREEN, True)
             self.actionFullscreen.setChecked(True)
