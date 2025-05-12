@@ -324,7 +324,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
-        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached("C:/Program Files (x86)/ASIX/UP/up.exe", workingDirectory=os.getcwd()))
+        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(config_loader.get_instance().get_programmer_path()))
 
         # Remove the default actions from the device menu
         for action in self.menuDevice.actions():
@@ -757,22 +757,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.insert_text(f"{fw} not found!")
             return
         try:
-            chip = self.settings.get(constants.KEY_CHIP_PART)
-            programmer = self.settings.get(constants.KEY_PROGRAMMER_PATH)
-            programmer_serial = self.settings.get(constants.KEY_PROGRAMMER_SERIAL_NUMBER)
-            args = ["/part", chip, "/p", fw, "/q1", "/s", programmer_serial]
 
-            log.info(f"Programming {self.eax_device._selected_device}, args: {[programmer] + args}")
+            argv = config_loader.get_instance().generate_program_arguments(settings=self.settings, device=self.eax_device)
+
+            log.info(f"Programming {self.eax_device._selected_device}, args: {argv}")
 
             # create (or reuse) a QProcess
             self.program_process = QProcess(self)
+
             # when it finishes, grab only the exit code
             previous_state = self.state
             self.program_process.finished.connect(lambda code, _: self.handle_programming_result(code, previous_state))
             self.state = State.PROGRAMMING
+            
             # start it
-            self.program_process.setProgram(programmer)
-            self.program_process.setArguments(args)
+            self.program_process.setProgram(argv[0])
+            self.program_process.setArguments(argv[1:])
             self.program_process.start()
         except Exception as e:
             log.exception(f"Exception during programming: {e}")
