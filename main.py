@@ -1,4 +1,3 @@
-from logging import WARN
 import re
 from qtpy import (
     QtCore,
@@ -81,7 +80,6 @@ from device import Device
 from globals import logger as log
 from util.resources import extract_zip_from_resources
 from test_controller import MessageType, TestController, ControllerMessage, TestState
-
 
 
 class LogView(QWidget, Ui_LogView):
@@ -409,12 +407,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._state = value
 
-    def focusInEvent(self, event) -> None:
-        # Close the settings dialog if the user clicks outside of it
-        if event.reason() == Qt.FocusReason.ActiveWindowFocusReason:
-            if self.settings_dialog.isVisible():
-                self.settings_dialog.close()
-        super().focusInEvent(event)
+    # def focusInEvent(self, event) -> None:
+    #     # Close the settings dialog if the user clicks outside of it
+    #     if event.reason() == Qt.FocusReason.ActiveWindowFocusReason:
+    #         if self.settings_dialog.isVisible():
+    #             self.settings_dialog.close()
+    #     super().focusInEvent(event)
 
     def check_for_link(self) -> None:
         """Check if the cursor is over a link."""
@@ -724,11 +722,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Await the asynchronous disconnect on your device.
         self.usb_label.setText("USB disconnected")
         self.usb_label.setStyleSheet(constants.RED)
-        self.arduino.connection_changed.disconnect(self.on_connection_changed)
-        self.state = State.IDLE
-        await self.arduino.async_disconnect()
-        log.info("Device disconnected successfully.")
         self.actionConnect.setText("Connect")
+        if self.arduino:
+            self.arduino.connection_changed.disconnect(self.on_connection_changed)
+            await self.arduino.async_disconnect()
+            self.arduino = None # clear the reference to the device
+        self.state = State.IDLE
+        log.info("Device disconnected successfully.")
 
     def _connect_controller_signals(self) -> None:
         """Connect the signals from the test controller to the main window."""
@@ -1199,7 +1199,6 @@ class SettingsDialog(QWidget, Ui_Settings):
         await self._parent.disconnect_device()
         import arduino
         arduino._singleton = None
-        self._parent.arduino = None
 
     def initialize_settings(self) -> None:
         config = config_loader.get_instance()
@@ -1354,10 +1353,30 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.activateWindow()
         self.setFocus()
 
+    def event(self, event: QEvent) -> bool:
+        if event.type() == QEvent.Type.WindowDeactivate:
+            # Handle focus out event
+            print(f"Focus out event: {event.type()}")
+            if event.type() ==  QEvent.Type.WindowDeactivate:
+                # The window lost focus, close the dialog
+                self.close()
+                event.accept()
+                return True
+        return super().event(event)
+
+
+
     def reset_counter(self) -> None:
         self.settings.setValue(constants.KEY_TEST_COUNT, 0)
         sb = self._parent.statusBar()
         sb.widget.lcdNumber.display(0)
+
+
+
+import PySide6.QtCore
+from PySide6.QtCore import QThread, Signal, Slot, QEvent, Qt
+
+
 
 
 class SaveWorker(QThread):
