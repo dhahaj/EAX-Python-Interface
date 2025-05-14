@@ -272,7 +272,7 @@ class Ui_MainWindow(object):
         self.text_edit.setAutoFormatting(QTextEdit.AutoFormattingFlag.AutoNone)
         self.text_edit.setUndoRedoEnabled(False)
         self.text_edit.setReadOnly(True)
-        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByMouse)
+        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByKeyboard|Qt.TextInteractionFlag.LinksAccessibleByMouse|Qt.TextInteractionFlag.TextBrowserInteraction|Qt.TextInteractionFlag.TextSelectableByKeyboard|Qt.TextInteractionFlag.TextSelectableByMouse)
 
         self.verticalLayout.addWidget(self.text_edit)
 
