@@ -30,7 +30,6 @@ YELLOW = "color: rgb(200, 195, 0); background-color: rgba(0, 0, 0, 0);"
 RED = "color: red; background-color: rgba(0, 0, 0, 0);"
 DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold; background-color: rgba(0, 0, 0, 0);"
 
-
 class State(enum.Enum):
     """The state of the application."""
     IDLE = enum.auto()
@@ -108,6 +107,7 @@ DEFAULT_SETTINGS = {
     KEY_COUNTER_ENABLED: True,
     KEY_TEST_COUNT: 0,
     KEY_BUTTON_TIMEOUT: 15,
+    KEY_VIRTUAL_COM_PORT: False,
 }
 
 
@@ -116,11 +116,10 @@ Keys for the firmware dictionary.
 """
 FIRMWARE_NAME: str = "name"
 FIRMWARE_VERSION: str = "version"
-KEY_FIRMWARE: str = "firmware"
-KEY_FIRMWARE_NAME: str = "firmware_file"
-KEY_FIRMWARE_DEVICE_NAME: str = "device_name"
+KEY_DEVICE_NAME: str = "device_name"
 KEY_FIRMWARE_VERSION: str = "version"
-
+KEY_DEVICE_COLOR: str = "color"
+KEY_DEVICE_FIRMWARE_FILE: str = "firmware_file"
 
 INSTRUCTIONS = """<p><img src=":/resources/detex" width="300" style="float:right;"/></p>
 
