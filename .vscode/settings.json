@@ -6,7 +6,7 @@
         "reloadButton": null,
         "commands": [
           {
-            "name": "Run",
+            "name": "Run Main",
             "singleInstance": true,
             "color": "#ffe65c",
             "cwd": "${workspaceFolder}",
