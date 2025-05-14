@@ -358,7 +358,7 @@ class TestController(QObject):
         if self._current_device:
             try:
                 # Format the message using the current device's model name
-                text = text.format(model_name=self._current_device)
+                text = text.format(model_name=self._current_device.name)
             except KeyError as e:
                 log.warning(f"Placeholder key error in message '{text}': {e}. Leaving as is.")
         # Emit the formatted text for UI display
