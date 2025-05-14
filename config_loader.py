@@ -10,7 +10,7 @@ class Keys:
     KEY_DEBUG: str = "debug"
     KEY_CHIP_OPTIONS: str = "chip_options"
     KEY_PINS: str = "pins"
-    KEY_FIRMWARE: str = "firmware"
+    KEY_DEVICES: str = "devices"
     KEY_CLEANUP_SEQUENCE: str = "cleanup"
     KEY_TESTING: str = "testing"
     KEY_TESTING_SEQUENCE: str = "sequence"
@@ -76,24 +76,18 @@ class ConfigLoader:
     @property
     def firmware_path(self) -> str:
         """Return the firmware path."""
-        return self.data.get(Keys.KEY_FIRMWARE, {}).get('path', None)
+        return self.data.get(Keys.KEY_DEVICES, {}).get('path', None)
 
     def get_firmware(self) -> List[Dict[str, Any]]:
         """Return the firmware data."""
-        return self.data.get(Keys.KEY_FIRMWARE, {}).get('files', [])
-
+        return self.data.get(Keys.KEY_DEVICES, {}).get('files', [])
+    
     @property
-    def devices(self) -> List[str]:
-        """Return a list of devices."""
-        firmware = self.data.get(Keys.KEY_FIRMWARE, {})
+    def device_names(self) -> List[str]:
+        """Return a list of device names."""
+        firmware = self.data.get(Keys.KEY_DEVICES, {})
         files = firmware.get('files', [])
         return [entry.get(Keys.KEY_DEVICE_NAME, '') for entry in files if Keys.KEY_DEVICE_NAME in entry]
-
-    @property
-    def default_device(self) -> str:
-        """Return the default device."""
-        firmware = self.data.get(Keys.KEY_FIRMWARE, {})
-        return firmware.get('default_device', '')
 
     @property
     def chip_options(self) -> List[str]:
@@ -169,6 +163,7 @@ def get_instance(**kwargs) -> "ConfigLoader":
 
 if __name__ == '__main__':
     config = get_instance()
+    print(config.devices)
     # from pprint import pprint
     # pprint(config.get_test_sequence(), indent=4, width=120)
     # pprint(config.get_cleanup_sequence(), indent=4, width=120, sort_dicts=False)
