@@ -39,7 +39,9 @@
     "autoDocstring.includeName": false,
     "autoDocstring.startOnNewLine": true,
     "[python]": {
-      "editor.defaultFormatter": "ms-python.autopep8"
+      // "editor.defaultFormatter": "ms-python.autopep8"
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true
     },
     "python.languageServer": "Default",
     "multiFormatter.formatterList": [
@@ -57,7 +59,7 @@
     "black-formatter.args": [
       "--skip-string-normalization",
       "--line-length=150",
-      "--max-line-length=150",
+      // "--max-line-length=150",
     ],
     "python.analysis.extraPaths": [],
     "files.associations": {
