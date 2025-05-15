@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'MainWindow.ui'
+## Form generated from reading UI file 'mainwindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(1342, 919)
+        MainWindow.resize(1015, 919)
         MainWindow.setMinimumSize(QSize(650, 500))
         font = QFont()
         font.setPointSize(11)
@@ -272,7 +272,10 @@ class Ui_MainWindow(object):
         self.text_edit.setAutoFormatting(QTextEdit.AutoFormattingFlag.AutoNone)
         self.text_edit.setUndoRedoEnabled(False)
         self.text_edit.setReadOnly(True)
-        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.LinksAccessibleByKeyboard|Qt.TextInteractionFlag.LinksAccessibleByMouse|Qt.TextInteractionFlag.TextBrowserInteraction|Qt.TextInteractionFlag.TextSelectableByKeyboard|Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.text_edit.setOverwriteMode(True)
+        self.text_edit.setAcceptRichText(True)
+        self.text_edit.setCursorWidth(2)
+        self.text_edit.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByKeyboard|Qt.TextInteractionFlag.TextSelectableByMouse)
 
         self.verticalLayout.addWidget(self.text_edit)
 
@@ -451,7 +454,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1342, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1015, 33))
         self.menubar.setFont(font)
         self.menubar.setDefaultUp(False)
         self.menubar.setNativeMenuBar(False)
