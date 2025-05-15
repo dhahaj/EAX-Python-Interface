@@ -325,7 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Load the devices from the config file and add each device to the menu
         for device in load_devices():
-            action = QAction(device._name, self)
+            action = QAction(device._device_name, self)
             action.setFont(self.font())
             action.setCheckable(True)
             action.setData(device) # Store the device object in the action
@@ -594,7 +594,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         log.info(f"Device changed to: {device}")
         self.device_label.setText(f"Device: {device.name}")
-        self.device_label.setStyleSheet(f"color: {device.color}; ")
+        self.device_label.setStyleSheet(f"color: {device.label_color}; ")
 
 
     def show_help(self) -> None:
