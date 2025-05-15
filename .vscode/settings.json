@@ -12,6 +12,13 @@
             "cwd": "${workspaceFolder}",
             "command": ".venv\\scripts\\python main.py"
           },
+          {
+            "name": "QtDesigner",
+            "singleInstance": true,
+            "color": "#ffe65c",
+            "cwd": "${workspaceFolder}",
+            "command": ".venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
+          },
         ]
     },
     "isort.interpreter": [
