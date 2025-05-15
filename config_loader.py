@@ -1,7 +1,7 @@
 import yaml
 from typing import List, Dict, Any, Tuple
 import os
-from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMING_CONFIG, KEY_PROGRAMMER_SERIAL_NUMBER
+from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMER_SERIAL_NUMBER
 from util.resources import extract_file_from_resource
 import copy
 
@@ -15,6 +15,8 @@ class Keys:
     KEY_TESTING: str = "testing"
     KEY_TESTING_SEQUENCE: str = "sequence"
     KEY_DEVICE_NAME: str = "device_name"
+    KEY_FIRMWARE_FOLDER: str = "firmware_folder"
+    KEY_PROGRAMMING_CONFIG: str = "programmer_config"
 
 class ConfigLoader:
     """Load the config from a YAML file."""

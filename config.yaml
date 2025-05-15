@@ -1,63 +1,54 @@
----
+# Configuration file for the EAX500 Interface application.
+
 app_name: EAX500 Interface
 app_version: 1.0.0
 
+# Used for populating the device menu and mapping the firmware files
+# to the device names.
 devices:
+    firmware_folder: ./firmware
     files:
         - device_name: EAX300
           firmware_file: EAX300_59.hex
-          version: '59'
-          color: '#fff15a' # yellow
+          label_color: '#fff15a' # yellow
         - device_name: EAX500
           firmware_file: EAX500_591.hex
-          version: '591'
-          color: '#00ff00' # green
+          label_color: '#00ff00' # green
         - device_name: EAX503
           firmware_file: EAX503_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ffda21'
         - device_name: EAX504
           firmware_file: EAX504_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ffdd21'
         - device_name: EAX505
           firmware_file: EAX505_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ffe421'
         - device_name: EAX510
           firmware_file: EAX510_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ffe921'
         - device_name: EAX513
           firmware_file: EAX513_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#fff221'
         - device_name: EAX514
           firmware_file: EAX514_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#fff921'
         - device_name: EAX515
           firmware_file: EAX515_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ff9b0e'
         - device_name: EAX520
           firmware_file: EAX520_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ff9b0e'
         - device_name: EAX523
           firmware_file: EAX523_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ff9b0e'
         - device_name: EAX524
           firmware_file: EAX524_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          label_color: '#ff9b0e'
         - device_name: EAX525
           firmware_file: EAX525_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
-    path: ./firmware
+          label_color: '#ff9b0e'
 
+# Defines the pins used in the application.
 pins:
     - function: low battery
       io_mode: output
@@ -182,6 +173,7 @@ testing:
           message_on_fail: <p>Timeout waiting for button confirmation. Continuing test.</p>
           fail_on_timeout: false
 
+    # Actions to perform once the test is complete
     cleanup:
         - action: write_pin
           function: test indicator
@@ -193,6 +185,7 @@ testing:
           function: low battery
           value: 0
 
+# Programmer configuration
 programmer_config:
     executable: C:\Program Files (x86)\ASIX\UP\UP.exe
     programmer: PRESTO
@@ -207,14 +200,14 @@ programmer_config:
         - '{programmer}'
         - '/q1' # Quiet mode
 
-
 chip_options:
     - PIC16F627
     - PIC16F627A
     - PIC16F628
     - PIC16F628A
+    - default: PIC16F628A
 
-# defualt settings
+# default settings
 settings:
     arduino_instance_id: 1
     arduino_wait: 4
