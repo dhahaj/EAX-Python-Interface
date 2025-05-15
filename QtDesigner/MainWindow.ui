@@ -10,7 +10,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1342</width>
+    <width>1015</width>
     <height>919</height>
    </rect>
   </property>
@@ -115,8 +115,17 @@
       <property name="readOnly">
        <bool>true</bool>
       </property>
+      <property name="overwriteMode">
+       <bool>true</bool>
+      </property>
+      <property name="acceptRichText">
+       <bool>true</bool>
+      </property>
+      <property name="cursorWidth">
+       <number>2</number>
+      </property>
       <property name="textInteractionFlags">
-       <set>Qt::TextInteractionFlag::LinksAccessibleByKeyboard|Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextBrowserInteraction|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+       <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
       </property>
       <property name="placeholderText">
        <string>Text Area</string>
@@ -794,7 +803,7 @@ font-weight: bold;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1342</width>
+     <width>1015</width>
      <height>33</height>
     </rect>
    </property>
