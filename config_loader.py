@@ -1,12 +1,14 @@
 import yaml
 from typing import List, Dict, Any, Tuple
 import os
-from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMING_CONFIG, KEY_PROGRAMMER_SERIAL_NUMBER
+from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMING_CONFIG, KEY_PROGRAMMER_SERIAL_NUMBER, KEY_FIRMWARE_FILENAME
 from util.resources import extract_file_from_resource
 import copy
 
+
 class Keys:
     """Keys used in the config file."""
+
     KEY_DEBUG: str = "debug"
     KEY_CHIP_OPTIONS: str = "chip_options"
     KEY_PINS: str = "pins"
@@ -15,10 +17,11 @@ class Keys:
     KEY_TESTING: str = "testing"
     KEY_TESTING_SEQUENCE: str = "sequence"
     KEY_DEVICE_NAME: str = "device_name"
+    KEY_FIRMWARE_FILES: str = "firmware_files"
+
 
 class ConfigLoader:
     """Load the config from a YAML file."""
-
 
     def __init__(self, filename: str = "config.yaml") -> None:
         self.filename = filename
@@ -26,6 +29,7 @@ class ConfigLoader:
         if not os.path.exists(filename):
             try:
                 import util.config_resources_rc
+
                 filename = extract_file_from_resource(":/config.yaml")
                 print(f"Config file extracted from resources: {filename}")
             except FileNotFoundError as e:
@@ -40,15 +44,15 @@ class ConfigLoader:
                 return yaml.safe_load(stream)
         except FileNotFoundError:
             print(f"Config file not found: {filename}")
-            raise 
+            raise
         except yaml.YAMLError as e:
             print(f"YAML parsing error in file {filename}: {e}")
             raise
 
     def get(self, key: str) -> Any:
         """Get a value from the config."""
-        return self.data.get(key, None) 
-    
+        return self.data.get(key, None)
+
     @property
     def config(self) -> Dict[str, Any]:
         """Return the config data"""
@@ -76,24 +80,24 @@ class ConfigLoader:
     @property
     def firmware_path(self) -> str:
         """Return the firmware path."""
-        return self.data.get(Keys.KEY_DEVICES, {}).get('path', None)
+        return self.data.get(Keys.KEY_DEVICES, {}).get('firmware_path', None)
 
     def get_firmware(self) -> List[Dict[str, Any]]:
         """Return the firmware data."""
-        return self.data.get(Keys.KEY_DEVICES, {}).get('files', [])
-    
+        return self.data.get(Keys.KEY_DEVICES, {}).get(Keys.KEY_FIRMWARE_FILES, [])
+
     @property
     def device_names(self) -> List[str]:
         """Return a list of device names."""
         firmware = self.data.get(Keys.KEY_DEVICES, {})
-        files = firmware.get('files', [])
+        files = firmware.get(Keys.KEY_FIRMWARE_FILES, [])
         return [entry.get(Keys.KEY_DEVICE_NAME, '') for entry in files if Keys.KEY_DEVICE_NAME in entry]
 
     @property
     def label_styles(self) -> str:
         """Return the label styles."""
         return self.data.get(Keys.KEY_DEVICES, {}).get('label_styles', '')
-    
+
     @property
     def label_font_size(self) -> str:
         """Return the label styles."""
@@ -135,22 +139,22 @@ class ConfigLoader:
     def get_program_config(self) -> Dict[str, Any]:
         """Return the program configuration."""
         return self.data.get(KEY_PROGRAMMING_CONFIG, {})
-    
+
     def get_programmer_path(self) -> str:
         """Return the programmer path."""
         config = self.get_program_config()
         if not config:
             raise ValueError("No programmer configuration found in the config file.")
         return config.get("executable", None)
-    
+
     def generate_program_arguments(self, settings, device) -> List[str]:
-        """Generate the command line arguments for the programmer."""     
+        """Generate the command line arguments for the programmer."""
         config = self.get_program_config()
         if not config:
             raise ValueError("No programmer configuration found in the config file.")
         vars_ = dict(
             chip_part=settings.get(KEY_CHIP_PART, DEFAULT_SETTINGS[KEY_CHIP_PART]),
-            firmware_file=device.firmware_path,
+            firmware_name=device.firmware_path,
             serial_number=settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER]),
             programmer=config["programmer"],
         )
@@ -158,6 +162,7 @@ class ConfigLoader:
 
 
 _config_singleton: "ConfigLoader|None" = None
+
 
 def get_instance(**kwargs) -> "ConfigLoader":
     """
