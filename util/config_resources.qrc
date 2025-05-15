@@ -7,5 +7,6 @@
     <file>../firmware/</file>
     <file>../Scripts/</file>
     <file>../default_resources.zip</file>
+    <file alias="arduino.xz">../tools/arduino-cli.exe.xz</file>
   </qresource>
 </RCC>
