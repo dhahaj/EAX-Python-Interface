@@ -77,7 +77,6 @@ KEY_COUNTER_ENABLED: str = "counter_enabled"
 KEY_TEST_COUNT: str = "test_count"
 KEY_BUTTON_TIMEOUT: str = "button_timeout"
 KEY_VIRTUAL_COM_PORT: str = "virtual_com_port"
-KEY_PROGRAMMING_CONFIG: str = "programmer_config"
 
 """
 Default settings for the application.
@@ -112,13 +111,11 @@ DEFAULT_SETTINGS = {
 
 
 """
-Keys for the firmware dictionary.
+Keys for the device configuration.
 """
-FIRMWARE_NAME: str = "name"
-FIRMWARE_VERSION: str = "version"
 KEY_DEVICE_NAME: str = "device_name"
 KEY_FIRMWARE_VERSION: str = "version"
-KEY_DEVICE_COLOR: str = "color"
+KEY_DEVICE_COLOR: str = "label_color"
 KEY_DEVICE_FIRMWARE_FILE: str = "firmware_file"
 
 INSTRUCTIONS = """<p><img src=":/resources/detex" width="300" style="float:right;"/></p>
