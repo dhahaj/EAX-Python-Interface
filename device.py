@@ -13,16 +13,23 @@ class Device:
         self._firmware = firmware
         self._color = color
         self.config = config_loader.get_instance()
+        self._styles = self.config.label_styles
+        self._font_size = self.config.label_font_size
 
     @property
     def name(self) -> str:
         """ Returns the name of the current device."""
         return self._name
 
-    @name.setter
-    def name(self, value: str) -> None:
-        """ Sets the name of the current device."""
-        self._name = value
+    @property
+    def styles(self) -> str:
+        """ Returns the styles of the current device."""
+        return self._styles
+    
+    @property
+    def font_size(self) -> str:
+        """ Returns the font size of the current device."""
+        return self._font_size
 
     @property
     def firmware(self) -> str:

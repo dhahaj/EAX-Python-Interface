@@ -90,6 +90,16 @@ class ConfigLoader:
         return [entry.get(Keys.KEY_DEVICE_NAME, '') for entry in files if Keys.KEY_DEVICE_NAME in entry]
 
     @property
+    def label_styles(self) -> str:
+        """Return the label styles."""
+        return self.data.get(Keys.KEY_DEVICES, {}).get('label_styles', '')
+    
+    @property
+    def label_font_size(self) -> str:
+        """Return the label styles."""
+        return self.data.get(Keys.KEY_DEVICES, {}).get('label_size', 'font-size:14pt;')
+
+    @property
     def chip_options(self) -> List[str]:
         """Return a list of chip options."""
         return self.data.get(Keys.KEY_CHIP_OPTIONS, [])
