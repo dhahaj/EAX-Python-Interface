@@ -4,49 +4,52 @@ from typing import List, Dict, Any
 
 
 class Device:
-    """ A class that contains the device information and maintains the current selected device. """
+    """ A class representing a device. """
+    _device_name: str = None
+    _firmware: str = None
+    _label_color: str = None
     config: config_loader.ConfigLoader | None = None
 
-    def __init__(self, device_name: str = None, firmware: str = None, color: str = None) -> None:
+    def __init__(self, device_name: str = None, firmware: str = None, label_color: str = None) -> None:
         """ Initializes the device with the given name and firmware. """
-        self._name = device_name
+        self._device_name = device_name
         self._firmware = firmware
-        self._color = color
+        self._label_color = label_color
         self.config = config_loader.get_instance()
 
     @property
     def name(self) -> str:
         """ Returns the name of the current device."""
-        return self._name
+        return self._device_name
 
     @name.setter
     def name(self, value: str) -> None:
         """ Sets the name of the current device."""
-        self._name = value
+        self._device_name = value
 
     @property
     def firmware(self) -> str:
         """ Returns the path to the firmware file for the current device."""
         return self.get_firmware()
 
-    @firmware.setter
-    def firmware(self, value: str) -> None:
-        self._firmware = value
+    # @firmware.setter
+    # def firmware(self, value: str) -> None:
+    #     self._firmware = value
 
     @property
-    def color(self) -> str:
+    def label_color(self) -> str:
         """ Returns the color of the current device."""
-        return self._color
+        return self._label_color
 
-    @color.setter
-    def color(self, value: str) -> None:
-        """ Sets the color of the current device."""
-        self._color = value
+    # @label_color.setter
+    # def label_color(self, value: str) -> None:
+    #     """ Sets the color of the current device."""
+    #     self._label_color = value
 
     @property
     def is_selected(self) -> bool:
         """ Returns True if a device is selected, False otherwise."""
-        return self._name is not None
+        return self._device_name is not None
     
     @property
     def firmware_path(self) -> str:
@@ -55,13 +58,13 @@ class Device:
 
     def get_firmware(self) -> str:
         """ Returns the path to the firmware file for the current device. """
-        if self._name is None:
+        if self._device_name is None:
             return None
         return f'{self.config.firmware_path}/{self._firmware}'
     
     def __str__(self) -> str:
         """ Returns a string representation of the device. """
-        return f'{self._name if self._name else "No device selected."}, {self._firmware if self._firmware else "No firmware selected."}, {self._color if self._color else "No color selected."}'
+        return f'{self._device_name if self._device_name else "No device selected."}, {self._firmware if self._firmware else "No firmware selected."}, {self._label_color if self._label_color else "No color selected."}'
 
 
 
