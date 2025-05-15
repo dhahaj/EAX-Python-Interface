@@ -593,8 +593,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         device: Device = self.sender().data()
 
         log.info(f"Device changed to: {device}")
-        self.device_label.setText(f"Device: {device.name}")
-        self.device_label.setStyleSheet(f"color: {device.color}; ")
+        self.device_label.setText(f'''
+                                  <html><head/><body> <p>Device: <span style="{device.styles}">{device.name}</span> </p></body></html>  
+                                  ''')
+        self.device_label.setStyleSheet(f"color: {device.color}; {device.font_size};")
 
 
     def show_help(self) -> None:
