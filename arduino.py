@@ -1,9 +1,17 @@
 import asyncio
-import time
 from telemetrix_aio.telemetrix_aio import TelemetrixAIO
 import config_loader
 from settings import get_instance
-from constants import KEY_COM_PORT, KEY_AUTO_FIND, KEY_ARDUINO_INSTANCE_ID, KEY_SHUTDOWN_ON_EXCEPTION, KEY_ARDUINO_WAIT, KEY_SLEEP_TUNE, KEY_DEBUG, KEY_VIRTUAL_COM_PORT
+from constants import (
+    KEY_COM_PORT,
+    KEY_AUTO_FIND,
+    KEY_ARDUINO_INSTANCE_ID,
+    KEY_SHUTDOWN_ON_EXCEPTION,
+    KEY_ARDUINO_WAIT,
+    KEY_SLEEP_TUNE,
+    KEY_DEBUG,
+    KEY_VIRTUAL_COM_PORT,
+)
 from serial.tools import list_ports
 from typing import List
 from PySide6.QtCore import QObject, Signal
@@ -12,28 +20,27 @@ from globals import logger as log
 from collections import defaultdict
 
 
-class Mode(Enum):
-    INPUT = 'input'
-    OUTPUT = 'output'
-    INPUT_PULLUP = 'input_pullup'
-
-
 class Pin:
+
+    class Mode(Enum):
+        INPUT = 'input'
+        OUTPUT = 'output'
+        INPUT_PULLUP = 'input_pullup'
+
     def __init__(self, pin_number: int, mode: Mode, function: str = None, pullup_enabled: bool = False):
         self.pin_number = pin_number
         self.mode = mode
         self.function = function
         self.pullup_enabled = pullup_enabled
-        if self.mode == Mode.OUTPUT and self.pullup_enabled:
-            raise ValueError(
-                "Pull-up resistors cannot be enabled for output pins.")
+        if self.mode == Pin.Mode.OUTPUT and self.pullup_enabled:
+            raise ValueError("Pull-up resistors cannot be enabled for output pins.")
 
     async def configure(self, device: TelemetrixAIO, callback=None):
-        if self.mode == Mode.OUTPUT:
+        if self.mode == Pin.Mode.OUTPUT:
             await device.set_pin_mode_digital_output(self.pin_number)
-        elif self.mode == Mode.INPUT:
+        elif self.mode == Pin.Mode.INPUT:
             await device.set_pin_mode_digital_input(self.pin_number, callback)
-        elif self.mode == Mode.INPUT_PULLUP:
+        elif self.mode == Pin.Mode.INPUT_PULLUP:
             await device.set_pin_mode_digital_input_pullup(self.pin_number, callback)
 
     def __repr__(self):
@@ -46,6 +53,7 @@ class AIODevice(QObject):
     This class no longer relies on threading.Thread; instead,
     it performs asynchronous connection and I/O with asyncio.
     """
+
     DEBOUNCE_TIME = 0.5  # seconds
     connection_changed = Signal(bool, object)
 
@@ -79,7 +87,7 @@ class AIODevice(QObject):
         self.connection_changed.emit(value, self.device.com_port if value else "Disconnected")
 
     async def async_connect(self, callback=None) -> None:
-        """ Asynchronously establish a connection to the Arduino via TelemetrixAIO. """
+        """Asynchronously establish a connection to the Arduino via TelemetrixAIO."""
         try:
             # Instantiate the asynchronous Telemetrix device.
             self.device = TelemetrixAIO(
@@ -89,7 +97,7 @@ class AIODevice(QObject):
                 shutdown_on_exception=self.settings.get(KEY_SHUTDOWN_ON_EXCEPTION, True),
                 sleep_tune=self.settings.get_float(KEY_SLEEP_TUNE, 0.000001),
                 autostart=False,
-                close_loop_on_shutdown=False
+                close_loop_on_shutdown=False,
             )
 
             # Await the connection—assuming TelemetrixAIO.connect() is an async method.
@@ -113,7 +121,7 @@ class AIODevice(QObject):
                 callback(self.device_connected, str(e))
 
     async def async_disconnect(self):
-        """ Asynchronously disconnect from the Arduino device. """
+        """Asynchronously disconnect from the Arduino device."""
         if self.device:
             await self.device.shutdown()
             self.device_connected = False
@@ -152,15 +160,10 @@ class AIODevice(QObject):
         self.pins = config.pins
 
     async def configure_pin_modes(self) -> None:
-        """ Configure the pin modes based on the loaded configuration. """
+        """Configure the pin modes based on the loaded configuration."""
         for pin in self.pins:
             try:
-                pin_obj = Pin(
-                    pin['pin_number'],
-                    Mode(pin['io_mode']),
-                    pin.get('function'),
-                    pin.get('pullup_enabled', False)
-                )
+                pin_obj = Pin(pin['pin_number'], Pin.Mode(pin['io_mode']), pin.get('function'), pin.get('pullup_enabled', False))
                 log.debug(f'Configuring pin {pin_obj}')
                 await pin_obj.configure(self.device, self.input_callback)
             except Exception as e:
@@ -180,7 +183,7 @@ class AIODevice(QObject):
         await self.device.digital_write(pin_number, value)
 
     def start_monitoring(self) -> None:
-        """ Start monitoring the connection. """
+        """Start monitoring the connection."""
         # Start the connection monitoring task.
         loop = asyncio.get_running_loop()
         loop.create_task(self._monitor_connection(), name="monitor_connection")
@@ -211,7 +214,7 @@ class AIODevice(QObject):
             raise
 
     def get_pin_by_function(self, function: str) -> int:
-        """ Get a pin number by its function name. """
+        """Get a pin number by its function name."""
         return next((pin['pin_number'] for pin in self.pins if pin.get('function') == function), None)
 
     async def async_cleanup(self):
@@ -256,7 +259,6 @@ class AIODevice(QObject):
         return config.pins
 
 
-
 class DummyAIODevice(AIODevice):
     """
     Mock class for AIODevice to simulate behavior without actual hardware.
@@ -274,37 +276,62 @@ class DummyAIODevice(AIODevice):
         self.device = self.Device()
         self._pin_callbacks = defaultdict(lambda: lambda msg: None)  # Default to no-op callback
 
-    async def write_pin_by_func(self, func, val): print(f"MOCK WRITE: Func={func}, Val={val}")
-    async def digital_write(self, pin, val): print(f"MOCK WRITE: Pin={pin}, Val={val}")
-    def get_pin_by_function(self, func): return {'relay in': 7}.get(func)  # Example
+    async def write_pin_by_func(self, func, val):
+        print(f"MOCK WRITE: Func={func}, Val={val}")
+
+    async def digital_write(self, pin, val):
+        print(f"MOCK WRITE: Pin={pin}, Val={val}")
+
+    def get_pin_by_function(self, func):
+        return {'relay in': 7}.get(func)  # Example
+
     def attach_callback(self, cb, pin):
-        if self.debug: print(f"MOCK ATTACH: Pin={pin}, CB={cb}")
+        if self.debug:
+            print(f"MOCK ATTACH: Pin={pin}, CB={cb}")
         self._pin_callbacks[pin] = cb
+
     def detach_callback(self, pin):
         self._pin_callbacks[pin] = lambda msg: None
         print(f"MOCK DETACH: Pin={pin}")
-    async def async_connect(self, callback=None): print("MOCK CONNECT")
-    async def async_disconnect(self): self._device_connected = False
-    async def set_pin_mode_digital_output(self, pin): print(f"MOCK SET OUTPUT: Pin={pin}")
+
+    async def async_connect(self, callback=None):
+        print("MOCK CONNECT")
+
+    async def async_disconnect(self):
+        self._device_connected = False
+
+    async def set_pin_mode_digital_output(self, pin):
+        print(f"MOCK SET OUTPUT: Pin={pin}")
+
     async def set_pin_mode_digital_input(self, pin, cb):
         print(f"MOCK SET INPUT: Pin={pin}, CB={cb}")
         self._pin_callbacks[pin] = cb
+
     async def set_pin_mode_digital_input_pullup(self, pin, cb):
         print(f"MOCK SET INPUT PULLUP: Pin={pin}, CB={cb}")
         self._pin_callbacks[pin] = cb
-    def load_pin_configuration(self, filename='config.yaml'): print(f"MOCK LOAD CONFIG: {filename}")
-    async def configure_pin_modes(self): print("MOCK CONFIGURE PIN MODES")
-    async def set_all_pins_to_value(self, value): print(f"MOCK SET ALL PINS TO {value}")
+
+    def load_pin_configuration(self, filename='config.yaml'):
+        print(f"MOCK LOAD CONFIG: {filename}")
+
+    async def configure_pin_modes(self):
+        print("MOCK CONFIGURE PIN MODES")
+
+    async def set_all_pins_to_value(self, value):
+        print(f"MOCK SET ALL PINS TO {value}")
+
     @property
-    def device_connected(self) -> bool: return self._device_connected
+    def device_connected(self) -> bool:
+        return self._device_connected
+
     async def ensure_connected(self):
         print("MOCK ENSURE CONNECTED")
         self._device_connected = True
         self.connection_changed.emit(True, self.device.com_port)
 
 
-
 _singleton: "AIODevice|None" = None
+
 
 def get_device(**kwargs) -> "AIODevice":
     """
@@ -320,8 +347,6 @@ def get_device(**kwargs) -> "AIODevice":
         else:
             _singleton = AIODevice(**kwargs)
     return _singleton
-
-
 
 
 async def main():
@@ -341,6 +366,7 @@ async def main():
         await asyncio.sleep(1)
     print("Main loop detected disconnection.")
     print(device)
+
 
 if __name__ == "__main__":
     try:
