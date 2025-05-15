@@ -10,7 +10,14 @@
             "singleInstance": true,
             "color": "#ffe65c",
             "cwd": "${workspaceFolder}",
-            "command": ".venv\\scripts\\python main.py"
+            "command": "venv\\scripts\\python main.py"
+          },
+          {
+            "name": "Open Designer",
+            "singleInstance": true,
+            "color": "#00ffe1",
+            "cwd": "${workspaceFolder}",
+            "command": "venv\\scripts\\pyside6-designer QtDesigner\\mainwindow.ui"
           },
         ]
     },
