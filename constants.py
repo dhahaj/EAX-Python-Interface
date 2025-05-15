@@ -4,8 +4,9 @@ Constants used for the EAX300/500 Test Fixture.
 Author: Daniel Hahaj 2023-08-01
 
 This file contains many variables that are used throughout the application. Certian
-values can be adjusted here to make the application more modular. 
+values can be adjusted here to make the application more modular.
 """
+
 import enum
 from typing import List
 from os import PathLike
@@ -30,8 +31,10 @@ YELLOW = "color: rgb(200, 195, 0); background-color: rgba(0, 0, 0, 0);"
 RED = "color: red; background-color: rgba(0, 0, 0, 0);"
 DEVICE_LABEL = "color: rgb(255, 0, 0); font-weight: bold; background-color: rgba(0, 0, 0, 0);"
 
+
 class State(enum.Enum):
     """The state of the application."""
+
     IDLE = enum.auto()
     PROGRAMMING = enum.auto()
     TESTING = enum.auto()
@@ -114,12 +117,9 @@ DEFAULT_SETTINGS = {
 """
 Keys for the firmware dictionary.
 """
-FIRMWARE_NAME: str = "name"
-FIRMWARE_VERSION: str = "version"
 KEY_DEVICE_NAME: str = "device_name"
-KEY_FIRMWARE_VERSION: str = "version"
 KEY_DEVICE_COLOR: str = "color"
-KEY_DEVICE_FIRMWARE_FILE: str = "firmware_file"
+KEY_FIRMWARE_FILENAME: str = "firmware_name"
 
 INSTRUCTIONS = """<p><img src=":/resources/detex" width="300" style="float:right;"/></p>
 
