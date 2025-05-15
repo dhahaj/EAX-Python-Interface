@@ -2,61 +2,52 @@
 app_name: EAX500 Interface
 app_version: 1.0.0
 
+# This is used for populating the device menu and mapping 
+# the device name to the firmware file
 devices:
+    label_styles: "font-style:italic; text-decoration: underline; font-weight:400;"
+    label_size: "font-size:20pt;"
+    path: ./firmware
     files:
         - device_name: EAX300
           firmware_file: EAX300_59.hex
-          version: '59'
           color: '#fff15a' # yellow
         - device_name: EAX500
           firmware_file: EAX500_591.hex
-          version: '591'
           color: '#00ff00' # green
         - device_name: EAX503
           firmware_file: EAX503_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ff6b0e' # orange
         - device_name: EAX504
           firmware_file: EAX504_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ff7b0e' # orange
         - device_name: EAX505
           firmware_file: EAX505_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ff8b0e' # orange
         - device_name: EAX510
           firmware_file: EAX510_591.hex
-          version: '591'
           color: '#ff9b0e' # orange
         - device_name: EAX513
           firmware_file: EAX513_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ffab0e' # orange
         - device_name: EAX514
           firmware_file: EAX514_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ffbb0e' # orange
         - device_name: EAX515
           firmware_file: EAX515_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ffcb0e' # orange
         - device_name: EAX520
           firmware_file: EAX520_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ffdb0e' # orange
         - device_name: EAX523
           firmware_file: EAX523_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#ffeb0e' # orange
         - device_name: EAX524
           firmware_file: EAX524_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
+          color: '#fffb0e' # orange
         - device_name: EAX525
           firmware_file: EAX525_591.hex
-          version: '591'
-          color: '#ff9b0e' # orange
-    path: ./firmware
+          color: '#fffb0e' # orange
 
 pins:
     - function: low battery
