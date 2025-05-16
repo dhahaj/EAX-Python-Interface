@@ -56,7 +56,7 @@ import qdarkstyle
 import asyncio
 import settings
 import constants
-import config_loader
+import config_loader as cfg
 from constants import State
 from math import ceil
 from arduino import AIODevice
@@ -225,7 +225,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # device_changed = Signal(str)
     _state: State = State.IDLE
-    connecting: bool = False
     log_view: LogView | None = None
     help_dialog: HelpDialog | None = None
     arduino: AIODevice | None = None
@@ -300,14 +299,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionShow_Logs.triggered.connect(self.show_log)
         self.actionChange_font.triggered.connect(self.choose_font)
         self.actionManual_Control.triggered.connect(self.control_manually)
-        self.actionModify_Settings.triggered.connect(self.modify_settings)
+        self.actionModify_Settings.triggered.connect(lambda: self.settings_dialog.show())
         self.actionHelp.triggered.connect(self.show_help)
         self.actionStatisitics.triggered.connect(self.show_statistics)
         self.actionDark_Theme.triggered.connect(self.toggle_theme)
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
-        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(config_loader.get_instance().get_programmer_path()))
+        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(cfg.get_instance().get_programmer_path()))
 
         # Set the theme
         self.set_theme(get_theme(self.settings))
@@ -359,12 +358,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
             self.usb_label.setText("USB connecting...")
-            self.usb_label.setStyleSheet(constants.YELLOW)
+            self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connecting_style'))
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
             self.program_button.setEnabled(True)
             self.actionConnect.setEnabled(True)
-            self.usb_label.setStyleSheet(constants.GREEN)  # Updated line
+            self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connected_style'))
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
         elif value == State.IDLE:
@@ -373,6 +372,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.label_usb_icon.setText(constants.ICON_USB_RED)
             self.set_status("Disconnected.")
             self.show_movie(pause=True)
+            if self._state == State.CONNECTED:  # only if we were connected
+                self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
+                self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg="disconnected"))
         elif value == State.PROGRAMMING:
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
@@ -668,17 +670,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Callback for the USB device."""
         log.info(f"Connection changed: {connected}, message: {message}")
         if connected:  # device is connected
-            self.usb_label.setText(f"USB connected: {message}")
-            self.usb_label.setStyleSheet(constants.GREEN)
+            # self.usb_label.setText(f"USB connected: {message}")
+            # self.usb_label.setStyleSheet(constants.GREEN)
             self.actionConnect.setText("Disconnect")
             self.state = State.CONNECTED
             self.settings.setValue(constants.KEY_COM_PORT, self.arduino.device.com_port)  # save the port
             self.testController = TestController(self.arduino, parent=self)
             self._connect_controller_signals()
+            # self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connected_style'))
+            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg=message))
 
         else:
-            self.usb_label.setText("USB disconnected")
-            self.usb_label.setStyleSheet(constants.RED)
+            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg="disconnected"))
+            self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
             log.error(f"USB: connection lost. Error: {message}")
             self.insert_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
@@ -686,8 +690,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
-        self.usb_label.setText("USB disconnected")
-        self.usb_label.setStyleSheet(constants.RED)
+        self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg="disconnected"))
+        self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
         self.actionConnect.setText("Connect")
         if self.arduino:
             self.arduino.connection_changed.disconnect(self.on_connection_changed)
@@ -703,9 +707,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def control_manually(self) -> None:
         ManualWidget(self.arduino).show()
-
-    def modify_settings(self) -> None:
-        self.settings_dialog.show()
 
     # ----- Programming Functions ----- #
 
@@ -725,7 +726,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
 
-            argv = config_loader.get_instance().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
+            argv = cfg.get_instance().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
 
             log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
 
@@ -1166,7 +1167,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         arduino._singleton = None
 
     def initialize_settings(self) -> None:
-        config = config_loader.get_instance()
+        config = cfg.get_instance()
 
         self.lineEdit_serial.setText(
             self.settings.app_settings.value(
