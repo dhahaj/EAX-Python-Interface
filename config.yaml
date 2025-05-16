@@ -4,15 +4,37 @@ app_version: 1.0.0
 
 window:
   usb_label:
-    connected_style: 'font-size: 16pt; font-weight: bold; color: #34dc7a;'
-    connecting_style: 'font-size: 16pt; font-weight: bold; color: #ffb300;'
-    disconnected_style: 'font-size: 16pt; font-weight: bold; color: #d91e3a;'
+    connected_style: >
+      font-size: 16pt;
+      font-weight: bold;
+      color: #00f255;
+
+    connected_text: "Connected to {msg}"
+
+    connecting_style: >
+      font-size: 16pt;
+      font-weight: bold;
+      color: #e3f400;
+      font-style: italic;
+
+    disconnected_style: >
+      font-size: 16pt;
+      font-weight: bold;
+      color: #ea0065;
+      font-style: italic;
+
+    disconnected_text: "{msg}"
+
     text: "USB: {msg}"
 
 # This is used for populating the device menu and mapping
 # the device name to the firmware file
 devices:
-  label_styles: "font-style:italic; text-decoration: underline; font-weight:400;"
+  label_styles: >
+    font-style:italic;
+    text-decoration: underline;
+    font-weight:400;
+
   label_size: "font-size:20pt;"
   firmware_path: ./firmware
   firmware_files:
@@ -118,7 +140,11 @@ logging:
 testing:
   sequence:
     - action: message # Display the Detex logo
-      text: '<html><head></head><body><img src=":/resources/detex" width="280" style="float:right;" />'
+      text: >
+        <html><head></head>
+        <body>
+          <img src=":/resources/detex" width="280" style="float:right;" />
+        </body>
 
     - action: message # Display text to the user
       text: "<h1>Starting test for {model_name}...</h1><br>"
@@ -139,7 +165,10 @@ testing:
 
     # --- Low Battery Test ---
     - action: message
-      text: "<p>🔷 Testing Low battery function 🢧 The LED's blink alternately</p>"
+      text: >
+        <p>
+          🔷 Testing Low battery function 🢧 The LED's blink alternately
+        </p>
     - action: write_pin
       function: low battery
       value: 1
@@ -151,37 +180,56 @@ testing:
       value: 0
 
     - action: message
-      text: "<p>🔷 Stopping Low Battery Test 🢧 Both LED's should be OFF</p>"
+      text: >
+        <p>
+          🔷 Stopping Low Battery Test 🢧 Both LED's should be OFF
+        </p>
 
     - action: delay
       duration_ms: 500
 
     - action: message
-      text: <p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>
+      text: >
+        <p>
+          🔷 Press the OKC switch ➾ The LEDs blink in unison
+        </p>
 
     - action: delay
       duration_ms: 100
 
     - action: message
-      text: <p>🔷 Press the key switch ➾ The siren sounds</p>
+      text: >
+        <p>
+          🔷 Press the key switch ➾ The siren sounds
+        </p>
 
     - action: delay
       duration_ms: 100
 
     - action: message
-      text: <p>🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides</p>
+      text: >
+        <p>
+          🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides
+        </p>
 
     - action: delay
       duration_ms: 100
 
     # --- Wait for Button Confirmation ---
     - action: message
-      text: "<br><h3>⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Press the Test Button or Click here to continue...</span></a> </h3>"
+      text: >
+        <br>
+        <h3>
+          ⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Press the Test Button or Click here to continue...</span></a>
+        </h3>
 
     - action: wait_for_button
       timeout_ms: 5000 # Wait for 5 seconds
       timeout_key: button_timeout # Key from settings.ini for timeout duration
-      message_on_fail: <p>Timeout waiting for button confirmation. Continuing test.</p>
+      message_on_fail: >
+        <p>
+          Timeout waiting for button confirmation. Continuing test.
+        </p>
       fail_on_timeout: false
 
   cleanup:
