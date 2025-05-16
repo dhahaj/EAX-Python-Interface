@@ -374,7 +374,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.show_movie(pause=True)
             if self._state == State.CONNECTED:  # only if we were connected
                 self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
-                self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg="disconnected"))
+                self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
         elif value == State.PROGRAMMING:
             self.program_button.setEnabled(False)
             self.actionConnect.setEnabled(False)
@@ -542,9 +542,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.text_edit.setAcceptRichText(True)
             # self.load_file_text()
             # print(self.arduino)
-            print(self.state)
-            print(self.testController.state)
-            # print(self.text_edit.toPlainText())
+            # print(self.state)
+            # print(self.testController.state)
+            print(self.text_edit.toHtml())
             # print(self.label_usb_icon.size())
             # print(self.arduino)
             # print(settings.get_instance())
@@ -677,11 +677,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue(constants.KEY_COM_PORT, self.arduino.device.com_port)  # save the port
             self.testController = TestController(self.arduino, parent=self)
             self._connect_controller_signals()
-            # self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connected_style'))
-            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg=message))
+            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('connected_text').format(msg=message))
 
         else:
-            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg="disconnected"))
+            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
             self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
             log.error(f"USB: connection lost. Error: {message}")
             self.insert_text(f"\n<p>USB Error: {message}</p>")
