@@ -1,4 +1,5 @@
 from PySide6.QtCore import QObject, Signal
+import constants
 from device import Device
 from arduino import AIODevice
 from constants import KEY_DEBUG, KEY_TESTING_SPEED, DEFAULT_SETTINGS
@@ -14,31 +15,32 @@ class TestState(enum.Enum):
     """
     Enum representing the internal states of the TestController during test execution.
     """
-    IDLE = enum.auto()           # Controller is inactive, ready for a test.
-    RUNNING = enum.auto()        # Test sequence is actively executing steps.
+
+    IDLE = enum.auto()  # Controller is inactive, ready for a test.
+    RUNNING = enum.auto()  # Test sequence is actively executing steps.
     AWAITING_RELAY = enum.auto()  # Paused, waiting for a specific input signal (historically relay). Renamed to AWAITING_INPUT in newer constants.
     AWAITING_BUTTON = enum.auto()  # Paused, waiting for user confirmation via button press.
-    FINISHED = enum.auto()       # Test sequence completed (pass or fail determined later).
-    ERROR = enum.auto()          # An unexpected error occurred during the test.
+    FINISHED = enum.auto()  # Test sequence completed (pass or fail determined later).
+    ERROR = enum.auto()  # An unexpected error occurred during the test.
 
 
 class MessageType(enum.Enum):
-    INFO = enum.auto()               # General informational message.
-    WARNING = enum.auto()            # Warning message.
-    ERROR = enum.auto()              # Error message (often non-fatal to test sequence).
-    NOTICE = enum.auto()             # Notable event or status update.
-    DEBUG = enum.auto()              # Debugging information.
-    TEST_STARTED = enum.auto()       # Signals the beginning of a test run. Data: model name (str).
-    TEST_FINISHED = enum.auto()      # Signals the end of a test run. Data: success (bool).
-    TEST_PROGRESS = enum.auto()      # General progress message during the test. Data: message (str). Deprecated, use APPEND_TEXT.
-    TEST_PASSED = enum.auto()        # Signals the test completed successfully. Data: final message (str).
-    TEST_FAILED = enum.auto()        # Signals the test failed. Data: failure reason (str).
-    TEST_ERROR = enum.auto()         # Signals an unexpected error during the test. Data: error details (str).
+    INFO = enum.auto()  # General informational message.
+    WARNING = enum.auto()  # Warning message.
+    ERROR = enum.auto()  # Error message (often non-fatal to test sequence).
+    NOTICE = enum.auto()  # Notable event or status update.
+    DEBUG = enum.auto()  # Debugging information.
+    TEST_STARTED = enum.auto()  # Signals the beginning of a test run. Data: model name (str).
+    TEST_FINISHED = enum.auto()  # Signals the end of a test run. Data: success (bool).
+    TEST_PROGRESS = enum.auto()  # General progress message during the test. Data: message (str). Deprecated, use APPEND_TEXT.
+    TEST_PASSED = enum.auto()  # Signals the test completed successfully. Data: final message (str).
+    TEST_FAILED = enum.auto()  # Signals the test failed. Data: failure reason (str).
+    TEST_ERROR = enum.auto()  # Signals an unexpected error during the test. Data: error details (str).
     WAITING_FOR_INPUT = enum.auto()  # Signals the controller is waiting for hardware input. Data: pin function (str).
     WAITING_FOR_BUTTON = enum.auto()  # Signals the controller is waiting for user button press. Data: prompt text (str).
-    APPEND_TEXT = enum.auto()        # Instructs the UI to append text to the main display. Data: text (str).
-    INPUT_OK = enum.auto()           # Signals that the expected input was received. Data: pin function (str).
-    INPUT_FAIL = enum.auto()         # Signals that input was received but didn't match expected, or timed out. Data: pin function (str).
+    APPEND_TEXT = enum.auto()  # Instructs the UI to append text to the main display. Data: text (str).
+    INPUT_OK = enum.auto()  # Signals that the expected input was received. Data: pin function (str).
+    INPUT_FAIL = enum.auto()  # Signals that input was received but didn't match expected, or timed out. Data: pin function (str).
 
 
 class ControllerMessage:
@@ -61,6 +63,7 @@ class TestController(QObject):
     progress, results, and required user interactions back to the `MainWindow`
     via Qt signals.
     """
+
     # --- Signals ---
     # @Deprecated: Use sendMessage with specific ControllerMessage types instead. Kept for potential compatibility if needed.
     testStarted = Signal(str)
@@ -121,7 +124,7 @@ class TestController(QObject):
             log.warning("No test sequence found in config.yaml on initialization!")
 
     def _load_config(self) -> bool:
-        """ Loads or reloads the test sequence configuration. Returns True on success."""
+        """Loads or reloads the test sequence configuration. Returns True on success."""
         try:
             loaded = self._config_loader.reload()  # Use reload method from ConfigLoader
             if loaded:
@@ -273,7 +276,11 @@ class TestController(QObject):
             # Specific handling for timeouts during waits
             step_info = f" during step: {self._current_wait_step}" if self._current_wait_step else ""
             log.error(f"Timeout occurred{step_info}")
-            fail_msg = self._current_wait_step.get("message_on_fail", f"Timeout waiting for {self.state.name}") if self._current_wait_step else "Operation timed out"
+            fail_msg = (
+                self._current_wait_step.get("message_on_fail", f"Timeout waiting for {self.state.name}")
+                if self._current_wait_step
+                else "Operation timed out"
+            )
             self.errorOccurred.emit(fail_msg)  # Legacy signal
             self._state = TestState.ERROR
             self.testFinished.emit(False, f"Test Failed: {fail_msg}")  # Legacy signal
@@ -300,7 +307,9 @@ class TestController(QObject):
             final_state = self._state  # Capture state before reset
             self._reset_state()
             # Emit the final overall finished signal *after* cleanup and reset
-            self.sendMessage.emit(ControllerMessage(MessageType.TEST_FINISHED, f"Test finished with state: {final_state.name}"))  # Consolidated signal
+            self.sendMessage.emit(
+                ControllerMessage(MessageType.TEST_FINISHED, f"Test finished with state: {final_state.name}")
+            )  # Consolidated signal
 
     def _should_execute_step(self, step: Dict[str, Any]) -> bool:
         """
@@ -563,19 +572,33 @@ class TestController(QObject):
 
     async def _handle_wait_for_button(self, step: Dict[str, Any]):
         """Handles the 'wait_for_button' action: pauses execution until notified by the UI."""
+
         # --- 1. Extract Parameters ---
-        timeout_key = step.get("timeout_key")
+        timeout_ms = step.get("timeout_ms")
+        timeout_key = step.get("timeout_key")  # Takes precedence over timeout_ms
+
+        if timeout_key:
+            timeout_sec = self.settings.get_int(timeout_key, DEFAULT_SETTINGS.get(timeout_key, 20))
+            if timeout_ms:
+                log.warning("Both 'timeout_ms' and 'timeout_key' specified in wait_for_button step. Using 'timeout_key'.")
+        elif timeout_ms and timeout_key is None:
+            timeout_sec = timeout_ms / 1000.0
+        else:  # No timeout specified
+            log.warning("No timeout specified for wait_for_button step. Using default.")
+            timeout_sec = DEFAULT_SETTINGS.get(constants.KEY_BUTTON_TIMEOUT, 20)  # Default to 20 seconds
+
+        if self.debug:
+            log.debug(f"Wait for button timeout set to {timeout_sec}s (from key: {timeout_key})")
+
         message_on_fail = step.get("message_on_fail", "Timeout waiting for user confirmation.")
         fail_on_timeout = step.get("fail_on_timeout", False)  # If true, timeout fails the test
 
         # --- 2. Validate Parameters ---
-        if timeout_key is None:
-            log.error(f"Missing 'timeout_key' in wait_for_button step: {step}")
-            raise ValueError(f"Invalid wait_for_button step config: {step}")
+        # if timeout_key is None:
+        #     log.error(f"Missing 'timeout_key' in wait_for_button step: {step}")
+        #     raise ValueError(f"Invalid wait_for_button step config: {step}")
 
-        timeout_sec = self.settings.get_int(timeout_key, DEFAULT_SETTINGS.get(timeout_key, 20))
-        if self.debug:
-            log.debug(f"Wait for button timeout set to {timeout_sec}s (from key: {timeout_key})")
+        # timeout_sec = self.settings.get_int(timeout_key, DEFAULT_SETTINGS.get(timeout_key, 20))
 
         # --- 3. Setup Wait ---
         prompt = step.get("text", "Waiting for user confirmation...")
@@ -651,15 +674,27 @@ if __name__ == "__main__":
 
     # Example: Create dummy instances (replace with actual mocks if needed)
     class DummySettings:
-        def get_int(self, key, default=None): return DEFAULT_SETTINGS.get(key, default)
-        def get_bool(self, key, default=None): return DEFAULT_SETTINGS.get(key, default)
+        def get_int(self, key, default=None):
+            return DEFAULT_SETTINGS.get(key, default)
+
+        def get_bool(self, key, default=None):
+            return DEFAULT_SETTINGS.get(key, default)
 
     class DummyAIODevice:
-        async def write_pin_by_func(self, func, val): print(f"MOCK WRITE: Func={func}, Val={val}")
-        async def digital_write(self, pin, val): print(f"MOCK WRITE: Pin={pin}, Val={val}")
-        def get_pin_by_function(self, func): return {'relay in': 7}.get(func)  # Example
-        def attach_callback(self, cb, pin): print(f"MOCK ATTACH: Pin={pin}")
-        def detach_callback(self, pin): print(f"MOCK DETACH: Pin={pin}")
+        async def write_pin_by_func(self, func, val):
+            print(f"MOCK WRITE: Func={func}, Val={val}")
+
+        async def digital_write(self, pin, val):
+            print(f"MOCK WRITE: Pin={pin}, Val={val}")
+
+        def get_pin_by_function(self, func):
+            return {'relay in': 7}.get(func)  # Example
+
+        def attach_callback(self, cb, pin):
+            print(f"MOCK ATTACH: Pin={pin}")
+
+        def detach_callback(self, pin):
+            print(f"MOCK DETACH: Pin={pin}")
 
     settings_inst = DummySettings()
     aio_dev_inst = DummyAIODevice()
