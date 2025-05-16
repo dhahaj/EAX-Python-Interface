@@ -173,6 +173,8 @@ def get_instance(**kwargs) -> "ConfigLoader":
     global _config_singleton
     if _config_singleton is None:
         _config_singleton = ConfigLoader(**kwargs)
+    else:
+        _config_singleton.reload()  # Reload the config
     return _config_singleton
 
 
