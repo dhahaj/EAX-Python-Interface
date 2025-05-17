@@ -361,8 +361,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connecting_style'))
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
-            self.program_button.setEnabled(True)
-            self.actionConnect.setEnabled(True)
+            self.controlBox.setEnabled(True)
             self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connected_style'))
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
@@ -376,17 +375,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
                 self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
         elif value == State.PROGRAMMING:
-            self.program_button.setEnabled(False)
+            self.controlBox.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Programming...")
             self.show_movie(pause=False)
         elif value == State.TESTING:
-            self.program_button.setEnabled(False)
+            self.controlBox.setEnabled(False)
             self.actionConnect.setEnabled(False)
             self.set_status("Testing...")
         elif value == State.WAITING_FOR_BUTTON:
-            self.test_button.setEnabled(True)
-            self.program_button.setEnabled(False)
+            self.controlBox.setEnabled(True)
             self.actionConnect.setEnabled(False)
             self.set_status("Waiting for input...")
 
@@ -550,6 +548,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(settings.get_instance())
             # print(self.settings)
             # self.statusBar().set_value(59999)
+            # self.menuBar().setEnabled(not self.menuBar().isEnabled())
+            
+
 
     def show_movie(self, pause: bool = False) -> None:
         """Show or hide the GIF in the USB icon label."""
@@ -912,79 +913,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.text_edit.setText("")
             asyncio.create_task(self.testController.async_run_test(self.get_selected_device()))
 
-    async def run_test(self) -> None:
-        """Run the test."""
-
-        self.increment_counter()
-
-        model = self.get_selected_device().name
-
-        # app_logger.info(f"Testing started for {model.name}")
-        log.info(f"Testing started for {model}")
-        # logg.info(f"Testing started for {model}")
-
-        self.state = State.TESTING
-
-        speed = self.settings.get_int(constants.KEY_TESTING_SPEED, constants.DEFAULT_SETTINGS[constants.KEY_TESTING_SPEED]) / 1000
-
-        self.text_edit.setMarkdown(f"# Starting test for {model}... \n\n")
-
-        await self.arduino.write_pin_by_func("test indicator", 1)
-        self.insert_text("<br><p>🔷 Battery Power ON</p>")
-        await self.arduino.write_pin_by_func("battery", 1)
-
-        await asyncio.sleep(speed)
-
-        self.insert_text("<p>🔷 Testing Low battery function ➾ The LED's blink alternately</p>")
-        await self.arduino.write_pin_by_func("low battery", 1)
-
-        await asyncio.sleep(speed)
-
-        self.insert_text("<p>🔷 Stopping Low Battery Test ➾ Both LED's are OFF</p>")
-        await self.arduino.write_pin_by_func("low battery", 0)
-
-        await asyncio.sleep(speed)
-
-        self.insert_text("<p>🔷 Press the OKC switch ➾ The LEDs blink in unison</p>")
-        self.insert_text("<p>🔷 Press the key switch ➾ The siren sounds</p>")
-
-        # await asyncio.sleep(0.5)
-
-        self.insert_text("<p>🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides</p>")
-
-        await asyncio.sleep(speed / 4)
-
-        self.insert_text(
-            f"<br><h2>⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Click here to continue...</span></a> </h2 >"
-        )
-
-        self.state = State.WAITING_FOR_BUTTON
-
-        # Wait for the button to be pressed
-        try:
-            self.input_event = asyncio.Event()
-            timeout = self.settings.get_int(constants.KEY_BUTTON_TIMEOUT, constants.DEFAULT_SETTINGS[constants.KEY_BUTTON_TIMEOUT])
-            await asyncio.wait_for(self.input_event.wait(), timeout=timeout)
-        except asyncio.TimeoutError:
-            pass
-
-        self.insert_text("<p>✨Test complete.</p>")
-
-        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
-            log.info(f"Test complete for {model}. (Cycle count: {self.settings.get_int(constants.KEY_TEST_COUNT, 0)})")
-        else:
-            log.info(f"Test complete for {model}.")
-
-        await self.arduino.write_pin_by_func("test indicator", 0)
-        await self.arduino.write_pin_by_func("battery", 0)
-        await self.arduino.write_pin_by_func("low battery", 0)
-
-        await asyncio.sleep(speed / 3)
-
-        self.state = State.CONNECTED
-
-        self.load_file_text()
-
     def _on_message_received(self, message: ControllerMessage) -> None:
         """Called when a message is received from the test controller."""
         if message.type in (MessageType.ERROR, MessageType.WARNING, MessageType.INFO):
@@ -993,6 +921,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Test Error: {message.data}")
         elif message.type == MessageType.WAITING_FOR_BUTTON:
             print(f"Waiting for button press...")
+            self.state = State.WAITING_FOR_BUTTON
         elif message.type == MessageType.TEST_STARTED:
             print(f"Test started: {message.data}")
             self.state = State.TESTING
