@@ -6,20 +6,20 @@ app_version: 1.0.0
 window:
   usb_label:
     connected_style: >
-      font-size: 16pt;
+      font-size: 14pt;
       font-weight: bold;
       color: #00f255;
 
     connected_text: "Connected to {msg}"
 
     connecting_style: >
-      font-size: 16pt;
+      font-size: 14pt;
       font-weight: bold;
       color: #e3f400;
       font-style: italic;
 
     disconnected_style: >
-      font-size: 16pt;
+      font-size: 14pt;
       font-weight: bold;
       color: #ea0065;
       font-style: italic;
