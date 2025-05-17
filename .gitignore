@@ -7,3 +7,7 @@ logs/
 tools/
 logs.db
 settings.ini
+chip_select_dialog.py
+from frameless_dialog.py
+QtDesigner/confirm_close_dialog.ui
+ui/ui_confirm_close_dialog.py
