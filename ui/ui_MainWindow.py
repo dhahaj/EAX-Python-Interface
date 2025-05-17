@@ -279,11 +279,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.text_edit)
 
-        self.horizontalLayout_3 = QHBoxLayout()
-        self.horizontalLayout_3.setSpacing(12)
+        self.controlBox = QGroupBox(self.centralwidget)
+        self.controlBox.setObjectName(u"controlBox")
+        self.controlBox.setFlat(True)
+        self.horizontalLayout_3 = QHBoxLayout(self.controlBox)
+        self.horizontalLayout_3.setSpacing(9)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.program_button = QPushButton(self.centralwidget)
+        self.horizontalLayout_3.setContentsMargins(1, 1, 1, 1)
+        self.program_button = QPushButton(self.controlBox)
         self.program_button.setObjectName(u"program_button")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -317,7 +320,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.program_button)
 
-        self.groupBox_2 = QGroupBox(self.centralwidget)
+        self.groupBox_2 = QGroupBox(self.controlBox)
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.groupBox_2.setMinimumSize(QSize(0, 0))
         self.groupBox_2.setMaximumSize(QSize(16777215, 16777215))
@@ -345,7 +348,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.groupBox_2)
 
-        self.groupBox = QGroupBox(self.centralwidget)
+        self.groupBox = QGroupBox(self.controlBox)
         self.groupBox.setObjectName(u"groupBox")
         self.groupBox.setMinimumSize(QSize(0, 0))
         self.groupBox.setStyleSheet(u"background-color: rgb(0, 0, 0);")
@@ -419,7 +422,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.groupBox)
 
-        self.test_button = QPushButton(self.centralwidget)
+        self.test_button = QPushButton(self.controlBox)
         self.test_button.setObjectName(u"test_button")
         self.test_button.setMinimumSize(QSize(158, 80))
         self.test_button.setMaximumSize(QSize(16777215, 110))
@@ -449,7 +452,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addWidget(self.test_button)
 
 
-        self.verticalLayout.addLayout(self.horizontalLayout_3)
+        self.verticalLayout.addWidget(self.controlBox)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -468,9 +471,6 @@ class Ui_MainWindow(object):
         self.menuHelp = QMenu(self.menubar)
         self.menuHelp.setObjectName(u"menuHelp")
         MainWindow.setMenuBar(self.menubar)
-#if QT_CONFIG(shortcut)
-        self.usb_label.setBuddy(self.test_button)
-#endif // QT_CONFIG(shortcut)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuDevice.menuAction())
