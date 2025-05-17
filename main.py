@@ -593,7 +593,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                                   <html><head/><body> <p>Device: <span style="{device.styles}">{device.name}</span> </p></body></html>  
                                   '''
         )
-        self.device_label.setStyleSheet(f"color: {device.color}; {device.font_size};")
+        self.device_label.setStyleSheet(f"color: {device.label_color}; {device.font_size};")
 
     def show_help(self) -> None:
         self.help_dialog = HelpDialog()
