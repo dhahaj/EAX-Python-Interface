@@ -1,7 +1,7 @@
 import yaml
 from typing import List, Dict, Any, Tuple
 import os
-from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMING_CONFIG, KEY_PROGRAMMER_SERIAL_NUMBER, KEY_FIRMWARE_FILENAME
+from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMER_SERIAL_NUMBER
 from util.resources import extract_file_from_resource
 import copy
 
@@ -18,6 +18,8 @@ class Keys:
     KEY_TESTING_SEQUENCE: str = "sequence"
     KEY_DEVICE_NAME: str = "device_name"
     KEY_FIRMWARE_FILES: str = "firmware_files"
+    KEY_PROGRAMMING_CONFIG: str = "programming_config"
+
 
 
 class ConfigLoader:
@@ -138,7 +140,7 @@ class ConfigLoader:
 
     def get_program_config(self) -> Dict[str, Any]:
         """Return the program configuration."""
-        return self.data.get(KEY_PROGRAMMING_CONFIG, {})
+        return self.data.get(Keys.KEY_PROGRAMMING_CONFIG, {})
 
     def get_programmer_path(self) -> str:
         """Return the programmer path."""
@@ -180,7 +182,7 @@ def get_instance(**kwargs) -> "ConfigLoader":
 
 if __name__ == '__main__':
     config = get_instance()
-    print(config.devices)
+    # print(config.devices)
     # from pprint import pprint
     # pprint(config.get_test_sequence(), indent=4, width=120)
     # pprint(config.get_cleanup_sequence(), indent=4, width=120, sort_dicts=False)
