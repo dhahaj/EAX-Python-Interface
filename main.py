@@ -40,6 +40,8 @@ from qtpy.QtWidgets import (
     QLabel,
     QStatusBar,
 )
+# import util.config_resources_rc
+import icons_rc
 from ui import Ui_MainWindow, Ui_HelpDialog, Ui_LogView, Ui_Settings, Ui_ManualControlDialog, Ui_ProgressBar, Ui_StatusBarWidget
 from imports import (
     get_stylesheet,
@@ -196,11 +198,11 @@ class HelpDialog(QDialog, Ui_HelpDialog):
     def eventFilter(self, obj: QLabel, event: QEvent) -> bool:
         if event.type() == QEvent.MouseButtonPress:
             if obj == self.label:
-                obj.setMovie(QMovie(":/resources/images/firmware_update.gif"))
+                obj.setMovie(QMovie(":/images/firmware_update.gif"))
             elif obj == self.label_2:
-                obj.setMovie(QMovie(":/resources/images/testing.gif"))
+                obj.setMovie(QMovie(":/images/testing.gif"))
             elif obj == self.label_3:
-                obj.setMovie(QMovie(":/resources/images/setting.gif"))
+                obj.setMovie(QMovie(":/images/setting.gif"))
             obj.movie().setScaledSize(QSize(750, 750))
             obj.movie().setSpeed(180)
             obj.movie().start()
@@ -501,7 +503,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif key == Qt.Key.Key_F6:
             self.toggle_theme()
         elif key == Qt.Key.Key_Question:
-            self.aboutQt()
+            self.show_help()
         elif key == Qt.Key.Key_Q and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             asyncio.get_event_loop().stop()
             self.close()
@@ -588,13 +590,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         device: Device = self.sender().data()
 
-        log.info(f"Device changed to: {device}")
-        self.device_label.setText(
-            f'''
-                                  <html><head/><body> <p>Device: <span style="{device.styles}">{device.name}</span> </p></body></html>  
-                                  '''
-        )
-        self.device_label.setStyleSheet(f"color: {device.label_color}; {device.font_size};")
+        log.info(f"Device changed to: {device.styles}")
+        self.device_label.setText(f'''<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>''')
+        # self.device_label.setStyleSheet(f"color: {device.label_color}; {device.font_size};")
 
     def show_help(self) -> None:
         self.help_dialog = HelpDialog()
