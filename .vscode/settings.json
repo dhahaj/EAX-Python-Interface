@@ -19,6 +19,13 @@
             "cwd": "${workspaceFolder}",
             "command": "venv\\scripts\\pyside6-designer QtDesigner\\mainwindow.ui"
           },
+          {
+            "name": "QtDesigner",
+            "singleInstance": true,
+            "color": "#ffe65c",
+            "cwd": "${workspaceFolder}",
+            "command": ".venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
+          },
         ]
     },
     "isort.interpreter": [
@@ -39,7 +46,9 @@
     "autoDocstring.includeName": false,
     "autoDocstring.startOnNewLine": true,
     "[python]": {
-      "editor.defaultFormatter": "ms-python.autopep8"
+      // "editor.defaultFormatter": "ms-python.autopep8"
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true
     },
     "python.languageServer": "Default",
     "multiFormatter.formatterList": [
@@ -57,7 +66,7 @@
     "black-formatter.args": [
       "--skip-string-normalization",
       "--line-length=150",
-      "--max-line-length=150",
+      // "--max-line-length=150",
     ],
     "python.analysis.extraPaths": [],
     "files.associations": {

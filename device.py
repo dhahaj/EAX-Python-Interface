@@ -16,16 +16,23 @@ class Device:
         self._firmware = firmware
         self._label_color = label_color
         self.config = config_loader.get_instance()
+        self._styles = self.config.label_styles
+        self._font_size = self.config.label_font_size
 
     @property
     def name(self) -> str:
         """ Returns the name of the current device."""
         return self._device_name
 
-    @name.setter
-    def name(self, value: str) -> None:
-        """ Sets the name of the current device."""
-        self._device_name = value
+    @property
+    def styles(self) -> str:
+        """Returns the styles of the current device."""
+        return self._styles
+
+    @property
+    def font_size(self) -> str:
+        """Returns the font size of the current device."""
+        return self._font_size
 
     @property
     def firmware(self) -> str:
@@ -53,7 +60,7 @@ class Device:
     
     @property
     def firmware_path(self) -> str:
-        """ Returns the path to the firmware file for the current device."""
+        """Returns the path to the firmware file for the current device."""
         return self.get_firmware()
 
     def get_firmware(self) -> str:
@@ -61,11 +68,10 @@ class Device:
         if self._device_name is None:
             return None
         return f'{self.config.firmware_path}/{self._firmware}'
-    
+
     def __str__(self) -> str:
         """ Returns a string representation of the device. """
         return f'{self._device_name if self._device_name else "No device selected."}, {self._firmware if self._firmware else "No firmware selected."}, {self._label_color if self._label_color else "No color selected."}'
-
 
 
 def load_devices() -> List[Device]:
@@ -73,16 +79,17 @@ def load_devices() -> List[Device]:
     config = config_loader.get_instance()
     names = config.device_names
     firmware = config.get_firmware()
+    print(firmware)
     devices = []
     for name in names:
-        device = next((d for d in firmware if d.get(KEY_DEVICE_NAME) == name), None)
+        device = next((entry for entry in firmware if entry.get(KEY_DEVICE_NAME) == name), None)
+        print(device)
         if device:
-            devices.append(Device(name, device.get(KEY_DEVICE_FIRMWARE_FILE), device.get(KEY_DEVICE_COLOR)))
+            devices.append(Device(name, device.get(KEY_FIRMWARE_FILENAME), device.get(KEY_DEVICE_COLOR)))
     return devices
-
 
 
 if __name__ == '__main__':
     devices = load_devices()
-    for device in devices:  
+    for device in devices:
         print(device)
