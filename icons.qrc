@@ -1,7 +1,13 @@
 <RCC>
   <qresource prefix="/">
     <file alias="up">images/icons/1.ico</file>
+    <file>images/firmware_update.gif</file>
+    <file>images/setting.gif</file>
+    <file>images/testing.gif</file>
+    <file>docs/Settings.md</file>
+    <file>docs/USAGE.md</file>
     <file>images/icons/2.ico</file>
+    <file>README.md</file>
     <file>images/icons/light/gear.png</file>
     <file>images/icons/dark/gear.png</file>
     <file>images/icons/dark/folder.png</file>
@@ -68,12 +74,8 @@
     <file>images/icons/disconnected.png</file>
     <file alias="disconnected">images/icons/disconnected2.png</file>
   </qresource>
-  <qresource prefix="/resources">
-    <file>README.html</file>
+  <qresource prefix="/docs">
     <file>docs/USAGE.html</file>
     <file>docs/Settings.html</file>
-    <file>images/firmware_update.gif</file>
-    <file>images/setting.gif</file>
-    <file>images/testing.gif</file>
   </qresource>
 </RCC>

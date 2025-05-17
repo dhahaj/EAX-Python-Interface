@@ -1,9 +1,6 @@
 <RCC>
   <qresource prefix="/resources">
     <file>images/icons/infinity-16570.gif</file>
-    <!-- <file>images/icons/galaxy.gif</file> -->
-    <file>default_resources.zip</file>
-    <file>README.md</file>
     <file alias="detex">images/detex.svg</file>
     <file>images/pcb.ico</file>
     <file alias="connected">images/connected2.png</file>
@@ -17,7 +14,6 @@
     <file>images/icons/icon.png</file>
     <file>images/detex_dark.png</file>
     <file>images/detex_light.bmp</file>
-    <file>README.html</file>
     <file>config.yaml</file>
     <file>settings.ini</file>
   </qresource>
