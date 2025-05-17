@@ -18,7 +18,7 @@ class Keys:
     KEY_TESTING_SEQUENCE: str = "sequence"
     KEY_DEVICE_NAME: str = "device_name"
     KEY_FIRMWARE_FILES: str = "firmware_files"
-    KEY_PROGRAMMING_CONFIG: str = "programming_config"
+    KEY_PROGRAMMING_CONFIG: str = "programmer_config"
 
 
 
