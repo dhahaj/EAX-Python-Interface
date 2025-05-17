@@ -34,8 +34,8 @@ devices:
   label_styles: >
     font-style:italic;
     text-decoration: underline;
-    font-weight:400;
-
+    font-weight:700;
+    font-size:18pt;
   label_size: "font-size:20pt;"
   firmware_path: ./firmware
   firmware_files:
