@@ -27,7 +27,7 @@ class Device:
     @property
     def styles(self) -> str:
         """Returns the styles of the current device."""
-        return self._styles
+        return self._styles + f"color:{self._label_color};" 
 
     @property
     def font_size(self) -> str:
