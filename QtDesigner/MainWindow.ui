@@ -95,10 +95,12 @@
        <enum>Qt::FocusPolicy::NoFocus</enum>
       </property>
       <property name="autoFillBackground">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: rgba(0, 0, 0, 100);</string>
+       <string notr="true">color: #767676;
+background-color: rgba(100, 50, 50, 28);
+background-image: url(:/cloud2);</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Shape::WinPanel</enum>
@@ -112,8 +114,27 @@
       <property name="undoRedoEnabled">
        <bool>false</bool>
       </property>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::LineWrapMode::WidgetWidth</enum>
+      </property>
       <property name="readOnly">
        <bool>true</bool>
+      </property>
+      <property name="markdown">
+       <string notr="true">
+
+
+</string>
+      </property>
+      <property name="html">
+       <string notr="true">&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Calibri'; font-size:16pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
       <property name="overwriteMode">
        <bool>true</bool>
@@ -125,7 +146,7 @@
        <number>2</number>
       </property>
       <property name="textInteractionFlags">
-       <set>Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+       <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
       </property>
       <property name="placeholderText">
        <string>Text Area</string>
