@@ -288,9 +288,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.settings.get_int(constants.KEY_FONT_SIZE),
             )
         )
-        self.text_edit.setStyleSheet(
-            f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};" f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
-        )
+        # self.text_edit.setStyleSheet(
+        #     f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};" f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
+        # )
 
         # Connect the menu items
         self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
@@ -1051,13 +1051,11 @@ class SettingsDialog(QWidget, Ui_Settings):
     :param parent: The parent widget.
     """
 
-    # saved = Signal(Any)
-
     def __init__(self, parent: MainWindow = None):
         super().__init__()
         self.setupUi(self)
 
-        self.settings = parent.settings
+        self.settings = settings.get_instance()
         self._parent = parent
 
         self.background_color: QColor = None
@@ -1204,30 +1202,67 @@ class SettingsDialog(QWidget, Ui_Settings):
             self._parent.actionFullscreen.setChecked(False)
             self._parent.showNormal()
 
+
+    def _parse_saved_color(self, s: str) -> QColor:
+        """Turn either "rgba(r,g,b,a)" or "#RRGGBB" (or color name) into a QColor."""
+        rgba = re.match(r'rgba\(\s*(\d+),\s*(\d+),\s*(\d+),\s*(\d+)\s*\)', s)
+        if rgba:
+            r, g, b, a = map(int, rgba.groups())
+            return QColor(r, g, b, a)
+        return QColor(s)
+
     def pick_text_color(self):
-        new_color = self.choose_color(self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff")).name()
-        # update settings...
-        self.settings.setValue(constants.KEY_FOREGROUND_COLOR, new_color)
-        cs = self._parent.text_edit.styleSheet()
-        # this will replace any 6-digit hex in a color property
-        new_cs = re.sub(r"(?<!-)\bcolor\s*:\s*#[0-9A-Fa-f]{6}\s*;", f"color: {new_color};", cs)
-        self._parent.text_edit.setStyleSheet(new_cs)
+        old_str = self.settings.get(constants.KEY_FOREGROUND_COLOR, "#ffffff")
+        old_col = self._parse_saved_color(old_str)
+
+        new_col = QColorDialog.getColor(old_col, options=QColorDialog.ShowAlphaChannel)
+        if not new_col.isValid():
+            new_col = old_col
+
+        r, g, b, a = new_col.getRgb()
+        new_css = f"rgba({r},{g},{b},{a})"
+
+        sheet = self._parent.text_edit.styleSheet()
+        pat   = r'(?<!-)\bcolor\s*:\s*[^;]+;'
+
+        if re.search(pat, sheet):
+            sheet = re.sub(pat, f"color: {new_css};", sheet)
+        else:
+            sheet += f"\ncolor: {new_css};"
+
+        self.settings.setValue(constants.KEY_FOREGROUND_COLOR, new_css)
+        self._parent.text_edit.setStyleSheet(sheet)
 
     def pick_background_color(self) -> None:
-        new_color = self.choose_color(self.settings.get(constants.KEY_BACKGROUND_COLOR, "#000000")).name()
-        # update settings...
-        self.settings.setValue(constants.KEY_BACKGROUND_COLOR, new_color)
-        cs = self._parent.text_edit.styleSheet()
-        # this will replace any 6-digit hex in a color property
-        new_cs = re.sub(r"(?<!-)\bbackground-color\s*:\s*#[0-9A-Fa-f]{6}\s*;", f"background-color: {new_color};", cs)
-        self._parent.text_edit.setStyleSheet(new_cs)
+        old_str = self.settings.get(constants.KEY_BACKGROUND_COLOR, "#000000")
+        old_col = self._parse_saved_color(old_str)
 
-    def choose_color(self, color_name: str) -> QColor:
-        new_color = QColorDialog.getColor(color_name)
+        new_col = QColorDialog.getColor(old_col, options=QColorDialog.ShowAlphaChannel)
+        if not new_col.isValid():
+            new_col = old_col
+
+        r, g, b, a = new_col.getRgb()
+        new_css = f"rgba({r},{g},{b},{a})"
+
+        sheet = self._parent.text_edit.styleSheet()
+        pat   = r'(?<!-)\bbackground-color\s*:\s*[^;]+;'
+
+        if re.search(pat, sheet):
+            sheet = re.sub(pat, f"background-color: {new_css};", sheet)
+        else:
+            sheet += f"\nbackground-color: {new_css};"
+
+        self.settings.setValue(constants.KEY_BACKGROUND_COLOR, new_css)
+        self._parent.text_edit.setStyleSheet(sheet)
+
+    def choose_color(self, color_name: QColor) -> QColor:
+        print(f"choose_color: old color = {color_name.getRgb()}")
+        new_color = QColorDialog.getColor(color_name, options=QColorDialog.ShowAlphaChannel)
+
         if new_color.isValid():
             return new_color
         else:
-            return QColor(color_name)
+            return color_name
 
     def change_font(self) -> None:
         ok, font = get_font(
