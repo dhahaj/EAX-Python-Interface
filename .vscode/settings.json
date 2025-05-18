@@ -48,7 +48,7 @@
     "[python]": {
       // "editor.defaultFormatter": "ms-python.autopep8"
       "editor.defaultFormatter": "ms-python.black-formatter",
-      "editor.formatOnSave": true
+      // "editor.formatOnSave": true
     },
     "python.languageServer": "Default",
     "multiFormatter.formatterList": [
@@ -61,11 +61,13 @@
     "python.envFile": "${workspaceFolder}/.venv/pyvenv.cfg",
     "python.terminal.activateEnvInCurrentTerminal": true,
     "black-formatter.interpreter": [
-      "${workspaceFolder}/.venv/Scripts/python"
+      "${workspaceFolder}/venv/Scripts/python"
     ],
     "black-formatter.args": [
       "--skip-string-normalization",
-      "--line-length=150",
+      "--line-length=104",
+      "--target-version=py313",
+      "--skip-magic-trailing-comma",
       // "--max-line-length=150",
     ],
     "python.analysis.extraPaths": [],
