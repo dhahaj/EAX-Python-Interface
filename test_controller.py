@@ -235,7 +235,7 @@ class TestController(QObject):
         self._reset_state()  # Reset state variables from previous runs
         self._state = TestState.RUNNING
         # model = self._current_device.model
-        log.info(f"Starting test sequence for {device}")
+        log.info(f"Starting test sequence for {device.name}")
         # self.testStarted.emit(device)  # Emit legacy signal if needed
         self.sendMessage.emit(ControllerMessage(MessageType.TEST_STARTED))
 
