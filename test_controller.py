@@ -265,9 +265,9 @@ class TestController(QObject):
                     self.sendMessage.emit(ControllerMessage(MessageType.WARNING, f"Unknown test action: {action_type}"))
 
             # --- 4. Test Completion (Success) ---
-            log.info(f"Test sequence completed successfully for {self._current_device}.")
+            log.info(f"Test sequence completed successfully for {self._current_device.name}.")
             self._state = TestState.FINISHED
-            success_message = f"Test for {self._current_device} Passed"
+            success_message = f"Test for {self._current_device.name} Passed"
             self.testFinished.emit(True, success_message)  # Legacy signal
             self.sendMessage.emit(ControllerMessage(MessageType.TEST_PASSED, success_message))  # Consolidated signal
 
@@ -287,7 +287,7 @@ class TestController(QObject):
             self.sendMessage.emit(ControllerMessage(MessageType.TEST_ERROR, fail_msg))  # Consolidated signal
         except Exception as e:
             # General exception handling for errors during step execution
-            log.exception(f"Unexpected error during test for {self._current_device}: {e}")
+            log.exception(f"Unexpected error during test for {self._current_device.name}: {e}")
             error_details = f"Unexpected error: {e}"
             self.errorOccurred.emit(error_details)  # Legacy signal
             self._state = TestState.ERROR
