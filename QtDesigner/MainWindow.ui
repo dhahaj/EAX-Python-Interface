@@ -98,9 +98,13 @@
        <bool>true</bool>
       </property>
       <property name="styleSheet">
-       <string notr="true">color: #767676;
-background-color: rgba(100, 50, 50, 28);
-background-image: url(:/cloud2);</string>
+       <string notr="true">QTextEdit {
+  color: #767676;
+  background-color: rgba(100, 50, 50, 100);
+  background: url(:/cloud2) no-repeat;
+  background-attachment: fixed;
+  background-position: bottom center;
+}</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Shape::WinPanel</enum>
@@ -293,8 +297,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <property name="statusTip">
           <string>Program the device</string>
          </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
+         </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(5, 230, 255, 40);</string>
+          <string notr="true">background-color: rgba(5, 230, 255, 40);
+hover: rgb(0,0,0);</string>
          </property>
          <property name="text">
           <string/>
@@ -356,9 +364,12 @@ li.checked::marker { content: &quot;\2612&quot;; }
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">color: rgb(255, 0, 0);
-background-color: rgb(0, 0, 0);
-font-weight: bold;</string>
+             <string notr="true">QLabel {
+ color: rgb(255, 0, 0);
+ background-color: rgb(0, 0, 0);
+ font-weight: bold;
+ hover: {color: red}
+}</string>
             </property>
             <property name="frameShape">
              <enum>QFrame::Shape::NoFrame</enum>
@@ -659,7 +670,12 @@ font-weight: bold;</string>
              </font>
             </property>
             <property name="styleSheet">
-             <string notr="true">background-color: rgb(0, 0, 0);</string>
+             <string notr="true">QLabel {
+ color: rgb(255, 0, 0);
+ background-color: rgb(0, 0, 0);
+ font-weight: bold;
+ hover: {color: red}
+}</string>
             </property>
             <property name="text">
              <string>USB: Not Connected</string>
@@ -788,6 +804,9 @@ font-weight: bold;</string>
          </property>
          <property name="statusTip">
           <string>Test the device</string>
+         </property>
+         <property name="autoFillBackground">
+          <bool>true</bool>
          </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(5, 230, 255, 40);</string>
