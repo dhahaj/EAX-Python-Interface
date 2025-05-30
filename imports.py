@@ -106,6 +106,11 @@ def str_to_bool(s: str) -> bool:
     return s.lower().strip(' ') in ['true', 'yes', '1'] if type(s) == str else bool(s)
 
 
+def from_string(s: str) -> QFont:
+    """Creates a QFont from a string."""
+    font = QFont()
+    font.fromString(s)
+    return font
 
 @overload
 def warning(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
