@@ -46,8 +46,8 @@
     "autoDocstring.includeName": false,
     "autoDocstring.startOnNewLine": true,
     "[python]": {
-      // "editor.defaultFormatter": "ms-python.autopep8"
-      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.defaultFormatter": "ms-python.autopep8"
+      // "editor.defaultFormatter": "ms-python.black-formatter",
       // "editor.formatOnSave": true
     },
     "python.languageServer": "Default",
@@ -70,12 +70,23 @@
       "--skip-magic-trailing-comma",
       // "--max-line-length=150",
     ],
-    "python.analysis.extraPaths": [],
+    "python.analysis.extraPaths": [
+      "./ui",
+      ".venv/src/**/*",
+      ".venv/src/telemetrix-aio/*.*",
+      ".venv/src/telemetrix-aio/**",
+      ".venv/src/telemetrix-aio/*",
+      "${workspaceFolder}/*.*",
+    ],
     "files.associations": {
       "*.src": "pic-assembly",
       "*.py": "python",
       "*.v": "verilog",
-      "ostream": "c"
+      "ostream": "c",
+      "*.yaml": "home-assistant",
+      "*.spec": "python",
+      "*.qrc": "xml",
+      "*.ui": "xml",
     },
     "C_Cpp.errorSquiggles": "disabled",
     "python.formatting.provider": "yapf",
