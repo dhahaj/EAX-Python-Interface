@@ -156,7 +156,7 @@ class AIODevice(QObject):
 
     def load_pin_configuration(self) -> None:
         """Load pin configuration from a YAML file via the ConfigLoader."""
-        config = config_loader.get_instance()
+        config = config_loader.get_config()
         self.pins = config.pins
 
     async def configure_pin_modes(self) -> None:
@@ -255,7 +255,7 @@ class AIODevice(QObject):
         """
         Get the pin configuration from the settings.
         """
-        config = config_loader.get_instance()
+        config = config_loader.get_config()
         return config.pins
 
 
