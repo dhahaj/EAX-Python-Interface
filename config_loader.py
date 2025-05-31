@@ -4,6 +4,7 @@ import os
 from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMER_SERIAL_NUMBER
 from util.resources import extract_file_from_resource
 import copy
+import wmi
 
 
 class Keys:
@@ -52,7 +53,7 @@ class ConfigLoader:
             raise
 
     def get(self, key: str) -> Any:
-        """Get a value from the config."""
+        """Get a value from the config, or None if not found."""
         return self.data.get(key, None)
 
     @property
@@ -162,11 +163,36 @@ class ConfigLoader:
         )
         return [config["executable"]] + [a.format(**vars_) for a in config["arguments"]]
 
+    def find_programmer_serial_number(self, raise_error: bool = True) -> str:
+        """Find the serial number of the programmer."""
+        vid = self.get_program_config().get("usb_vendor_id", "0x0403")
+        pid = self.get_program_config().get("usb_product_id", "0xF1A0")
+        if vid and pid:
+            device = self.get_usb_device(vid.split("0x")[-1].upper(), pid.split("0x")[-1].upper())
+            if device:
+                return device.get("device_id", "")[-6:]
+        if raise_error:
+            raise ValueError("USB vendor ID or product ID not found in the configuration.")
+        return ""
+
+    def get_usb_device(self, vid: str, pid: str) -> Dict[str, Any]:
+        """Return the USB device with the given VID and PID."""
+        c = wmi.WMI()
+        for device in c.Win32_USBHub():
+            if device.DeviceID.startswith(f"USB\\VID_{vid.upper()}&PID_{pid.upper()}"):
+                return {
+                    "name": device.Name,
+                    "device_id": device.DeviceID,
+                    "status": device.Status,
+                }
+        return None  # No device found with the given VID and PID
+
+
 
 _config_singleton: "ConfigLoader|None" = None
 
 
-def get_instance(**kwargs) -> "ConfigLoader":
+def get_config(**kwargs) -> "ConfigLoader":
     """
     Return the process-wide ApplicationSettings.
     The first call constructs it, later calls hand back the same object.
@@ -181,7 +207,7 @@ def get_instance(**kwargs) -> "ConfigLoader":
 
 
 if __name__ == '__main__':
-    config = get_instance()
+    config = get_config()
     # print(config.devices)
     # from pprint import pprint
     # pprint(config.get_test_sequence(), indent=4, width=120)
