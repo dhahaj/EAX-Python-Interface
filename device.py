@@ -16,7 +16,7 @@ class Device:
         self._device_name = device_name
         self._firmware = firmware
         self._label_color = label_color
-        self.config = config_loader.get_instance()
+        self.config = config_loader.get_config()
         self._styles = self.config.label_styles
         self._font_size = self.config.label_font_size
 
@@ -58,16 +58,11 @@ class Device:
 
     def __str__(self) -> str:
         """Returns a string representation of the device."""
-        return (
-            f'{self._device_name if self._device_name else "Device not selected."}'
-            f'{self._firmware if self._firmware else "Firmware not selected."}',
-            f'{self._label_color if self._label_color else "No label color defined."}',
-        )
-
+        return self._device_name if self._device_name else "Unknown Device"
 
 def load_devices() -> List[Device]:
     """Load the devices from the config file."""
-    config = config_loader.get_instance()
+    config = config_loader.get_config()
     names = config.device_names
     firmware = config.get_firmware()
     device_list = []
