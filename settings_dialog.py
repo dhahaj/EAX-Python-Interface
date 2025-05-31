@@ -6,7 +6,7 @@ from ui.ui_Settings import Ui_Settings
 from settings import get_instance
 import constants
 from imports import get_stylesheet, take_screenshot, get_font
-from config_loader import get_instance as get_config
+from config_loader import get_config as get_config
 from arduino import AIODevice
 import re
 import asyncio
