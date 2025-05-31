@@ -80,6 +80,7 @@ KEY_COUNTER_ENABLED: str = "counter_enabled"
 KEY_TEST_COUNT: str = "test_count"
 KEY_BUTTON_TIMEOUT: str = "button_timeout"
 KEY_VIRTUAL_COM_PORT: str = "virtual_com_port"
+KEY_PROGRAMMING_CONFIG: str = "programmer_config"
 
 """
 Default settings for the application.
@@ -99,7 +100,7 @@ DEFAULT_SETTINGS = {
     KEY_FIRMWARE_FOLDER: "firmware",
     KEY_INACTIVITY_TIMEOUT: 15,
     KEY_BACKGROUND_COLOR: "#000000",
-    KEY_FOREGROUND_COLOR: "#ff5500",
+    KEY_FOREGROUND_COLOR: "#ea0065",
     KEY_ARDUINO_WAIT: 2,
     KEY_SHUTDOWN_ON_EXCEPTION: True,
     KEY_AUTO_FIND: True,
@@ -114,7 +115,7 @@ DEFAULT_SETTINGS = {
 
 
 """
-Keys for the device configuration.
+Keys for the firmware dictionary.
 """
 KEY_DEVICE_NAME: str = "device_name"
 KEY_DEVICE_COLOR: str = "color"

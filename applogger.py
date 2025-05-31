@@ -217,7 +217,7 @@ def get_logger() -> AppLogger:
 
 if __name__ == "__main__":
     log = get_logger()   
-    log.exception("This is an exception message")
-    log.increment_tests_run(device="EAX500")
+    # log.exception("This is an exception message")
+    # log.increment_tests_run(device="EAX500")
     total_tests = log.get_tests_run()    
     print(f"Total tests run: {total_tests}")

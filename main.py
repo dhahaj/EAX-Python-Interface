@@ -44,6 +44,7 @@ from qtpy.QtWidgets import (
     QWidget,
     QInputDialog,
 )
+
 # import util.config_resources_rc
 import icons_rc
 from ui import Ui_MainWindow, Ui_ManualControlDialog
@@ -77,6 +78,66 @@ from settings_dialog import SettingsDialog
 from imports import critical
 from status_widget import CustomStatusBar
 from manual_widget import ManualWidget
+
+from pathlib import Path
+from PySide6.QtCore    import Qt
+from PySide6.QtGui     import QPainter, QPixmap
+from PySide6.QtWidgets import QTextEdit
+
+class BackgroundTextEdit(QTextEdit):
+    """
+    QTextEdit with a single, non-tiled background image.
+
+    Parameters
+    ----------
+    image_path : str | Path
+        File (or resource) path to the bitmap.
+    scaled : bool, default False
+        If True the image is scaled to fit the viewport while
+        preserving aspect ratio.  If False the original bitmap
+        is drawn at 1:1 pixels and centred.
+    parent : QWidget | None
+    """
+    def __init__(self, image_path: str | Path, *, scaled: bool = False, parent=None):
+        super().__init__(parent)
+        self._pixmap = QPixmap(str(image_path))
+        self._scaled  = bool(scaled)
+
+        # QTextEdit’s own auto-repeat is irrelevant now, but keep a
+        # transparent viewport so our painting shows through.
+        self.viewport().setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
+
+    # ------------------------------------------------------------------ public
+    def setBackgroundImage(self, image_path: str | Path, *, scaled: bool | None = None) -> None:
+        """Change the bitmap (and optionally the scaling flag) at runtime."""
+        self._pixmap = QPixmap(str(image_path))
+        if scaled is not None:
+            self._scaled = bool(scaled)
+        self.viewport().update()
+
+    # ------------------------------------------------------------- paintEvent
+    def paintEvent(self, event):
+        # 1.  Paint the background once.
+        if not self._pixmap.isNull():
+            p = QPainter(self.viewport())
+
+            if self._scaled:
+                img = self._pixmap.scaled(
+                    self.viewport().size(),
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+            else:
+                img = self._pixmap
+
+            x = (self.viewport().width()  - img.width())  // 2
+            y = (self.viewport().height() - img.height()) // 2
+            p.drawPixmap(x, y, img)
+
+        # 2.  Let QTextEdit render its contents on top.
+        super().paintEvent(event)
+
+
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -118,7 +179,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.showNormal()
         self.actionFullscreen.triggered.connect(self.toggleFullScreen)
-        self.actionFullscreen.setChecked(self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool))
+        self.actionFullscreen.setChecked(
+            self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool)
+        )
 
         if self.settings.get_bool(constants.KEY_FRAMELESS):
             self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
@@ -157,7 +220,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # )
 
         # Connect the menu items
-        self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
+        self.actionExplore_Directory.triggered.connect(
+            lambda: subprocess.Popen(f"explorer {os.getcwd()}")
+        )
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
         self.actionConnect.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
         self.actionAbout.triggered.connect(lambda: QApplication.aboutQt())
@@ -172,7 +237,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
-        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(cfg.get_instance().get_programmer_path()))
+        self.actionOpen_UP_exe.triggered.connect(
+            lambda: QProcess.startDetached(cfg.get_instance().get_programmer_path())
+        )
 
         # Set the theme
         self.set_theme(get_theme(self.settings))
@@ -206,6 +273,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.settings.get(constants.KEY_AUTO_CONNECT):
             QTimer.singleShot(1200, lambda: asyncio.create_task(self.connect_task()))
 
+        # btextedit = BackgroundTextEdit(image_path=':/cloud)', scaled=True)
+        # self.verticalLayout.replaceWidget(self.text_edit, btextedit)
+        # self.text_edit = btextedit
+
     def set_status(self, message: str, timeout: int = 0) -> None:
         """Set the status message in the status bar."""
         sb = self.statusBar()
@@ -224,11 +295,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # self.label_usb_icon.setText(constants.ICON_USB_YELLOW)
             self.set_status("Connecting to USB device...")
             self.usb_label.setText("USB connecting...")
-            self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connecting_style'))
+            self.usb_label.setStyleSheet(
+                cfg.get_instance().get('window').get('usb_label').get('connecting_style')
+            )
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
             self.controlBox.setEnabled(True)
-            self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('connected_style'))
+            self.usb_label.setStyleSheet(
+                cfg.get_instance().get('window').get('usb_label').get('connected_style')
+            )
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
         elif value == State.IDLE:
@@ -238,8 +313,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.set_status("Disconnected.")
             self.show_movie(pause=True)
             if self._state == State.CONNECTED:  # only if we were connected
-                self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
-                self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
+                self.usb_label.setStyleSheet(
+                    cfg.get_instance().get('window').get('usb_label').get('disconnected_style')
+                )
+                self.usb_label.setText(
+                    cfg.get_instance()
+                    .get('window')
+                    .get('usb_label')
+                    .get('disconnected_text')
+                    .format(msg="disconnected")
+                )
         elif value == State.PROGRAMMING:
             self.controlBox.setEnabled(False)
             self.actionConnect.setEnabled(False)
@@ -330,12 +413,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             icon_path = f":/images/icons/dark/{icon_name}.{ext}"
         icon = QIcon()
-        icon.addFile(
-            icon_path,
-            QSize(),
-            QIcon.Normal,
-            QIcon.On,
-        )
+        icon.addFile(icon_path, QSize(), QIcon.Normal, QIcon.On)
         widget.setIcon(icon)
 
     def toggleFullScreen(self) -> bool:
@@ -415,8 +493,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(self.settings)
             # self.statusBar().set_value(59999)
             # self.menuBar().setEnabled(not self.menuBar().isEnabled())
-            
-
 
     def show_movie(self, pause: bool = False) -> None:
         """Show or hide the GIF in the USB icon label."""
@@ -455,7 +531,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         device: Device = self.sender().data()
 
         log.info(f"Device changed to: {device.styles}")
-        self.device_label.setText(f'''<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>''')
+        self.device_label.setText(
+            f'''<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>'''
+        )
         # self.device_label.setStyleSheet(f"color: {device.label_color}; {device.font_size};")
 
     def show_help(self) -> None:
@@ -478,7 +556,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def get_chip_part(self) -> None:
         current_chip = self.settings.get(constants.KEY_CHIP_PART)
         current_selection = constants.CHIP_OPTIONS.index(current_chip)
-        item, okPressed = QInputDialog.getItem(self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False)
+        item, okPressed = QInputDialog.getItem(
+            self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False
+        )
         if okPressed and item:
             self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
             self.settings.setValue(constants.KEY_CHIP_PART, item)
@@ -487,7 +567,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         """Event filter to handle inactivity timeout."""
         if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
-            self.inactivityTimer.start(self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000)
+            self.inactivityTimer.start(
+                self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000
+            )
         return super(MainWindow, self).eventFilter(watched, event)
 
     def handle_inactivity_timeout(self) -> None:
@@ -828,8 +910,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue(constants.KEY_TEST_COUNT, self.settings.get_int(constants.KEY_TEST_COUNT) + 1)
         sb = self.statusBar()
         sb.update_counter()
-
-        log.increment_tests_run()
+        log.increment_tests_run(self.get_selected_device().name)
 
     # ---------- Test Functions ----------#
 
@@ -866,6 +947,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Test finished: {message.data}")
             self.state = State.CONNECTED
             QTimer.singleShot(1500, self.load_file_text)
+            self.increment_counter()
 
         else:
             print(f"{message.type}: {message.data}")

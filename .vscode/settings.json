@@ -10,7 +10,7 @@
             "singleInstance": true,
             "color": "#ffe65c",
             "cwd": "${workspaceFolder}",
-            "command": "venv\\scripts\\python main.py"
+            "command": ".venv\\scripts\\python main.py"
           },
           {
             "name": "Open Designer",
@@ -61,11 +61,11 @@
     "python.envFile": "${workspaceFolder}/.venv/pyvenv.cfg",
     "python.terminal.activateEnvInCurrentTerminal": true,
     "black-formatter.interpreter": [
-      "${workspaceFolder}/venv/Scripts/python"
+      "${workspaceFolder}/.venv/Scripts/python"
     ],
     "black-formatter.args": [
       "--skip-string-normalization",
-      "--line-length=104",
+      "--line-length=125",
       "--target-version=py313",
       "--skip-magic-trailing-comma",
       // "--max-line-length=150",

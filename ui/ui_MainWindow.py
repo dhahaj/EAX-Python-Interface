@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'mainwindow.ui'
+## Form generated from reading UI file 'MainWindow.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.9.0
 ##
@@ -266,9 +266,13 @@ class Ui_MainWindow(object):
         self.text_edit.setMouseTracking(True)
         self.text_edit.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.text_edit.setAutoFillBackground(True)
-        self.text_edit.setStyleSheet(u"color: #767676;\n"
-"background-color: rgba(100, 50, 50, 28);\n"
-"background-image: url(:/cloud2);")
+        self.text_edit.setStyleSheet(u"QTextEdit {\n"
+"  color: #767676;\n"
+"  background-color: rgba(100, 50, 50, 100);\n"
+"  background: url(:/cloud2) no-repeat;\n"
+"  background-attachment: fixed;\n"
+"  background-position: bottom center;\n"
+"}")
         self.text_edit.setFrameShape(QFrame.Shape.WinPanel)
         self.text_edit.setFrameShadow(QFrame.Shadow.Sunken)
         self.text_edit.setAutoFormatting(QTextEdit.AutoFormattingFlag.AutoNone)
@@ -323,7 +327,9 @@ class Ui_MainWindow(object):
         font3 = QFont()
         font3.setPointSize(18)
         self.program_button.setFont(font3)
-        self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
+        self.program_button.setAutoFillBackground(True)
+        self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);\n"
+"hover: rgb(0,0,0);")
         icon19 = QIcon()
         icon19.addFile(u":/images/icons/light/prog-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.program_button.setIcon(icon19)
@@ -347,9 +353,12 @@ class Ui_MainWindow(object):
         font4.setPointSize(14)
         font4.setBold(True)
         self.device_label.setFont(font4)
-        self.device_label.setStyleSheet(u"color: rgb(255, 0, 0);\n"
-"background-color: rgb(0, 0, 0);\n"
-"font-weight: bold;")
+        self.device_label.setStyleSheet(u"QLabel {\n"
+" color: rgb(255, 0, 0);\n"
+" background-color: rgb(0, 0, 0);\n"
+" font-weight: bold;\n"
+" hover: {color: red}\n"
+"}")
         self.device_label.setFrameShape(QFrame.Shape.NoFrame)
         self.device_label.setFrameShadow(QFrame.Shadow.Sunken)
         self.device_label.setTextFormat(Qt.TextFormat.RichText)
@@ -425,7 +434,12 @@ class Ui_MainWindow(object):
 #endif
         self.usb_label.setPalette(palette1)
         self.usb_label.setFont(font4)
-        self.usb_label.setStyleSheet(u"background-color: rgb(0, 0, 0);")
+        self.usb_label.setStyleSheet(u"QLabel {\n"
+" color: rgb(255, 0, 0);\n"
+" background-color: rgb(0, 0, 0);\n"
+" font-weight: bold;\n"
+" hover: {color: red}\n"
+"}")
         self.usb_label.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
         self.usb_label.setMargin(9)
 
@@ -453,6 +467,7 @@ class Ui_MainWindow(object):
         font6.setPointSize(20)
         font6.setBold(False)
         self.test_button.setFont(font6)
+        self.test_button.setAutoFillBackground(True)
         self.test_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
         icon20 = QIcon()
         icon20.addFile(u":/images/icons/light/test-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
