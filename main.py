@@ -49,6 +49,7 @@ from qtpy.QtWidgets import (
 import icons_rc
 from ui import Ui_MainWindow, Ui_ManualControlDialog
 from imports import (
+    createActionGroup,
     get_theme,
     get_font,
     take_screenshot,
@@ -63,7 +64,7 @@ import settings
 import constants
 import config_loader as cfg
 from constants import State
-from config_loader import get_instance as get_config
+from config_loader import get_config as get_config
 from arduino import AIODevice
 from qasync import QEventLoop
 from pathlib import Path
@@ -75,68 +76,15 @@ from test_controller import MessageType, TestController, ControllerMessage, Test
 from help_dialog import HelpDialog
 from log_view import LogView, SaveWorker, ProgressBar
 from settings_dialog import SettingsDialog
-from imports import critical
+from imports import critical, from_string
 from status_widget import CustomStatusBar
 from manual_widget import ManualWidget
+import counter
 
 from pathlib import Path
 from PySide6.QtCore    import Qt
 from PySide6.QtGui     import QPainter, QPixmap
 from PySide6.QtWidgets import QTextEdit
-
-class BackgroundTextEdit(QTextEdit):
-    """
-    QTextEdit with a single, non-tiled background image.
-
-    Parameters
-    ----------
-    image_path : str | Path
-        File (or resource) path to the bitmap.
-    scaled : bool, default False
-        If True the image is scaled to fit the viewport while
-        preserving aspect ratio.  If False the original bitmap
-        is drawn at 1:1 pixels and centred.
-    parent : QWidget | None
-    """
-    def __init__(self, image_path: str | Path, *, scaled: bool = False, parent=None):
-        super().__init__(parent)
-        self._pixmap = QPixmap(str(image_path))
-        self._scaled  = bool(scaled)
-
-        # QTextEdit’s own auto-repeat is irrelevant now, but keep a
-        # transparent viewport so our painting shows through.
-        self.viewport().setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
-
-    # ------------------------------------------------------------------ public
-    def setBackgroundImage(self, image_path: str | Path, *, scaled: bool | None = None) -> None:
-        """Change the bitmap (and optionally the scaling flag) at runtime."""
-        self._pixmap = QPixmap(str(image_path))
-        if scaled is not None:
-            self._scaled = bool(scaled)
-        self.viewport().update()
-
-    # ------------------------------------------------------------- paintEvent
-    def paintEvent(self, event):
-        # 1.  Paint the background once.
-        if not self._pixmap.isNull():
-            p = QPainter(self.viewport())
-
-            if self._scaled:
-                img = self._pixmap.scaled(
-                    self.viewport().size(),
-                    Qt.AspectRatioMode.KeepAspectRatio,
-                    Qt.TransformationMode.SmoothTransformation,
-                )
-            else:
-                img = self._pixmap
-
-            x = (self.viewport().width()  - img.width())  // 2
-            y = (self.viewport().height() - img.height()) // 2
-            p.drawPixmap(x, y, img)
-
-        # 2.  Let QTextEdit render its contents on top.
-        super().paintEvent(event)
-
 
 
 
@@ -209,12 +157,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             widget.installEventFilter(self)
 
         # Setup the text area
-        self.text_edit.setFont(
-            QFont(
-                self.settings.get(constants.KEY_FONT_FAMILY),
-                self.settings.get_int(constants.KEY_FONT_SIZE),
-            )
-        )
+        font_str = settings.get(constants.KEY_FONT, "")
+        if font_str:
+            self.text_edit.setFont(from_string(font_str))
+
+        self.text_edit.anchorClicked.connect(self.check_for_link)
+        self.text_edit.setOpenLinks(False)
+
         # self.text_edit.setStyleSheet(
         #     f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};" f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
         # )
@@ -238,7 +187,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
         self.actionOpen_UP_exe.triggered.connect(
-            lambda: QProcess.startDetached(cfg.get_instance().get_programmer_path())
+            lambda: QProcess.startDetached(cfg.get_config().get_programmer_path())
         )
 
         # Set the theme
@@ -248,34 +197,33 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuDevice.clear()
 
         # Load the devices from the config file and add each device to the menu
+        from menu_item import MenuItem
         for device in load_devices():
-            action = QAction(device._device_name, self)
+            # Create a menu item for each device
+            action = MenuItem(device._device_name, self)
             action.setFont(self.font())
-            action.setCheckable(True)
             action.setData(device)  # Store the device object in the action
-            self.set_icon(action, 'radio-off-button')
-            action.triggered.connect(self.deviceSelect)
             self.menuDevice.addAction(action)
+
+        createActionGroup(self, self.menuDevice.actions()).triggered.connect(self.deviceSelect)
 
         self.load_file_text()
         self.text_edit.cursorPositionChanged.connect(self.check_for_link)
 
-        self.eax_device = Device()
+        # self.eax_device = Device()
 
-        # Set the default device
-        # if not self.eax_device.verify_firmware():
-        #     self.insert_text("Missing firmware!")
+        # Initialize the counters
+        self.test_counter = counter.Counter("test_count")
+        self.program_counter = counter.Counter("program_count")
+        self.program_fail_counter = counter.Counter("program_fail_count")
 
-        self.setStatusBar(CustomStatusBar())
+        self.setStatusBar(CustomStatusBar(self))
         self.set_status('Select a device to begin.')
 
         # If auto connect is enabled, try to connect to the USB device
         if self.settings.get(constants.KEY_AUTO_CONNECT):
             QTimer.singleShot(1200, lambda: asyncio.create_task(self.connect_task()))
 
-        # btextedit = BackgroundTextEdit(image_path=':/cloud)', scaled=True)
-        # self.verticalLayout.replaceWidget(self.text_edit, btextedit)
-        # self.text_edit = btextedit
 
     def set_status(self, message: str, timeout: int = 0) -> None:
         """Set the status message in the status bar."""
@@ -296,13 +244,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.set_status("Connecting to USB device...")
             self.usb_label.setText("USB connecting...")
             self.usb_label.setStyleSheet(
-                cfg.get_instance().get('window').get('usb_label').get('connecting_style')
+                cfg.get_config().get('window').get('usb_label').get('connecting_style')
             )
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
             self.controlBox.setEnabled(True)
             self.usb_label.setStyleSheet(
-                cfg.get_instance().get('window').get('usb_label').get('connected_style')
+                cfg.get_config().get('window').get('usb_label').get('connected_style')
             )
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
@@ -314,10 +262,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.show_movie(pause=True)
             if self._state == State.CONNECTED:  # only if we were connected
                 self.usb_label.setStyleSheet(
-                    cfg.get_instance().get('window').get('usb_label').get('disconnected_style')
+                    cfg.get_config().get('window').get('usb_label').get('disconnected_style')
                 )
                 self.usb_label.setText(
-                    cfg.get_instance()
+                    cfg.get_config()
                     .get('window')
                     .get('usb_label')
                     .get('disconnected_text')
@@ -341,23 +289,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def check_for_link(self) -> None:
         """Check if the cursor is over a link."""
-        cursor = self.text_edit.textCursor()
-        current_position = cursor.position()
-        anchor = self.text_edit.anchorAt(self.text_edit.mapFromGlobal(QCursor.pos()))
-        if anchor:
-            # print(anchor)
+        pass
+        # cursor = self.text_edit.textCursor()
+        # current_position = cursor.position()
+        # anchor = self.text_edit.anchorAt(self.text_edit.mapFromGlobal(QCursor.pos()))
+        # if anchor:
+        #     # print(anchor)
 
-            if anchor == "continue":
-                if self.testController and self.testController.state == TestState.AWAITING_BUTTON:
-                    self.testController.notify_button_pressed()
-                    return
+        #     if anchor == "continue":
+        #         if self.testController and self.testController.state == TestState.AWAITING_BUTTON:
+        #             self.testController.notify_button_pressed()
+        #             return
 
-            else:
-                # reset the position to avoid cursor moving to the link start
-                cursor.setPosition(current_position)
-                self.text_edit.setTextCursor(cursor)
-                self.help_dialog = HelpDialog()
-                self.help_dialog.show()
+        #     else:
+        #         # reset the position to avoid cursor moving to the link start
+        #         cursor.setPosition(current_position)
+        #         self.text_edit.setTextCursor(cursor)
+        #         self.help_dialog = HelpDialog()
+        #         self.help_dialog.show()
 
     def set_theme(self, theme: str) -> None:
         """Set the theme."""
@@ -516,42 +465,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return action.data()
         return None
 
-    def deviceSelect(self) -> None:
+    def deviceSelect(self, action: QAction) -> None:
         """Called when a device is selected from the menu."""
 
         # Uncheck all other actions
-        for action in self.menuDevice.actions():
-            if action != self.sender():
-                action.setChecked(False)
-                self.set_icon(action, 'radio-off-button')
+        # for action in self.menuDevice.actions():
+        #     if action != self.sender():
+        #         action.setChecked(False)
+        #         self.set_icon(action, 'radio-off-button')
 
         # Set the icon
-        self.set_icon(self.sender(), 'radio-on-button')
+        # self.set_icon(self.sender(), 'radio-on-button')
 
-        device: Device = self.sender().data()
+        # device: Device = self.sender().data()
+        device: Device = action.data()
 
         log.info(f"Device changed to: {device.styles}")
         self.device_label.setText(
             f'''<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>'''
         )
-        # self.device_label.setStyleSheet(f"color: {device.label_color}; {device.font_size};")
 
     def show_help(self) -> None:
         self.help_dialog = HelpDialog()
         self.help_dialog.show()
 
     def choose_font(self) -> None:
-        old_font = self.text_edit.font()
-
-        (ok, font) = get_font(old_font)
-
+        (ok, font) = get_font(self.text_edit.font())
         if ok:
             log.debug(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
-            self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(font).family())
-            self.settings.setValue(constants.KEY_FONT_FAMILY, QFontInfo(font).family())
-            self.settings.setValue(constants.KEY_FONT_SIZE, font.pointSize())
-            self.settings.setValue(constants.KEY_FONT_SIZE, font.pointSize())
+            settings.setValue('mainwindow/font', font.toString())
+
 
     def get_chip_part(self) -> None:
         current_chip = self.settings.get(constants.KEY_CHIP_PART)
@@ -622,11 +566,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue(constants.KEY_COM_PORT, self.arduino.device.com_port)  # save the port
             self.testController = TestController(self.arduino, parent=self)
             self._connect_controller_signals()
-            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('connected_text').format(msg=message))
+            self.usb_label.setText(cfg.get_config().get('window').get('usb_label').get('connected_text').format(msg=message))
 
         else:
-            self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
-            self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
+            self.usb_label.setText(cfg.get_config().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
+            self.usb_label.setStyleSheet(cfg.get_config().get('window').get('usb_label').get('disconnected_style'))
             log.error(f"USB: connection lost. Error: {message}")
             self.append_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
@@ -634,8 +578,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
-        self.usb_label.setText(cfg.get_instance().get('window').get('usb_label').get('text').format(msg="disconnected"))
-        self.usb_label.setStyleSheet(cfg.get_instance().get('window').get('usb_label').get('disconnected_style'))
+        self.usb_label.setText(cfg.get_config().get('window').get('usb_label').get('text').format(msg="disconnected"))
+        self.usb_label.setStyleSheet(cfg.get_config().get('window').get('usb_label').get('disconnected_style'))
         self.actionConnect.setText("Connect")
         if self.arduino:
             self.arduino.connection_changed.disconnect(self.on_connection_changed)
@@ -670,7 +614,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
 
-            argv = cfg.get_instance().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
+            argv = cfg.get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
 
             log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
 
@@ -947,7 +891,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"Test finished: {message.data}")
             self.state = State.CONNECTED
             QTimer.singleShot(1500, self.load_file_text)
-            self.increment_counter()
+            self.test_counter.increment()
 
         else:
             print(f"{message.type}: {message.data}")
