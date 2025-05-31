@@ -13,6 +13,7 @@ from os import PathLike
 
 APP_NAME: str = "EAX Interface"
 APP_VERSION: str = "1.1.0"
+COMPANY_NAME: str = "Detex Corp"
 
 ICON_WINDOW = ':/images/icons/code.ico'
 
@@ -60,6 +61,7 @@ KEY_CHIP_PART: str = "chip_part"
 KEY_CHIP_OPTIONS: str = "chip_options"
 KEY_TESTING_SPEED: str = "testing_speed"
 KEY_AUTO_TEST: str = "auto_test"
+KEY_FONT: str = "mainwindow/font"
 KEY_FONT_FAMILY: str = "font_family"
 KEY_FONT_SIZE: str = "font_size"
 KEY_FONT_WEIGHT: str = "font_weight"
@@ -91,6 +93,7 @@ DEFAULT_SETTINGS = {
     KEY_CHIP_PART: "PIC16F628A",
     KEY_TESTING_SPEED: 2100,
     KEY_AUTO_TEST: True,
+    KEY_FONT: "Calibri,16,-1,5,400,0,0,0,0,0,0,0,0,0,0,1,Regular",
     KEY_FONT_FAMILY: "Consolas",
     KEY_FONT_SIZE: 14,
     KEY_FONT_WEIGHT: "normal",
