@@ -10,8 +10,22 @@
             "singleInstance": true,
             "color": "#ffe65c",
             "cwd": "${workspaceFolder}",
-            "command": ".venv\\scripts\\python main.py"
+            "command": "venv\\scripts\\python main.py"
           },
+          {
+            "name": "Resource",
+            "singleInstance": true,
+            "color": "lightpink",
+            "cwd": "${workspaceFolder}",
+            "command": "venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
+        },
+        {
+            "name": "UI",
+            "singleInstance": true,
+            "color": "lightpink",
+            "cwd": "${workspaceFolder}",
+            "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_StatusBarWidget.py QtDesigner/StatusBarWidget.ui"
+        },
           {
             "name": "Open Designer",
             "singleInstance": true,
@@ -24,7 +38,7 @@
             "singleInstance": true,
             "color": "#ffe65c",
             "cwd": "${workspaceFolder}",
-            "command": ".venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
+            "command": "venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
           },
         ]
     },
@@ -58,10 +72,10 @@
     "python.analysis.completeFunctionParens": true,
     "python.analysis.fixAll": [],
     "python.autoComplete.extraPaths": [],
-    "python.envFile": "${workspaceFolder}/.venv/pyvenv.cfg",
+    "python.envFile": "${workspaceFolder}/venv/pyvenv.cfg",
     "python.terminal.activateEnvInCurrentTerminal": true,
     "black-formatter.interpreter": [
-      "${workspaceFolder}/.venv/Scripts/python"
+      "${workspaceFolder}/venv/Scripts/python"
     ],
     "black-formatter.args": [
       "--skip-string-normalization",
@@ -72,10 +86,10 @@
     ],
     "python.analysis.extraPaths": [
       "./ui",
-      ".venv/src/**/*",
-      ".venv/src/telemetrix-aio/*.*",
-      ".venv/src/telemetrix-aio/**",
-      ".venv/src/telemetrix-aio/*",
+      "venv/src/**/*",
+      "venv/src/telemetrix-aio/*.*",
+      "venv/src/telemetrix-aio/**",
+      "venv/src/telemetrix-aio/*",
       "${workspaceFolder}/*.*",
     ],
     "files.associations": {
