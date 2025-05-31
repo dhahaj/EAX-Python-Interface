@@ -18,8 +18,8 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QTransform)
 from PySide6.QtWidgets import (QApplication, QFrame, QGroupBox, QHBoxLayout,
     QLabel, QMainWindow, QMenu, QMenuBar,
-    QPushButton, QSizePolicy, QTabWidget, QTextEdit,
-    QVBoxLayout, QWidget)
+    QPushButton, QSizePolicy, QTabWidget, QTextBrowser,
+    QTextEdit, QVBoxLayout, QWidget)
 import resource_rc
 import icons_rc
 
@@ -257,7 +257,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.setSpacing(5)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(4, 5, 4, 0)
-        self.text_edit = QTextEdit(self.centralwidget)
+        self.text_edit = QTextBrowser(self.centralwidget)
         self.text_edit.setObjectName(u"text_edit")
         font2 = QFont()
         font2.setFamilies([u"Calibri"])
@@ -327,7 +327,7 @@ class Ui_MainWindow(object):
         font3 = QFont()
         font3.setPointSize(18)
         self.program_button.setFont(font3)
-        self.program_button.setAutoFillBackground(True)
+        self.program_button.setAutoFillBackground(False)
         self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);\n"
 "hover: rgb(0,0,0);")
         icon19 = QIcon()
@@ -467,7 +467,7 @@ class Ui_MainWindow(object):
         font6.setPointSize(20)
         font6.setBold(False)
         self.test_button.setFont(font6)
-        self.test_button.setAutoFillBackground(True)
+        self.test_button.setAutoFillBackground(False)
         self.test_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
         icon20 = QIcon()
         icon20.addFile(u":/images/icons/light/test-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)

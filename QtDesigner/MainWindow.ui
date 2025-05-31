@@ -81,7 +81,7 @@
      <number>0</number>
     </property>
     <item>
-     <widget class="QTextEdit" name="text_edit">
+     <widget class="QTextBrowser" name="text_edit">
       <property name="font">
        <font>
         <family>Calibri</family>
@@ -298,7 +298,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
           <string>Program the device</string>
          </property>
          <property name="autoFillBackground">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(5, 230, 255, 40);
@@ -308,7 +308,7 @@ hover: rgb(0,0,0);</string>
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../icons.qrc">
+          <iconset>
            <normaloff>:/images/icons/light/prog-button.png</normaloff>:/images/icons/light/prog-button.png</iconset>
          </property>
          <property name="iconSize">
@@ -806,7 +806,7 @@ hover: rgb(0,0,0);</string>
           <string>Test the device</string>
          </property>
          <property name="autoFillBackground">
-          <bool>true</bool>
+          <bool>false</bool>
          </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(5, 230, 255, 40);</string>
@@ -815,7 +815,7 @@ hover: rgb(0,0,0);</string>
           <string/>
          </property>
          <property name="icon">
-          <iconset resource="../icons.qrc">
+          <iconset>
            <normaloff>:/images/icons/light/test-button.png</normaloff>:/images/icons/light/test-button.png</iconset>
          </property>
          <property name="iconSize">
@@ -925,7 +925,7 @@ hover: rgb(0,0,0);</string>
   </widget>
   <action name="actionConnect">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/usb3.png</normaloff>
      <normalon>:/images/icons/light/usb2.png</normalon>
      <selectedon>:/resources/icons/images/icons/usb.png</selectedon>:/images/icons/light/usb3.png</iconset>
@@ -1292,7 +1292,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionModify_Settings">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/settings.ico</normaloff>:/images/icons/light/settings.ico</iconset>
    </property>
    <property name="text">
@@ -1338,7 +1338,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionShow_Logs">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/files.png</normaloff>:/images/icons/light/files.png</iconset>
    </property>
    <property name="text">
@@ -1358,7 +1358,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionAbout">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/information.png</normaloff>
      <normalon>:/resources/icons/images/icons/light/information.png</normalon>:/images/icons/light/information.png</iconset>
    </property>
@@ -1379,7 +1379,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionManual_Control">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/gear.png</normaloff>:/images/icons/light/gear.png</iconset>
    </property>
    <property name="text">
@@ -1399,7 +1399,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionChip_Select">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/chip.png</normaloff>:/images/icons/light/chip.png</iconset>
    </property>
    <property name="text">
@@ -1452,7 +1452,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionHelp">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/help.png</normaloff>
      <normalon>:/resources/icons/images/icons/dark/help.png</normalon>:/images/icons/light/help.png</iconset>
    </property>
@@ -1470,7 +1470,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionStatisitics">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/images/icons/light/bar-chart.png</normaloff>:/images/icons/light/bar-chart.png</iconset>
    </property>
    <property name="text">
@@ -1536,7 +1536,7 @@ hover: rgb(0,0,0);</string>
   </action>
   <action name="actionOpen_UP_exe">
    <property name="icon">
-    <iconset resource="../icons.qrc">
+    <iconset>
      <normaloff>:/up</normaloff>:/up</iconset>
    </property>
    <property name="text">
