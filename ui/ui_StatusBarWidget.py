@@ -29,6 +29,15 @@ class Ui_StatusBarWidget(object):
         self.gridLayout.setObjectName(u"gridLayout")
         self.gridLayout.setSizeConstraint(QLayout.SizeConstraint.SetNoConstraint)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.progLcd = QLCDNumber(StatusBarWidget)
+        self.progLcd.setObjectName(u"progLcd")
+
+        self.gridLayout.addWidget(self.progLcd, 0, 2, 1, 1)
+
+        self.horizontalSpacer = QSpacerItem(931, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.gridLayout.addItem(self.horizontalSpacer, 0, 1, 1, 1)
+
         self.status = QLabel(StatusBarWidget)
         self.status.setObjectName(u"status")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
@@ -42,26 +51,11 @@ class Ui_StatusBarWidget(object):
 
         self.gridLayout.addWidget(self.status, 0, 0, 1, 1)
 
-        self.horizontalSpacer = QSpacerItem(931, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-
-        self.gridLayout.addItem(self.horizontalSpacer, 0, 1, 1, 1)
-
-        self.label = QLabel(StatusBarWidget)
-        self.label.setObjectName(u"label")
+        self.lcdNumber = QLCDNumber(StatusBarWidget)
+        self.lcdNumber.setObjectName(u"lcdNumber")
         sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
-        self.label.setSizePolicy(sizePolicy1)
-        self.label.setMinimumSize(QSize(0, 0))
-        self.label.setFont(font)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
-        self.label.setMargin(2)
-
-        self.gridLayout.addWidget(self.label, 0, 2, 1, 1)
-
-        self.lcdNumber = QLCDNumber(StatusBarWidget)
-        self.lcdNumber.setObjectName(u"lcdNumber")
         sizePolicy1.setHeightForWidth(self.lcdNumber.sizePolicy().hasHeightForWidth())
         self.lcdNumber.setSizePolicy(sizePolicy1)
         self.lcdNumber.setMinimumSize(QSize(46, 0))
@@ -88,6 +82,5 @@ class Ui_StatusBarWidget(object):
     def retranslateUi(self, StatusBarWidget):
         StatusBarWidget.setWindowTitle(QCoreApplication.translate("StatusBarWidget", u"Form", None))
         self.status.setText(QCoreApplication.translate("StatusBarWidget", u"TextLabel", None))
-        self.label.setText(QCoreApplication.translate("StatusBarWidget", u"Counter", None))
     # retranslateUi
 
