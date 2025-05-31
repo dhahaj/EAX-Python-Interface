@@ -18,18 +18,6 @@ from qtpy.QtWidgets import (
     QFontDialog,
     QFileDialog,
 )
-# from ui import (
-#     Ui_MainWindow,
-#     Ui_AddUserDialog,
-#     Ui_RemoveUserDialog,
-#     Ui_HelpDialog,
-#     Ui_LogView,
-#     Ui_Settings,
-#     Ui_LoginDialog,
-#     Ui_ManualControlDialog,
-#     Ui_ProgressBar,
-#     Ui_StatusBarWidget
-# )
 import qdarkstyle
 from qdarkstyle import DarkPalette, LightPalette
 from settings import ApplicationSettings
@@ -62,6 +50,7 @@ def get_font(attr: Union[QFont, List]) -> Tuple[bool, QFont]:
         return (False, None)
 
     return QFontDialog.getFont(font)
+
 
 def take_screenshot() -> None:
     """ Takes a screenshot of the current window. """
@@ -112,8 +101,10 @@ def from_string(s: str) -> QFont:
     font.fromString(s)
     return font
 
+
 @overload
 def warning(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
+
 
 @overload
 def warning(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton: ...
@@ -129,6 +120,7 @@ def warning(attr: Union[str, QWidget], message: str, title: str = "Error") -> Qt
 @overload
 def critical(message: str) -> QtWidgets.QMessageBox.StandardButton: ...
 
+
 @overload
 def critical(parent: QWidget, message: str, title: str = "Error") -> QtWidgets.QMessageBox.StandardButton: ...
 
@@ -138,3 +130,23 @@ def critical(attr: Union[str, QWidget], message: str, title: str = "Error") -> Q
     if isinstance(attr, str):
         return QMessageBox.critical(None, title, attr, QMessageBox.StandardButton.Ok)
     return QMessageBox.critical(attr, title, message, QMessageBox.StandardButton.Ok)
+
+
+def createActionGroup(
+    parent: QWidget, actions: List[QtWidgets.QAction]
+) -> QtWidgets.QActionGroup:
+    """
+    Creates an action group from a list of actions.
+
+    Args:
+        parent (QWidget): The parent widget for the action group.
+        actions (List[QAction]): A list of actions to be added to the action group. 
+    Returns:
+        QActionGroup: The created action group containing the actions.
+    """
+    action_group = QtWidgets.QActionGroup(parent)
+    for action in actions:
+        action.setCheckable(True)
+        action.setChecked(False)
+        action_group.addAction(action)
+    return action_group
