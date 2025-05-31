@@ -4,291 +4,295 @@ app_name: EAX500 Interface
 app_version: 1.0.0
 
 window:
-  usb_label:
-    connected_style: >
-      font-size: 14pt;
-      font-weight: bold;
-      color: #00f255;
+    usb_label:
+        connected_text: 'Connected to {msg}'
+        connected_style: >
+            font-size: 18pt;
+            font-weight: bold;
+            color:rgba(19, 216, 206, 0.84);
 
-    connected_text: "Connected to {msg}"
+        connecting_text: '{msg}'
+        connecting_style: >
+            font-size: 18pt;
+            font-weight: bold;
+            color:rgba(223, 253, 0, 0.89);
+            font-style: italic;
 
-    connecting_style: >
-      font-size: 14pt;
-      font-weight: bold;
-      color: #e3f400;
-      font-style: italic;
+        disconnected_text: '{msg}'
+        disconnected_style: >
+            font-size: 18pt;
+            font-weight: bold;
+            color:rgb(234, 0, 59);
+            font-style: italic;
 
-    disconnected_style: >
-      font-size: 14pt;
-      font-weight: bold;
-      color: #ea0065;
-      font-style: italic;
-
-    disconnected_text: "{msg}"
-
-    text: "USB: {msg}"
+        text: 'USB: {msg}'
 
 # This is used for populating the device menu and mapping
 # the device name to the firmware file
 devices:
-  label_styles: >
-    font-style:italic;
-    text-decoration: underline;
-    font-weight:700;
-    font-size:18pt;
-  label_size: "font-size:20pt;"
-  firmware_path: ./firmware
-  firmware_files:
-    - device_name: EAX300
-      firmware_name: EAX300_59.hex
-      color: "#fff15a" # yellow
-    - device_name: EAX500
-      firmware_name: EAX500_591.hex
-      color: "#00ff00" # green
-    - device_name: EAX503
-      firmware_name: EAX503_591.hex
-      color: "#ff6b0e" # orange
-    - device_name: EAX504
-      firmware_name: EAX504_591.hex
-      color: "#ff7b0e" # orange
-    - device_name: EAX505
-      firmware_name: EAX505_591.hex
-      color: "#ff8b0e" # orange
-    - device_name: EAX510
-      firmware_name: EAX510_591.hex
-      color: "#ff9b0e" # orange
-    - device_name: EAX513
-      firmware_name: EAX513_591.hex
-      color: "#ffab0e" # orange
-    - device_name: EAX514
-      firmware_name: EAX514_591.hex
-      color: "#ffbb0e" # orange
-    - device_name: EAX515
-      firmware_name: EAX515_591.hex
-      color: "#ffcb0e" # orange
-    - device_name: EAX520
-      firmware_name: EAX520_591.hex
-      color: "#ffdb0e" # orange
-    - device_name: EAX523
-      firmware_name: EAX523_591.hex
-      color: "#ffeb0e" # orange
-    - device_name: EAX524
-      firmware_name: EAX524_591.hex
-      color: "#fffb0e" # orange
-    - device_name: EAX525
-      firmware_name: EAX525_591.hex
-      color: "#fffb0e" # orange
+    label_styles: >
+        font-style:italic;
+        text-decoration: underline;
+        font-weight:700;
+        font-size:18pt;
+    label_size: 'font-size:20pt;'
+    firmware_path: ./firmware
+    firmware_files:
+        - device_name: EAX300
+          firmware_name: EAX300_59.hex
+          color: '#fff15a' # yellow
+        - device_name: EAX500
+          firmware_name: EAX500_591.hex
+          color: '#00ff00' # green
+        - device_name: EAX503
+          firmware_name: EAX503_591.hex
+          color: '#ff6b0e' # orange
+        - device_name: EAX504
+          firmware_name: EAX504_591.hex
+          color: '#ff7b0e' # orange
+        - device_name: EAX505
+          firmware_name: EAX505_591.hex
+          color: '#ff8b0e' # orange
+        - device_name: EAX510
+          firmware_name: EAX510_591.hex
+          color: '#ff9b0e' # orange
+        - device_name: EAX513
+          firmware_name: EAX513_591.hex
+          color: '#ffab0e' # orange
+        - device_name: EAX514
+          firmware_name: EAX514_591.hex
+          color: '#ffbb0e' # orange
+        - device_name: EAX515
+          firmware_name: EAX515_591.hex
+          color: '#ffcb0e' # orange
+        - device_name: EAX520
+          firmware_name: EAX520_591.hex
+          color: '#ffdb0e' # orange
+        - device_name: EAX523
+          firmware_name: EAX523_591.hex
+          color: '#ffeb0e' # orange
+        - device_name: EAX524
+          firmware_name: EAX524_591.hex
+          color: '#fffb0e' # orange
+        - device_name: EAX525
+          firmware_name: EAX525_591.hex
+          color: '#fffb0e' # orange
 
 # Defines the pins used in the application.
 pins:
-  - function: low battery
-    io_mode: output
-    pin_number: 2
-    pullup_enabled: false
-  # - function: test mode
-  #   io_mode: output
-  #   pin_number: 3
-  #   pullup_enabled: false
-  - function: battery
-    io_mode: output
-    pin_number: 4
-    pullup_enabled: false
-  # - function: remote
-  #   io_mode: output
-  #   pin_number: 5
-  #   pullup_enabled: false
-  # - function: pad
-  #   io_mode: output
-  #   pin_number: 6
-  #   pullup_enabled: false
-  # - function: relay in
-  #   io_mode: input_pullup
-  #   pin_number: 7
-  #   pullup_enabled: true
-  # - function: okc
-  #   io_mode: output
-  #   pin_number: 8
-  #   pullup_enabled: false
-  # - function: ac
-  #   io_mode: output
-  #   pin_number: 9
-  #   pullup_enabled: false
-  - function: indicator
-    io_mode: output
-    pin_number: 10
-    pullup_enabled: false
-  # - function: relay1
-  #   io_mode: output
-  #   pin_number: 11
-  #   pullup_enabled: false
-  # - function: relay2
-  #   io_mode: output
-  #   pin_number: 12
-  #   pullup_enabled: false
-  - function: test indicator
-    io_mode: output
-    pin_number: 13
-    pullup_enabled: false
+    - function: low battery
+      io_mode: output
+      pin_number: 2
+      pullup_enabled: false
+    # - function: test mode
+    #   io_mode: output
+    #   pin_number: 3
+    #   pullup_enabled: false
+    - function: battery
+      io_mode: output
+      pin_number: 4
+      pullup_enabled: false
+    # - function: remote
+    #   io_mode: output
+    #   pin_number: 5
+    #   pullup_enabled: false
+    # - function: pad
+    #   io_mode: output
+    #   pin_number: 6
+    #   pullup_enabled: false
+    # - function: relay in
+    #   io_mode: input_pullup
+    #   pin_number: 7
+    #   pullup_enabled: true
+    # - function: okc
+    #   io_mode: output
+    #   pin_number: 8
+    #   pullup_enabled: false
+    # - function: ac
+    #   io_mode: output
+    #   pin_number: 9
+    #   pullup_enabled: false
+    - function: indicator
+      io_mode: output
+      pin_number: 10
+      pullup_enabled: false
+    # - function: relay1
+    #   io_mode: output
+    #   pin_number: 11
+    #   pullup_enabled: false
+    # - function: relay2
+    #   io_mode: output
+    #   pin_number: 12
+    #   pullup_enabled: false
+    - function: test indicator
+      io_mode: output
+      pin_number: 13
+      pullup_enabled: false
 
 logging:
-  log_file: logs/app_{time:YYYY-MM-DD}.log
-  log_level: DEBUG
-  log_format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {file}:{function}:{line} | {message}"
-  log_rotation: 00:00
-  log_retention: "14 days"
-  database_file: logs.db
+    log_file: logs/app_{time:YYYY-MM-DD}.log
+    log_level: DEBUG
+    console_log_level: DEBUG
+    db_log_level: DEBUG
+    log_format: '{time:YYYY-MM-DD HH:mm:ss} | {level} | {file}:{function}:{line} | {message}'
+    log_rotation: 00:00
+    log_retention: '30 days'
+    database_file: logs.db
+    use_database: true # Set to false to disable database logging
 
 # defines the test sequence
 testing:
-  sequence:
-    - action: message # Display the Detex logo
-      text: >
-        <html><head></head>
-        <body>
-          <img src=":/resources/detex" width="280" style="float:right;" />
-        </body>
+    sequence:
+        - action: message # Display the Detex logo
+          text: >
+              <html><head></head>
+              <body>
+                <img src=":/resources/detex" width="280" style="float:right;" />
+              </body>
 
-    - action: message # Display text to the user
-      text: "<h1>Starting test for {model_name}...</h1><br>"
+        - action: message # Display text to the user
+          text: '<h1>Starting test for {model_name}...</h1><br>'
 
-    - action: write_pin # Control an output pin
-      function: test indicator # Use the function name from 'pins' section
-      value: 1 # Set the pin to HIGH (1)
+        - action: write_pin # Control an output pin
+          function: test indicator # Use the function name from 'pins' section
+          value: 1 # Set the pin to HIGH (1)
 
-    # --- Battery Power ---
-    - action: write_pin
-      function: battery
-      value: 1
+        # --- Battery Power ---
+        - action: write_pin
+          function: battery
+          value: 1
 
-    - action: message
-      text: "<p>🔷 Battery power on</p>"
+        - action: message
+          text: '<p>🔷 Battery power on</p>'
 
-    - action: delay # Pause execution
+        - action: delay # Pause execution
 
-    # --- Low Battery Test ---
-    - action: message
-      text: >
-        <p>
-          🔷 Testing Low battery function 🢧 The LED's blink alternately
-        </p>
-    - action: write_pin
-      function: low battery
-      value: 1
+        # --- Low Battery Test ---
+        - action: message
+          text: >
+              <p>
+                🔷 Testing Low battery function 🢧 The LED's blink alternately
+              </p>
+        - action: write_pin
+          function: low battery
+          value: 1
 
-    - action: delay # Uses testing speed if duration_ms is omitted
+        - action: delay # Uses testing speed if duration_ms is omitted
 
-    - action: write_pin
-      function: low battery
-      value: 0
+        - action: write_pin
+          function: low battery
+          value: 0
 
-    - action: message
-      text: >
-        <p>
-          🔷 Stopping Low Battery Test 🢧 Both LED's should be OFF
-        </p>
+        - action: message
+          text: >
+              <p>
+                🔷 Stopping Low Battery Test 🢧 Both LED's should be OFF
+              </p>
 
-    - action: delay
-      duration_ms: 500
+        - action: delay
+          duration_ms: 500
 
-    - action: message
-      text: >
-        <p>
-          🔷 Press the OKC switch ➾ The LEDs blink in unison
-        </p>
+        - action: message
+          text: >
+              <p>
+                🔷 Press the OKC switch ➾ The LEDs blink in unison
+              </p>
 
-    - action: delay
-      duration_ms: 100
+        - action: delay
+          duration_ms: 100
 
-    - action: message
-      text: >
-        <p>
-          🔷 Press the key switch ➾ The siren sounds
-        </p>
+        - action: message
+          text: >
+              <p>
+                🔷 Press the key switch ➾ The siren sounds
+              </p>
 
-    - action: delay
-      duration_ms: 100
+        - action: delay
+          duration_ms: 100
 
-    - action: message
-      text: >
-        <p>
-          🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides
-        </p>
+        - action: message
+          text: >
+              <p>
+                🔷 Place a magnet over the reed switches ➾ The LEDs light up on their respective sides
+              </p>
 
-    - action: delay
-      duration_ms: 100
+        - action: delay
+          duration_ms: 100
 
-    # --- Wait for Button Confirmation ---
-    - action: message
-      text: >
-        <br>
-        <h3>
-          ⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Press the Test Button or Click here to continue...</span></a>
-        </h3>
+        # --- Wait for Button Confirmation ---
+        - action: message
+          text: >
+              <br>
+              <h3>
+                ⌛<a href='continue'><span style='text-decoration: none;font-style:italic;'>Press the Test Button or Click here to continue...</span></a>
+              </h3>
 
-    - action: wait_for_button
-      timeout_ms: 5000 # Wait for 5 seconds
-      timeout_key: button_timeout # Key from settings.ini for timeout duration
-      message_on_fail: >
-        <p>
-          Timeout waiting for button confirmation. Continuing test.
-        </p>
-      fail_on_timeout: false
+        - action: wait_for_button
+          timeout_ms: 5000 # Wait for 5 seconds
+          timeout_key: button_timeout # Key from settings.ini for timeout duration
+          message_on_fail: >
+              <p>
+                Timeout waiting for button confirmation. Continuing test.
+              </p>
+          fail_on_timeout: false
 
-  cleanup:
-    - action: write_pin
-      function: test indicator
-      value: 0
-    - action: write_pin
-      function: battery
-      value: 0
-    - action: write_pin
-      function: low battery
-      value: 0
+    cleanup:
+        - action: write_pin
+          function: test indicator
+          value: 0
+        - action: write_pin
+          function: battery
+          value: 0
+        - action: write_pin
+          function: low battery
+          value: 0
 
 # Programmer configuration
 programmer_config:
-  executable: C:\Program Files (x86)\ASIX\UP\UP.exe
-  programmer: PRESTO
-  arguments:
-    - "/part" # Chip part number
-    - "{chip_part}" # Stored in settings.ini
-    - "/p" # Firmware file
-    - "{firmware_name}"
-    - "/s" # Serial number of the programmer
-    - "{serial_number}" # Stored in settings.ini
-    - "/progname" # Name of the programmer
-    - "{programmer}"
-    - "/q1" # Quiet mode
+    executable: C:\Program Files (x86)\ASIX\UP\UP.exe
+    programmer: PRESTO
+    usb_vendor_id: '0403' # USB Vendor ID for the programmer
+    usb_product_id: 'F1A0' # USB Product ID for the programmer
+    arguments:
+        - '/part' # Chip part number
+        - '{chip_part}' # Stored in settings.ini
+        - '/p' # Firmware file
+        - '{firmware_file}'
+        - '/s' # Serial number of the programmer
+        - '{serial_number}' # dynamically set
+        - '/progname' # Name of the programmer
+        - '{programmer}'
+        - '/q1' # Quiet mode
 
 chip_options:
-  - PIC16F627
-  - PIC16F627A
-  - PIC16F628
-  - PIC16F628A
+    - PIC16F627
+    - PIC16F627A
+    - PIC16F628
+    - PIC16F628A
 
 # default settings
 settings:
-  arduino_instance_id: 1
-  arduino_wait: 4
-  auto_connect: true
-  auto_find: true
-  inactivity_timeout: 15
-  auto_test: true
-  bg_color: "#000000"
-  chip_part: PIC16F628A
-  debug: true
-  fg_color: "#ff5500"
-  firmware_folder: firmware
-  font_family: Consolas
-  font_size: 14
-  font_weight: normal
-  frameless: false
-  full_screen: false
-  last_user: dmh
-  programmer_serial_number: 1E660
-  serial_port: COM30
-  shutdown_on_exception: true
-  skip_login: false
-  sleep_tune: 0.000001
-  testing_speed: 2100
-  touchscreen_enabled: false
+    arduino_instance_id: 1
+    arduino_wait: 4
+    auto_connect: true
+    auto_find: true
+    inactivity_timeout: 15
+    auto_test: true
+    bg_color: '#000000'
+    chip_part: PIC16F628A
+    debug: true
+    fg_color: '#ff5500'
+    firmware_folder: firmware
+    font_family: Consolas
+    font_size: 14
+    font_weight: normal
+    frameless: false
+    full_screen: false
+    last_user: dmh
+    programmer_serial_number: 1E660
+    serial_port: COM30
+    shutdown_on_exception: true
+    skip_login: false
+    sleep_tune: 0.000001
+    testing_speed: 2100
+    touchscreen_enabled: false
