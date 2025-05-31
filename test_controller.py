@@ -95,7 +95,7 @@ class TestController(QObject):
         self.debug = self.settings.get_bool(KEY_DEBUG, False)  # Get debug flag from settings
 
         # Load configuration using the global singleton accessor
-        self._config_loader = config_loader.get_instance()
+        self._config_loader = config_loader.get_config()
         print(self._config_loader)
         self._test_sequence: List[Dict[str, Any]] = []  # Initialize empty
         self._load_config()  # Load initial config
