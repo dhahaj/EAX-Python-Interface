@@ -2,32 +2,41 @@ from loguru import logger
 import sqlite3
 from datetime import datetime
 import config_loader
-from device import Device
+import sys
 
 
 class AppLogger:
 
     def __init__(self, logfile="logs/app_{time:YYYY-MM-DD}.log", database="logs.db"):
 
+        logger.remove()  # ditch the default DEBUG→stderr sink
         try:
-            log_config = config_loader.get_instance().get('logging')
+            self.log_config = config_loader.get_config().get('logging')
+            if sys.stderr and hasattr(sys.stderr, "write"):
+                logger.add(sys.stderr, level=self.log_config.get('console_log_level', 'DEBUG').upper())
             logger.add(
-                log_config.get('log_file', logfile),
-                rotation=log_config.get('log_rotation', "00:00"),
-                retention=log_config.get('log_retention', "7 days"),
-                level=log_config.get('log_level', 'DEBUG'),
-                format=log_config.get('log_format', "{time} | {level} | {message}"),
+                self.log_config.get('log_file', logfile),
+                rotation=self.log_config.get('log_rotation', "00:00"),
+                retention=self.log_config.get('log_retention', "30 days"),
+                level=self.log_config.get('log_level', 'DEBUG').upper(),
+                format=self.log_config.get('log_format', "{time} | {level} | {message}"),
             )
-            self.database = log_config.get('database_file', database)
+
+            self.db_log_level = self.log_config.get('db_log_level', 'DEBUG').upper()
+            self._db_level_no = logger.level(self.db_log_level).no if self.db_log_level else logger.level('DEBUG').no
+            self.database = self.log_config.get('database_file', database)
+
         except Exception as e:
             print(f"Error loading config: {e}")
-            log_config = None
-            logger.add(logfile, rotation="00:00", retention="35 MB", level='DEBUG', format="{time} | {function} | {level} | {message}")
+            self.log_config = None
+            logger.add(logfile, rotation="00:00", retention="30 days", level='DEBUG', format="{time} | {function} | {level} | {message}")
             self.database = database
+            self._db_level_no = logger.level('DEBUG').no
+
+        self.use_database = self.log_config.get('use_database', True) if self.log_config else True
 
         self.migrate_schema()
         self.create_log_table()
-        self.init_statistics_table()
 
     def create_log_table(self):
         """Creates a table for logs in the SQLite database if it doesn't exist."""
@@ -53,7 +62,8 @@ class AppLogger:
         logger.opt(depth=2 + extra_depth).patch(capture).log(level.upper(), message)
 
         # Log to database with captured function name
-        self.log_to_db(level.upper(), message, function_name or 'unknown')
+        if self.use_database and logger.level(level).no >= self._db_level_no:
+            self.log_to_db(level.upper(), message, function_name or 'unknown')
 
     def log_to_db(self, level: str, message: str, function: str):
         """Log messages explicitly to the SQLite database."""
@@ -123,6 +133,14 @@ class AppLogger:
     def exception(self, message: str):
         self._emit("ERROR", message, extra_depth=1)
 
+    def trace(self, message: str):
+        self._emit("TRACE", message)
+
+    def catch(self, exception: Exception):
+        """Catch exceptions and log them."""
+        logger.exception(exception)
+        self._emit("CRITICAL", str(exception.__class__.__name__) + ": " + str(exception), extra_depth=1)
+
     def get_logs(self) -> list:
         logs = []
         with sqlite3.connect(self.database) as conn:
@@ -139,6 +157,14 @@ class AppLogger:
                 }
                 logs.append(log_entry)
         return logs
+
+    def size(self) -> int:
+        """Get the size of the logs in the SQLite database."""
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM logs")
+            count = cursor.fetchone()[0]
+        return count
 
     def read_log_into_database(self, log_file: str):
         """Read a log file and insert its contents into the SQLite database."""
@@ -157,32 +183,6 @@ class AppLogger:
             rows = cursor.fetchall()
             for row in rows:
                 print(row)
-
-    def init_statistics_table(self):
-        with sqlite3.connect(self.database) as conn:
-            cur = conn.cursor()
-            cur.execute("""
-            CREATE TABLE IF NOT EXISTS test_runs (
-                id        INTEGER PRIMARY KEY AUTOINCREMENT,
-                device    TEXT NOT NULL,
-                timestamp TEXT NOT NULL
-            )
-            """)
-            conn.commit()
-
-    def increment_tests_run(self, device: str = None) -> None:
-        with sqlite3.connect(self.database) as conn:
-            cur = conn.cursor()
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            cur.execute("INSERT INTO test_runs (device, timestamp) VALUES (?, ?)", (device, timestamp))
-            conn.commit()
-
-    def get_tests_run(self) -> int:
-        with sqlite3.connect(self.database) as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT COUNT(*) FROM test_runs")
-            total, = cur.fetchone()
-            return total    
 
     def search_logs(self, search_term: str, function: str = None) -> list:
         """Search logs in the SQLite database for a specific term."""
@@ -205,10 +205,49 @@ class AppLogger:
                 results.append(log_entry)
         return results
 
+    def log_from_file(self, log_file: str) -> list:
+        """Read a log file and return its contents as a list of dictionaries."""
+        logs = []
+        with open(log_file, "r") as file:
+            for line in file:
+                try:
+                    # Assuming the log format is consistent with the database schema
+                    timestamp, level, function, message = line.strip().split(" | ", 3)
+                    log_entry = {
+                        "timestamp": timestamp,
+                        "level": level,
+                        "function": function,
+                        "message": message
+                    }
+                    logs.append(log_entry)
+                except ValueError as e:
+                    logger.error(f"Error parsing line in log file {log_file}: {e}")
+        return logs
 
-_singleton: AppLogger = None
+    def tail(self, n: int = 10) -> list:
+        """Get the last n lines from the SQLite database."""
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM logs ORDER BY id DESC LIMIT ?", (n,))
+            rows = cursor.fetchall()
+            logs = []
+            for row in rows:
+                log_entry = {
+                    "id": row[0],
+                    "timestamp": row[1],
+                    "level": row[2],
+                    "message": row[3],
+                    "function": row[4]
+                }
+                logs.append(log_entry)
+        return logs
+
+
+_singleton: "AppLogger | None" = None
+
 
 def get_logger() -> AppLogger:
+    """Get the singleton instance of AppLogger."""
     global _singleton
     if _singleton is None:
         _singleton = AppLogger()
@@ -216,8 +255,21 @@ def get_logger() -> AppLogger:
 
 
 if __name__ == "__main__":
-    log = get_logger()   
-    # log.exception("This is an exception message")
-    # log.increment_tests_run(device="EAX500")
-    total_tests = log.get_tests_run()    
-    print(f"Total tests run: {total_tests}")
+    log_ = get_logger()
+    print(log_)
+    log_.info("This is an info message")
+    log_.error("This is an error message")
+    log_.debug("This is a debug message")
+    log_.success("This is a success message")
+    log_.warning("This is a warning message")
+    log_.critical("This is a critical message")
+    log_.exception("This is an exception message")
+    log_.trace("This is a trace message")
+
+    try:
+        1 / 0
+    except Exception as e:
+        log_.catch(e)
+
+    for i in log_.tail(10):
+        print(i)
