@@ -1,13 +1,9 @@
 bcrypt==4.0.1
-bidict==0.22.1
-bleak==0.22.3
 colorama==0.4.6
 loguru==0.7.0
 packaging==23.1
 psutil==5.9.5
-pycparser==2.22
 Pygments==2.15.1
-pyparsing==3.1.0
 pyserial==3.5
 PySide6==6.9.0
 PySide6_Addons==6.9.0
@@ -17,5 +13,5 @@ qasync==0.27.1
 QDarkStyle==3.1
 QtPy==2.4.3
 shiboken6==6.9.0
--e git+https://github.com/dhahaj/telemetrix-aio.git@339cb71634a494141d8ff4543663bdf3bcac0a2b#egg=telemetrix_aio
-zipp==3.15.0
+-e git+https://github.com/dhahaj/telemetrix-aio.git@fb5435b2b4d38e7e48cbc8088c5f5e9ee531e52f#egg=telemetrix_aio
+WMI==1.5.1
