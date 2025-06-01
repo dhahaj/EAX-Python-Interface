@@ -257,7 +257,7 @@ programmer_config:
         - '/part' # Chip part number
         - '{chip_part}' # Stored in settings.ini
         - '/p' # Firmware file
-        - '{firmware_file}'
+        - '{firmware_name}'
         - '/s' # Serial number of the programmer
         - '{serial_number}' # dynamically set
         - '/progname' # Name of the programmer
