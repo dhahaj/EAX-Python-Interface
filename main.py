@@ -155,6 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.inactivityTimer = QTimer(self)
         self.inactivityTimer.setSingleShot(True)
         self.inactivityTimer.timeout.connect(self.handle_inactivity_timeout)
+        self.inactivityTimer.start(settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 15) * 60 * 1000)
 
         # Setup the text area
         if (font_str := settings.get(constants.KEY_FONT, "")):
@@ -179,7 +180,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionChange_font.triggered.connect(self.choose_font)
         self.actionManual_Control.triggered.connect(self.control_manually)
         self.actionModify_Settings.triggered.connect(lambda: self.settings_dialog.show())
-        self.actionHelp.triggered.connect(self.show_help)
+        self.actionHelp.triggered.connect(lambda: HelpDialog(self).show())
         self.actionStatisitics.triggered.connect(self.show_statistics)
         self.actionDark_Theme.triggered.connect(self.toggle_theme)
         self.actionScreenshot.triggered.connect(take_screenshot)
@@ -272,7 +273,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.set_status("Programming...")
             self.show_movie(pause=False)
         elif value == State.TESTING:
-            self.controlBox.setEnabled(False)
+            self.controlBox.setEnabled(True)
             self.actionConnect.setEnabled(False)
             self.set_status("Testing...")
         elif value == State.WAITING_FOR_BUTTON:
@@ -293,27 +294,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             else:
                 log.warning("No test controller or not in the correct state to continue.")
         elif url.url() == "help":
-            # If the link is "help", show the help dialog
-            if self.help_dialog is None:
-                self.help_dialog = HelpDialog()
-            self.help_dialog.show()
-        # cursor = self.text_edit.textCursor()
-        # current_position = cursor.position()
-        # anchor = self.text_edit.anchorAt(self.text_edit.mapFromGlobal(QCursor.pos()))
-        # if anchor:
-        #     # print(anchor)
-
-        #     if anchor == "continue":
-        #         if self.testController and self.testController.state == TestState.AWAITING_BUTTON:
-        #             self.testController.notify_button_pressed()
-        #             return
-
-        #     else:
-        #         # reset the position to avoid cursor moving to the link start
-        #         cursor.setPosition(current_position)
-        #         self.text_edit.setTextCursor(cursor)
-        #         self.help_dialog = HelpDialog()
-        #         self.help_dialog.show()
+            HelpDialog(self).show()
 
     def set_theme(self, theme: str) -> None:
         """Set the theme."""
@@ -395,13 +376,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         elif key == Qt.Key.Key_F10:
             self.show_log()
         elif key == Qt.Key.Key_F1:
-            self.show_help()
+            HelpDialog(self).show()
         elif key == Qt.Key.Key_F5:
             self.settings_dialog.show()
         elif key == Qt.Key.Key_F6:
             self.toggle_theme()
         elif key == Qt.Key.Key_Question:
-            self.show_help()
+            HelpDialog(self).show()
         elif key == Qt.Key.Key_Q and event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             asyncio.get_event_loop().stop()
             self.close()
@@ -457,7 +438,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Show or hide the GIF in the USB icon label."""
         if self.label_usb_icon.movie() is None:
             movie = QMovie(":/resources/images/icons/infinity-16570.gif")
-            movie.setScaledSize(self.label_usb_icon.size())
+            size = QSize(120, 100)  # Set the size of the movie
+            movie.setScaledSize(size)
             movie.setSpeed(200)
             self.label_usb_icon.setMovie(movie)
         self.label_usb_icon.movie().setPaused(pause)
@@ -475,6 +457,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, constants.DEFAULT_SETTINGS[constants.KEY_INACTIVITY_TIMEOUT]) * 60 * 1000
         )
 
+    # ----- Device Select Functions ----- #
+
     def get_selected_device(self) -> Device:
         """Get the currently selected device from the menu."""
         return self.actionGroup.checkedAction().data() if self.actionGroup.checkedAction() else None
@@ -485,10 +469,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         device: Device = action.data()
         log.info(f"Device changed to: {device}")
         self.device_label.setText(f'<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>')
-
-    def show_help(self) -> None:
-        self.help_dialog = HelpDialog()
-        self.help_dialog.show()
+        self.resetInactivityTimer()  # reset the inactivity timer
 
     def choose_font(self) -> None:
         (ok, font) = get_font(self.text_edit.font())
@@ -496,7 +477,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.debug(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
             settings.setValue('mainwindow/font', font.toString())
-
 
     def get_chip_part(self) -> None:
         current_chip = self.settings.get(constants.KEY_CHIP_PART)
@@ -512,7 +492,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def handle_inactivity_timeout(self) -> None:
         """Called when the inactivity timer times out."""
         log.debug("Inactivity timeout.")
-        self.device_label.setText("")  # clear the device label
+        self.device_label.setText("Device not selected")  # clear the device label
         self.actionGroup.checkedAction().setChecked(False) if self.actionGroup.checkedAction() else None  # reset the device
 
     def append_text(self, text: str, prepend: str = "\n") -> None:
@@ -720,8 +700,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         return False
 
-
-
     def update_firmware(self) -> None:
         """Update the firmware on the test fixture."""
         # dialog = QMessageBox(self)
@@ -820,8 +798,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             print(f"{msg}")
             self.append_text(msg)
 
-
-
     def on_finished(self, returncode: int) -> None:
         """Called when the update process is finished."""
         self.state = State.IDLE
@@ -842,14 +818,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Reload the instructions after a delay
         QTimer.singleShot(3000, self.load_file_text)
 
-    def increment_counter(self) -> None:
-        """Set the progress value in the status bar."""
-        if self.settings.get_bool(constants.KEY_COUNTER_ENABLED, False):
-            self.settings.setValue(constants.KEY_TEST_COUNT, self.settings.get_int(constants.KEY_TEST_COUNT) + 1)
-        sb = self.statusBar()
-        sb.update_counter()
-        log.increment_tests_run(self.get_selected_device().name)
-
     # ---------- Test Functions ----------#
 
     def on_test_clicked(self) -> None:
@@ -860,35 +828,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             warning(self, f"USB device not connected.")
         elif self.testController and self.testController.state == TestState.AWAITING_BUTTON:
             self.testController.notify_button_pressed()
-            return
         elif self.testController and self.testController.is_busy:
-            return
+            self._test_task.cancel()  # Cancel the test if its running
+            self.append_text("<br><p>Test cancelled.</p>")
         else:
             if self.testController is None:
                 self.testController = TestController(self.arduino, parent=self)
-            self.text_edit.setText("")
-            asyncio.create_task(self.testController.async_run_test(self.get_selected_device()))
+            self._test_task = asyncio.create_task(self.testController.async_run_test(self.get_selected_device()))
 
     def _on_message_received(self, message: ControllerMessage) -> None:
         """Called when a message is received from the test controller."""
         if message.type in (MessageType.ERROR, MessageType.WARNING, MessageType.INFO):
-            print(f"{message.type}: {message.data}")
+            log.debug(f"{message.type}: {message.data}")
         elif message.type == MessageType.TEST_ERROR:
-            print(f"Test Error: {message.data}")
+            log.error(f"Test Error: {message.data}")
         elif message.type == MessageType.WAITING_FOR_BUTTON:
-            print(f"Waiting for button press...")
+            log.debug(f"Waiting for button press...")
             self.state = State.WAITING_FOR_BUTTON
         elif message.type == MessageType.TEST_STARTED:
-            print(f"Test started: {message.data}")
+            log.debug(f"Test started: {message.data}")
+            self.text_edit.setText("")
             self.state = State.TESTING
         elif message.type == MessageType.TEST_FINISHED:
-            print(f"Test finished: {message.data}")
+            log.debug(f"Test finished: {message.data}")
             self.state = State.CONNECTED
             QTimer.singleShot(1500, self.load_file_text)
             self.test_counter.increment()
 
         else:
-            print(f"{message.type}: {message.data}")
+            log.debug(f"{message.type}: {message.data}")
 
 
 class FirmwareUpdateProcess(QProcess):
