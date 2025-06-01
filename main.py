@@ -36,6 +36,7 @@ from qtpy.QtCore import (
     Slot,
     QLockFile,
     QDir,
+    QUrl,
 )
 from qtpy.QtWidgets import (
     QApplication,
@@ -43,6 +44,7 @@ from qtpy.QtWidgets import (
     QMessageBox,
     QWidget,
     QInputDialog,
+    QActionGroup,
 )
 
 # import util.config_resources_rc
@@ -80,6 +82,7 @@ from imports import critical, from_string
 from status_widget import CustomStatusBar
 from manual_widget import ManualWidget
 import counter
+from menu_item import MenuItem
 
 from pathlib import Path
 from PySide6.QtCore    import Qt
@@ -149,16 +152,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.connect_menu.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
 
         # Inactivity timer
-        self.inactivityTimer = QTimer()
+        self.inactivityTimer = QTimer(self)
         self.inactivityTimer.setSingleShot(True)
         self.inactivityTimer.timeout.connect(self.handle_inactivity_timeout)
-        self.installEventFilter(self)
-        for widget in QApplication.instance().allWidgets():
-            widget.installEventFilter(self)
 
         # Setup the text area
-        font_str = settings.get(constants.KEY_FONT, "")
-        if font_str:
+        if (font_str := settings.get(constants.KEY_FONT, "")):
             self.text_edit.setFont(from_string(font_str))
 
         self.text_edit.anchorClicked.connect(self.check_for_link)
@@ -197,20 +196,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.menuDevice.clear()
 
         # Load the devices from the config file and add each device to the menu
-        from menu_item import MenuItem
         for device in load_devices():
             # Create a menu item for each device
-            action = MenuItem(device._device_name, self)
-            action.setFont(self.font())
-            action.setData(device)  # Store the device object in the action
-            self.menuDevice.addAction(action)
+            self.menuDevice.addAction(MenuItem(device, self))
 
-        createActionGroup(self, self.menuDevice.actions()).triggered.connect(self.deviceSelect)
+        self.actionGroup: QActionGroup = createActionGroup(self, self.menuDevice.actions())
+        self.actionGroup.triggered.connect(self.deviceSelect)
+        if (value := 42) > 30:
+            print(value)
 
         self.load_file_text()
-        self.text_edit.cursorPositionChanged.connect(self.check_for_link)
-
-        # self.eax_device = Device()
 
         # Initialize the counters
         self.test_counter = counter.Counter("test_count")
@@ -287,9 +282,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._state = value
 
-    def check_for_link(self) -> None:
+    
+    def check_for_link(self, url: QUrl) -> None:
         """Check if the cursor is over a link."""
-        pass
+        print(url)
+        if url.url() == "continue":
+            if self.testController and self.testController.state == TestState.AWAITING_BUTTON:
+                self.testController.notify_button_pressed()
+                return
+            else:
+                log.warning("No test controller or not in the correct state to continue.")
+        elif url.url() == "help":
+            # If the link is "help", show the help dialog
+            if self.help_dialog is None:
+                self.help_dialog = HelpDialog()
+            self.help_dialog.show()
         # cursor = self.text_edit.textCursor()
         # current_position = cursor.position()
         # anchor = self.text_edit.anchorAt(self.text_edit.mapFromGlobal(QCursor.pos()))
@@ -435,7 +442,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # print(self.arduino)
             # print(self.state)
             # print(self.testController.state)
-            print(self.text_edit.toHtml())
+            self.handle_inactivity_timeout()
+            print(f"""
+                  Checked Action: {self.get_selected_device()}
+                  """)
             # print(self.label_usb_icon.size())
             # print(self.arduino)
             # print(settings.get_instance())
@@ -458,32 +468,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return self.label_usb_icon.movie().state() == QMovie.Running
         return False
 
+    def resetInactivityTimer(self) -> None:
+        """Reset the inactivity timer."""
+        log.debug(f"Resetting inactivity timer: remaining time: {self.inactivityTimer.remainingTime()/1000/60} minutes")
+        self.inactivityTimer.start(
+            self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, constants.DEFAULT_SETTINGS[constants.KEY_INACTIVITY_TIMEOUT]) * 60 * 1000
+        )
+
     def get_selected_device(self) -> Device:
         """Get the currently selected device from the menu."""
-        for action in self.menuDevice.actions():
-            if action.isChecked():
-                return action.data()
-        return None
-
+        return self.actionGroup.checkedAction().data() if self.actionGroup.checkedAction() else None
+    
+    @Slot(QAction)
     def deviceSelect(self, action: QAction) -> None:
         """Called when a device is selected from the menu."""
-
-        # Uncheck all other actions
-        # for action in self.menuDevice.actions():
-        #     if action != self.sender():
-        #         action.setChecked(False)
-        #         self.set_icon(action, 'radio-off-button')
-
-        # Set the icon
-        # self.set_icon(self.sender(), 'radio-on-button')
-
-        # device: Device = self.sender().data()
         device: Device = action.data()
-
-        log.info(f"Device changed to: {device.styles}")
-        self.device_label.setText(
-            f'''<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>'''
-        )
+        log.info(f"Device changed to: {device}")
+        self.device_label.setText(f'<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>')
 
     def show_help(self) -> None:
         self.help_dialog = HelpDialog()
@@ -508,22 +509,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue(constants.KEY_CHIP_PART, item)
             log.debug(f"saved chip settings: {item}")
 
-    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
-        """Event filter to handle inactivity timeout."""
-        if event.type() in (QEvent.MouseMove, QEvent.KeyPress):
-            self.inactivityTimer.start(
-                self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, 10) * 60 * 1000
-            )
-        return super(MainWindow, self).eventFilter(watched, event)
-
     def handle_inactivity_timeout(self) -> None:
         """Called when the inactivity timer times out."""
         log.debug("Inactivity timeout.")
         self.device_label.setText("")  # clear the device label
-        # reset the device
-        for action in self.menuDevice.actions():
-            action.setChecked(False)
-            self.set_icon(action, 'radio-off-button')
+        self.actionGroup.checkedAction().setChecked(False) if self.actionGroup.checkedAction() else None  # reset the device
 
     def append_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
@@ -642,18 +632,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if returncode == 0:
             self.append_text("<br><p>Programming successful.</p>")
             log.info(f"Programming successful for {self.get_selected_device().name}.")
+            self.program_counter.increment()
             if self.settings.get(constants.KEY_AUTO_TEST) and self.arduino.device_connected:
                 self.test_button.click()
                 return
         else:
             self.append_text(f"<br><p>Programming failed. Return code: {returncode}</p>")
+            self.program_fail_counter.increment()
             log.error(f"Programming failed for {self.get_selected_device().name}. Return code: {returncode}")
 
     def show_statistics(self) -> None:
         """Display the statistics of the programming results."""
-        failed = len(log.search_logs("failed", "handle_programming_result"))
-        success = len(log.search_logs("success", "handle_programming_result"))
-        QMessageBox().information(self, "Statistics", f"Failures: {failed}\n" f"Successes: {success}\n")
+        failed = self.program_fail_counter.value
+        success = self.program_counter.value
+        tests = self.test_counter.value
+        log.info(f"Statistics - Failures: {failed}, Successes: {success}, Tests: {tests}")
+        QMessageBox().information(self, "Statistics", f"Failures: {failed}\n" f"Successes: {success}\n" f"Tests: {tests}")
 
     # ----- Log Functions ----- #
 
