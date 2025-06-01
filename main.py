@@ -83,12 +83,11 @@ from status_widget import CustomStatusBar
 from manual_widget import ManualWidget
 import counter
 from menu_item import MenuItem
-
+from editor import Editor
 from pathlib import Path
-from PySide6.QtCore    import Qt
-from PySide6.QtGui     import QPainter, QPixmap
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPainter, QPixmap
 from PySide6.QtWidgets import QTextEdit
-
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -109,10 +108,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def __init__(self, app, settings=None) -> None:
         super(MainWindow, self).__init__()
-        QtCore.qWarning("This is a test")
         self.setupUi(self)
         self.setWindowIcon(QIcon(constants.ICON_WINDOW))
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        # self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.show_movie()
 
         # Settings
@@ -130,12 +128,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             self.showNormal()
         self.actionFullscreen.triggered.connect(self.toggleFullScreen)
-        self.actionFullscreen.setChecked(
-            self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool)
-        )
-
-        if self.settings.get_bool(constants.KEY_FRAMELESS):
-            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
+        self.actionFullscreen.setChecked(self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool))
 
         # Process for updating the firmware
         self.update_process = FirmwareUpdateProcess(self)
@@ -143,8 +136,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_process.finishedWithCode.connect(self.on_finished)
 
         self.program_process: QProcess | None = None
-
-        # self.device_changed.connect(self.on_device_changed)
 
         # Quick Connection Menu
         self.connect_menu = QAction(self)
@@ -186,9 +177,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
-        self.actionOpen_UP_exe.triggered.connect(
-            lambda: QProcess.startDetached(cfg.get_config().get_programmer_path())
-        )
+        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(cfg.get_config().get_programmer_path()))
+        self.actionEditConfig.triggered.connect(self.edit_config)
 
         # Set the theme
         self.set_theme(get_theme(self.settings))
@@ -203,8 +193,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.actionGroup: QActionGroup = createActionGroup(self, self.menuDevice.actions())
         self.actionGroup.triggered.connect(self.deviceSelect)
-        if (value := 42) > 30:
-            print(value)
 
         self.load_file_text()
 
@@ -220,7 +208,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.settings.get(constants.KEY_AUTO_CONNECT):
             QTimer.singleShot(1200, lambda: asyncio.create_task(self.connect_task()))
 
-
     def set_status(self, message: str, timeout: int = 0) -> None:
         """Set the status message in the status bar."""
         sb = self.statusBar()
@@ -233,6 +220,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @state.setter
     def state(self, value: State) -> None:
+        """Set the state of the application and update the UI accordingly."""
+        self.resetInactivityTimer()  # reset the inactivity timer
         log.debug(f"Previous state: {self._state}, New State: {value}", 1)
         if value == State.CONNECTING:
             self.actionConnect.setEnabled(False)
@@ -283,7 +272,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self._state = value
 
-    
+    def edit_config(self) -> None:
+        """Open the configuration file for editing."""
+        editor = Editor(self)
+        editor.set_current_file('config.yaml')
+        editor.show()
+
     def check_for_link(self, url: QUrl) -> None:
         """Check if the cursor is over a link."""
         print(url)
@@ -462,14 +456,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def get_selected_device(self) -> Device:
         """Get the currently selected device from the menu."""
         return self.actionGroup.checkedAction().data() if self.actionGroup.checkedAction() else None
-    
+
     @Slot(QAction)
     def deviceSelect(self, action: QAction) -> None:
         """Called when a device is selected from the menu."""
         device: Device = action.data()
         log.info(f"Device changed to: {device}")
         self.device_label.setText(f'<html><head/><body><p><span style="{device.styles}">Device: {device.name}</span> </p></body></html>')
-        self.resetInactivityTimer()  # reset the inactivity timer
 
     def choose_font(self) -> None:
         (ok, font) = get_font(self.text_edit.font())
@@ -570,6 +563,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def program(self) -> None:
         """Program the selected device with the firmware."""
+        self.resetInactivityTimer()  # reset the inactivity timer
         if not self.get_selected_device():
             warning(self, "Please select a device.")
             return
