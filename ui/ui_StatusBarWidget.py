@@ -31,6 +31,10 @@ class Ui_StatusBarWidget(object):
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.progLcd = QLCDNumber(StatusBarWidget)
         self.progLcd.setObjectName(u"progLcd")
+        self.progLcd.setMinimumSize(QSize(46, 0))
+        self.progLcd.setFrameShape(QFrame.Shape.NoFrame)
+        self.progLcd.setFrameShadow(QFrame.Shadow.Plain)
+        self.progLcd.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
 
         self.gridLayout.addWidget(self.progLcd, 0, 2, 1, 1)
 
@@ -66,10 +70,9 @@ class Ui_StatusBarWidget(object):
         self.lcdNumber.setFrameShape(QFrame.Shape.NoFrame)
         self.lcdNumber.setFrameShadow(QFrame.Shadow.Plain)
         self.lcdNumber.setSmallDecimalPoint(False)
-        self.lcdNumber.setDigitCount(6)
+        self.lcdNumber.setDigitCount(5)
         self.lcdNumber.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
-        self.lcdNumber.setProperty(u"value", 999999.000000000000000)
-        self.lcdNumber.setProperty(u"intValue", 999999)
+        self.lcdNumber.setProperty(u"value", 0.000000000000000)
 
         self.gridLayout.addWidget(self.lcdNumber, 0, 3, 1, 1)
 
@@ -81,6 +84,12 @@ class Ui_StatusBarWidget(object):
 
     def retranslateUi(self, StatusBarWidget):
         StatusBarWidget.setWindowTitle(QCoreApplication.translate("StatusBarWidget", u"Form", None))
+#if QT_CONFIG(tooltip)
+        self.progLcd.setToolTip(QCoreApplication.translate("StatusBarWidget", u"Program Counter", None))
+#endif // QT_CONFIG(tooltip)
         self.status.setText(QCoreApplication.translate("StatusBarWidget", u"TextLabel", None))
+#if QT_CONFIG(tooltip)
+        self.lcdNumber.setToolTip(QCoreApplication.translate("StatusBarWidget", u"Test Counter", None))
+#endif // QT_CONFIG(tooltip)
     # retranslateUi
 
