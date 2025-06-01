@@ -3,7 +3,6 @@
     <file alias="up">images/icons/1.ico</file>
     <file>images/firmware_update.gif</file>
     <file alias="cloud2">images/—Pngtree—white cloud hd transparent png_3595699.png</file>
-    <file>images/image-from-rawpixel-id-13190397-png.png</file>
     <file alias="cloud">images/—Pngtree—white cloud hd transparent png_3595697.png</file>
     <file>images/setting.gif</file>
     <file>images/testing.gif</file>
@@ -32,13 +31,13 @@
     <file>images/icons/light/logout2.png</file>
     <file>images/icons/light/micro.png</file>
     <file>images/icons/light/plug.png</file>
-    <file alias="prog-light">images/icons/light/prog-button.png</file>
+    <file>images/icons/light/prog-button.png</file>
     <file>images/icons/light/radio-off-button.png</file>
     <file>images/icons/light/radio-on-button.png</file>
     <file>images/icons/light/remove-user.png</file>
     <file>images/icons/light/settings.ico</file>
     <file>images/icons/light/size.png</file>
-    <file alias="test-light">images/icons/light/test-button.png</file>
+    <file>images/icons/light/test-button.png</file>
     <file>images/icons/light/usb2.png</file>
     <file>images/icons/light/usb3.png</file>
     <file>images/icons/light/usb4.png</file>
@@ -52,13 +51,13 @@
     <file>images/icons/dark/logout.png</file>
     <file>images/icons/dark/logout2.png</file>
     <file>images/icons/dark/plug.png</file>
-    <file alias="prog-dark">images/icons/dark/prog-button.png</file>
+    <file>images/icons/dark/prog-button.png</file>
     <file>images/icons/dark/radio-off-button.png</file>
     <file>images/icons/dark/radio-on-button.png</file>
     <file>images/icons/dark/remove-user.png</file>
     <file>images/icons/dark/settings.ico</file>
     <file>images/icons/dark/size.png</file>
-    <file alias="test-dark">images/icons/dark/test-button.png</file>
+    <file>images/icons/dark/test-button.png</file>
     <file>images/icons/dark/usb2.png</file>
     <file>images/icons/dark/usb3.png</file>
     <file>images/icons/bar-chart.png</file>
