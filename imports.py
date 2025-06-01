@@ -145,6 +145,7 @@ def createActionGroup(
         QActionGroup: The created action group containing the actions.
     """
     action_group = QtWidgets.QActionGroup(parent)
+    action_group.setExclusive(True)  # Ensure only one action can be checked at a time
     for action in actions:
         action.setCheckable(True)
         action.setChecked(False)
