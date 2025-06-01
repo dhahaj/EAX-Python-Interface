@@ -20,6 +20,13 @@
             "command": "venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
         },
         {
+          "name": "UI2",
+          "singleInstance": true,
+          "color": "lightpink",
+          "cwd": "${workspaceFolder}",
+          "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_MainWindow.py QtDesigner/MainWindow.ui"
+      },
+        {
             "name": "UI",
             "singleInstance": true,
             "color": "lightpink",
