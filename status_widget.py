@@ -34,10 +34,11 @@ class CustomStatusBar(QStatusBar):
 
         test_counter: counter.Counter = parent.test_counter
         test_counter.valueChanged.connect(self.on_test_counter_changed)
+        self.adjustLcdWidgetSize(self.widget.lcdNumber, test_counter.get())
 
         program_counter: counter.Counter = parent.program_counter
         program_counter.valueChanged.connect(self.on_prog_counter_changed)
-
+        self.adjustLcdWidgetSize(self.widget.progLcd, program_counter.get())
 
         self._persistent_message = ""
 
