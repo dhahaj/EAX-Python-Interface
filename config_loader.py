@@ -161,7 +161,7 @@ class ConfigLoader:
             serial_number=settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER]),
             programmer=config["programmer"],
         )
-        return [config["executable"]] + [a.format(**vars_) for a in config["arguments"]]
+        return [config.get("executable")] + [a.format(**vars_) for a in config["arguments"]]
 
     def find_programmer_serial_number(self, raise_error: bool = True) -> str:
         """Find the serial number of the programmer."""
