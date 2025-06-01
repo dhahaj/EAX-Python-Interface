@@ -29,7 +29,7 @@ class CustomStatusBar(QStatusBar):
         self.widget = StatusWidget()
         self.addPermanentWidget(self.widget, 1)
 
-        self.widget.lcdNumber.setDigitCount(5)
+        # self.widget.lcdNumber.setDigitCount(5)
         self.settings = settings.get_instance()
 
         test_counter: counter.Counter = parent.test_counter
