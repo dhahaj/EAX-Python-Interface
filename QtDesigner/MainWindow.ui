@@ -10,7 +10,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1015</width>
+    <width>1672</width>
     <height>919</height>
    </rect>
   </property>
@@ -159,18 +159,21 @@ li.checked::marker { content: &quot;\2612&quot;; }
     </item>
     <item>
      <widget class="QGroupBox" name="controlBox">
+      <property name="cursor">
+       <cursorShape>CrossCursor</cursorShape>
+      </property>
       <property name="flat">
        <bool>true</bool>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <property name="spacing">
-        <number>9</number>
+        <number>6</number>
        </property>
        <property name="leftMargin">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="topMargin">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="rightMargin">
         <number>1</number>
@@ -181,7 +184,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
        <item>
         <widget class="QPushButton" name="program_button">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -189,7 +192,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>80</height>
+           <height>0</height>
           </size>
          </property>
          <property name="baseSize">
@@ -308,13 +311,13 @@ hover: rgb(0,0,0);</string>
           <string/>
          </property>
          <property name="icon">
-          <iconset>
-           <normaloff>:/images/icons/light/prog-button.png</normaloff>:/images/icons/light/prog-button.png</iconset>
+          <iconset resource="../resource.qrc">
+           <normaloff>:/resources/images/icons/light/prog-button.png</normaloff>:/resources/images/icons/light/prog-button.png</iconset>
          </property>
          <property name="iconSize">
           <size>
-           <width>100</width>
-           <height>100</height>
+           <width>155</width>
+           <height>135</height>
           </size>
          </property>
          <property name="shortcut">
@@ -340,7 +343,7 @@ hover: rgb(0,0,0);</string>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(0, 0, 0);</string>
+          <string notr="true">background-color: rgba(6, 6, 6, 230);</string>
          </property>
          <property name="title">
           <string/>
@@ -359,14 +362,14 @@ hover: rgb(0,0,0);</string>
             </property>
             <property name="font">
              <font>
-              <pointsize>14</pointsize>
+              <pointsize>16</pointsize>
               <bold>true</bold>
              </font>
             </property>
             <property name="styleSheet">
              <string notr="true">QLabel {
  color: rgb(255, 0, 0);
- background-color: rgb(0, 0, 0);
+background-color: rgba(6, 6, 6, 230);
  font-weight: bold;
  hover: {color: red}
 }</string>
@@ -399,17 +402,32 @@ hover: rgb(0,0,0);</string>
            <height>0</height>
           </size>
          </property>
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="autoFillBackground">
+          <bool>false</bool>
+         </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgb(0, 0, 0);</string>
+          <string notr="true">background-color: rgba(6, 6, 6, 230);</string>
          </property>
          <property name="title">
           <string/>
+         </property>
+         <property name="flat">
+          <bool>false</bool>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <item>
            <widget class="QLabel" name="label_usb_icon">
             <property name="enabled">
              <bool>true</bool>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
@@ -419,8 +437,8 @@ hover: rgb(0,0,0);</string>
             </property>
             <property name="maximumSize">
              <size>
-              <width>85</width>
-              <height>80</height>
+              <width>16777215</width>
+              <height>16777215</height>
              </size>
             </property>
             <property name="font">
@@ -434,7 +452,7 @@ hover: rgb(0,0,0);</string>
              <bool>false</bool>
             </property>
             <property name="styleSheet">
-             <string notr="true">background-color: rgba(0, 0, 0, 0);</string>
+             <string notr="true">background-color: rgba(9, 9, 9, 220);</string>
             </property>
             <property name="frameShape">
              <enum>QFrame::Shape::NoFrame</enum>
@@ -443,7 +461,7 @@ hover: rgb(0,0,0);</string>
              <enum>QFrame::Shadow::Sunken</enum>
             </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/resources/images/icons/infinity-16570.gif&quot; width=&quot;80&quot; height=&quot;80&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;img src=&quot;:/resources/images/icons/infinity-16570.gif&quot; width=&quot;130&quot; height=&quot;100&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="textFormat">
              <enum>Qt::TextFormat::RichText</enum>
@@ -478,10 +496,10 @@ hover: rgb(0,0,0);</string>
                </colorrole>
                <colorrole role="Button">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -505,19 +523,19 @@ hover: rgb(0,0,0);</string>
                </colorrole>
                <colorrole role="Base">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
                <colorrole role="Window">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -543,10 +561,10 @@ hover: rgb(0,0,0);</string>
                </colorrole>
                <colorrole role="Button">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -570,19 +588,19 @@ hover: rgb(0,0,0);</string>
                </colorrole>
                <colorrole role="Base">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
                <colorrole role="Window">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -608,10 +626,10 @@ hover: rgb(0,0,0);</string>
                </colorrole>
                <colorrole role="Button">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -635,19 +653,19 @@ hover: rgb(0,0,0);</string>
                </colorrole>
                <colorrole role="Base">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
                <colorrole role="Window">
                 <brush brushstyle="SolidPattern">
-                 <color alpha="255">
-                  <red>0</red>
-                  <green>0</green>
-                  <blue>0</blue>
+                 <color alpha="230">
+                  <red>6</red>
+                  <green>6</green>
+                  <blue>6</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -672,7 +690,7 @@ hover: rgb(0,0,0);</string>
             <property name="styleSheet">
              <string notr="true">QLabel {
  color: rgb(255, 0, 0);
- background-color: rgb(0, 0, 0);
+background-color: rgba(6, 6, 6, 230);
  font-weight: bold;
  hover: {color: red}
 }</string>
@@ -693,6 +711,12 @@ hover: rgb(0,0,0);</string>
        </item>
        <item>
         <widget class="QPushButton" name="test_button">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>158</width>
@@ -702,7 +726,7 @@ hover: rgb(0,0,0);</string>
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>110</height>
+           <height>16777215</height>
           </size>
          </property>
          <property name="palette">
@@ -815,13 +839,13 @@ hover: rgb(0,0,0);</string>
           <string/>
          </property>
          <property name="icon">
-          <iconset>
-           <normaloff>:/images/icons/light/test-button.png</normaloff>:/images/icons/light/test-button.png</iconset>
+          <iconset resource="../resource.qrc">
+           <normaloff>:/resources/images/icons/light/test-button.png</normaloff>:/resources/images/icons/light/test-button.png</iconset>
          </property>
          <property name="iconSize">
           <size>
-           <width>100</width>
-           <height>100</height>
+           <width>155</width>
+           <height>135</height>
           </size>
          </property>
          <property name="shortcut">
@@ -845,7 +869,7 @@ hover: rgb(0,0,0);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1015</width>
+     <width>1672</width>
      <height>33</height>
     </rect>
    </property>
@@ -1551,7 +1575,6 @@ hover: rgb(0,0,0);</string>
  </widget>
  <resources>
   <include location="../resource.qrc"/>
-  <include location="../icons.qrc"/>
  </resources>
  <connections>
   <connection>

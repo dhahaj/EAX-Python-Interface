@@ -21,14 +21,13 @@ from PySide6.QtWidgets import (QApplication, QFrame, QGroupBox, QHBoxLayout,
     QPushButton, QSizePolicy, QTabWidget, QTextBrowser,
     QTextEdit, QVBoxLayout, QWidget)
 import resource_rc
-import icons_rc
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(1015, 919)
+        MainWindow.resize(1672, 919)
         MainWindow.setMinimumSize(QSize(650, 500))
         font = QFont()
         font.setPointSize(11)
@@ -297,19 +296,20 @@ class Ui_MainWindow(object):
 
         self.controlBox = QGroupBox(self.centralwidget)
         self.controlBox.setObjectName(u"controlBox")
+        self.controlBox.setCursor(QCursor(Qt.CursorShape.CrossCursor))
         self.controlBox.setFlat(True)
         self.horizontalLayout_3 = QHBoxLayout(self.controlBox)
-        self.horizontalLayout_3.setSpacing(9)
+        self.horizontalLayout_3.setSpacing(6)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.horizontalLayout_3.setContentsMargins(1, 1, 1, 1)
+        self.horizontalLayout_3.setContentsMargins(0, 0, 1, 1)
         self.program_button = QPushButton(self.controlBox)
         self.program_button.setObjectName(u"program_button")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.program_button.sizePolicy().hasHeightForWidth())
         self.program_button.setSizePolicy(sizePolicy)
-        self.program_button.setMinimumSize(QSize(0, 80))
+        self.program_button.setMinimumSize(QSize(0, 0))
         self.program_button.setBaseSize(QSize(0, 0))
         palette = QPalette()
         brush = QBrush(QColor(5, 230, 255, 40))
@@ -331,9 +331,9 @@ class Ui_MainWindow(object):
         self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);\n"
 "hover: rgb(0,0,0);")
         icon19 = QIcon()
-        icon19.addFile(u":/images/icons/light/prog-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon19.addFile(u":/resources/images/icons/light/prog-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.program_button.setIcon(icon19)
-        self.program_button.setIconSize(QSize(100, 100))
+        self.program_button.setIconSize(QSize(155, 135))
         self.program_button.setFlat(True)
 
         self.horizontalLayout_3.addWidget(self.program_button)
@@ -342,7 +342,7 @@ class Ui_MainWindow(object):
         self.groupBox_2.setObjectName(u"groupBox_2")
         self.groupBox_2.setMinimumSize(QSize(0, 0))
         self.groupBox_2.setMaximumSize(QSize(16777215, 16777215))
-        self.groupBox_2.setStyleSheet(u"background-color: rgb(0, 0, 0);")
+        self.groupBox_2.setStyleSheet(u"background-color: rgba(6, 6, 6, 230);")
         self.groupBox_2.setFlat(False)
         self.horizontalLayout_2 = QHBoxLayout(self.groupBox_2)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
@@ -350,12 +350,12 @@ class Ui_MainWindow(object):
         self.device_label.setObjectName(u"device_label")
         self.device_label.setMinimumSize(QSize(0, 0))
         font4 = QFont()
-        font4.setPointSize(14)
+        font4.setPointSize(16)
         font4.setBold(True)
         self.device_label.setFont(font4)
         self.device_label.setStyleSheet(u"QLabel {\n"
 " color: rgb(255, 0, 0);\n"
-" background-color: rgb(0, 0, 0);\n"
+"background-color: rgba(6, 6, 6, 230);\n"
 " font-weight: bold;\n"
 " hover: {color: red}\n"
 "}")
@@ -372,21 +372,29 @@ class Ui_MainWindow(object):
         self.groupBox = QGroupBox(self.controlBox)
         self.groupBox.setObjectName(u"groupBox")
         self.groupBox.setMinimumSize(QSize(0, 0))
-        self.groupBox.setStyleSheet(u"background-color: rgb(0, 0, 0);")
+        self.groupBox.setAcceptDrops(False)
+        self.groupBox.setAutoFillBackground(False)
+        self.groupBox.setStyleSheet(u"background-color: rgba(6, 6, 6, 230);")
+        self.groupBox.setFlat(False)
         self.horizontalLayout = QHBoxLayout(self.groupBox)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.label_usb_icon = QLabel(self.groupBox)
         self.label_usb_icon.setObjectName(u"label_usb_icon")
         self.label_usb_icon.setEnabled(True)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.label_usb_icon.sizePolicy().hasHeightForWidth())
+        self.label_usb_icon.setSizePolicy(sizePolicy1)
         self.label_usb_icon.setMinimumSize(QSize(0, 0))
-        self.label_usb_icon.setMaximumSize(QSize(85, 80))
+        self.label_usb_icon.setMaximumSize(QSize(16777215, 16777215))
         font5 = QFont()
         font5.setPointSize(9)
         font5.setBold(False)
         font5.setKerning(False)
         self.label_usb_icon.setFont(font5)
         self.label_usb_icon.setAutoFillBackground(False)
-        self.label_usb_icon.setStyleSheet(u"background-color: rgba(0, 0, 0, 0);")
+        self.label_usb_icon.setStyleSheet(u"background-color: rgba(9, 9, 9, 220);")
         self.label_usb_icon.setFrameShape(QFrame.Shape.NoFrame)
         self.label_usb_icon.setFrameShadow(QFrame.Shadow.Sunken)
         self.label_usb_icon.setTextFormat(Qt.TextFormat.RichText)
@@ -402,7 +410,7 @@ class Ui_MainWindow(object):
         brush1 = QBrush(QColor(255, 0, 0, 255))
         brush1.setStyle(Qt.BrushStyle.SolidPattern)
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.WindowText, brush1)
-        brush2 = QBrush(QColor(0, 0, 0, 255))
+        brush2 = QBrush(QColor(6, 6, 6, 230))
         brush2.setStyle(Qt.BrushStyle.SolidPattern)
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Button, brush2)
         palette1.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, brush1)
@@ -433,10 +441,13 @@ class Ui_MainWindow(object):
         palette1.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.PlaceholderText, brush3)
 #endif
         self.usb_label.setPalette(palette1)
-        self.usb_label.setFont(font4)
+        font6 = QFont()
+        font6.setPointSize(14)
+        font6.setBold(True)
+        self.usb_label.setFont(font6)
         self.usb_label.setStyleSheet(u"QLabel {\n"
 " color: rgb(255, 0, 0);\n"
-" background-color: rgb(0, 0, 0);\n"
+"background-color: rgba(6, 6, 6, 230);\n"
 " font-weight: bold;\n"
 " hover: {color: red}\n"
 "}")
@@ -450,8 +461,10 @@ class Ui_MainWindow(object):
 
         self.test_button = QPushButton(self.controlBox)
         self.test_button.setObjectName(u"test_button")
+        sizePolicy.setHeightForWidth(self.test_button.sizePolicy().hasHeightForWidth())
+        self.test_button.setSizePolicy(sizePolicy)
         self.test_button.setMinimumSize(QSize(158, 80))
-        self.test_button.setMaximumSize(QSize(16777215, 110))
+        self.test_button.setMaximumSize(QSize(16777215, 16777215))
         palette2 = QPalette()
         palette2.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Button, brush)
         palette2.setBrush(QPalette.ColorGroup.Active, QPalette.ColorRole.Base, brush)
@@ -463,16 +476,16 @@ class Ui_MainWindow(object):
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Base, brush)
         palette2.setBrush(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Window, brush)
         self.test_button.setPalette(palette2)
-        font6 = QFont()
-        font6.setPointSize(20)
-        font6.setBold(False)
-        self.test_button.setFont(font6)
+        font7 = QFont()
+        font7.setPointSize(20)
+        font7.setBold(False)
+        self.test_button.setFont(font7)
         self.test_button.setAutoFillBackground(False)
         self.test_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
         icon20 = QIcon()
-        icon20.addFile(u":/images/icons/light/test-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon20.addFile(u":/resources/images/icons/light/test-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.test_button.setIcon(icon20)
-        self.test_button.setIconSize(QSize(100, 100))
+        self.test_button.setIconSize(QSize(155, 135))
         self.test_button.setAutoDefault(False)
         self.test_button.setFlat(True)
 
@@ -484,7 +497,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1015, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1672, 33))
         self.menubar.setFont(font)
         self.menubar.setDefaultUp(False)
         self.menubar.setNativeMenuBar(False)
@@ -636,7 +649,7 @@ class Ui_MainWindow(object):
         self.groupBox_2.setTitle("")
         self.device_label.setText(QCoreApplication.translate("MainWindow", u"Device not selected", None))
         self.groupBox.setTitle("")
-        self.label_usb_icon.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><img src=\":/resources/images/icons/infinity-16570.gif\" width=\"80\" height=\"80\"/></p></body></html>", None))
+        self.label_usb_icon.setText(QCoreApplication.translate("MainWindow", u"<html><head/><body><p><img src=\":/resources/images/icons/infinity-16570.gif\" width=\"130\" height=\"100\"/></p></body></html>", None))
         self.usb_label.setText(QCoreApplication.translate("MainWindow", u"USB: Not Connected", None))
 #if QT_CONFIG(statustip)
         self.test_button.setStatusTip(QCoreApplication.translate("MainWindow", u"Test the device", None))
