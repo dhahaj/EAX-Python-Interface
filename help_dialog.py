@@ -7,8 +7,8 @@ from imports import get_stylesheet
 
 
 class HelpDialog(QDialog, Ui_HelpDialog):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setupUi(self)
         self.settings = settings.get_instance()
 
