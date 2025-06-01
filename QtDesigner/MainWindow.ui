@@ -11,7 +11,7 @@
     <x>0</x>
     <y>0</y>
     <width>1672</width>
-    <height>919</height>
+    <height>810</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -931,6 +931,7 @@ background-color: rgba(6, 6, 6, 230);
     <addaction name="actionScreenshot"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_UP_exe"/>
+    <addaction name="actionEditConfig"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1565,6 +1566,16 @@ background-color: rgba(6, 6, 6, 230);
    </property>
    <property name="text">
     <string>Open UP.exe</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+    </font>
+   </property>
+  </action>
+  <action name="actionEditConfig">
+   <property name="text">
+    <string>Edit Config</string>
    </property>
    <property name="font">
     <font>
