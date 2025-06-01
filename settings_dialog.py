@@ -280,6 +280,7 @@ class SettingsDialog(QWidget, Ui_Settings):
         return super().event(event)
 
     def reset_counter(self) -> None:
-        self.settings.setValue(constants.KEY_TEST_COUNT, 0)
-        sb = self._parent.statusBar()
-        sb.widget.lcdNumber.display(0)
+        """Reset the counters to zero."""
+        self._parent.test_counter.reset()
+        self._parent.program_counter.reset()
+        self._parent.program_fail_counter.reset()
