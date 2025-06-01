@@ -2,7 +2,7 @@
 
 # EAX-500 Testing Software  
 
- *[Click Here for help.](https://)*
+ *[Click Here for help.](help)*
 
 ## Equipment Needed
 
