@@ -5,114 +5,115 @@
         "loadNpmCommands": false,
         "reloadButton": null,
         "commands": [
-          {
-            "name": "Run Main",
-            "singleInstance": true,
-            "color": "#ffe65c",
-            "cwd": "${workspaceFolder}",
-            "command": "venv\\scripts\\python main.py"
-          },
-          {
-            "name": "Resource",
-            "singleInstance": true,
-            "color": "lightpink",
-            "cwd": "${workspaceFolder}",
-            "command": "venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
-        },
-        {
-          "name": "UI2",
-          "singleInstance": true,
-          "color": "lightpink",
-          "cwd": "${workspaceFolder}",
-          "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_MainWindow.py QtDesigner/MainWindow.ui"
-      },
-        {
-            "name": "UI",
-            "singleInstance": true,
-            "color": "lightpink",
-            "cwd": "${workspaceFolder}",
-            "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_StatusBarWidget.py QtDesigner/StatusBarWidget.ui"
-        },
-          {
-            "name": "Open Designer",
-            "singleInstance": true,
-            "color": "#00ffe1",
-            "cwd": "${workspaceFolder}",
-            "command": "venv\\scripts\\pyside6-designer QtDesigner\\mainwindow.ui"
-          },
-          {
-            "name": "QtDesigner",
-            "singleInstance": true,
-            "color": "#ffe65c",
-            "cwd": "${workspaceFolder}",
-            "command": "venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
-          },
+            {
+                "name": "Run Main",
+                "singleInstance": true,
+                "color": "#ffe65c",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\python main.py"
+            },
+            {
+                "name": "Resource",
+                "singleInstance": true,
+                "color": "lightpink",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
+            },
+            {
+                "name": "Icons",
+                "singleInstance": true,
+                "color": "lightpink",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\pyside6-rcc.exe -o icons_rc.py icons.qrc"
+            },
+            {
+                "name": "UI2",
+                "singleInstance": true,
+                "color": "lightpink",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_MainWindow.py QtDesigner/MainWindow.ui"
+            },
+            {
+                "name": "UI",
+                "singleInstance": true,
+                "color": "lightpink",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_StatusBarWidget.py QtDesigner/StatusBarWidget.ui"
+            },
+            {
+                "name": "Open Designer",
+                "singleInstance": true,
+                "color": "#00ffe1",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\pyside6-designer QtDesigner\\mainwindow.ui"
+            },
+            {
+                "name": "QtDesigner",
+                "singleInstance": true,
+                "color": "#ffe65c",
+                "cwd": "${workspaceFolder}",
+                "command": "venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
+            }
         ]
     },
-    "isort.interpreter": [
-      "C:\\Python311\\python.exe"
-    ],
+    "isort.interpreter": ["C:\\Python311\\python.exe"],
     "python.analysis.autoImportCompletions": true,
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.exclude": [
-      "**/dist",
-      ".git",
-      "**/build",
-      "**/venv",
-      "**/.venv",
-      ".venv/*",
-      "venv/*"
+        "**/dist",
+        ".git",
+        "**/build",
+        "**/venv",
+        "**/.venv",
+        ".venv/*",
+        "venv/*"
     ],
     "autoDocstring.logLevel": "Info",
     "autoDocstring.includeName": false,
     "autoDocstring.startOnNewLine": true,
     "[python]": {
-      "editor.defaultFormatter": "ms-python.autopep8"
-      // "editor.defaultFormatter": "ms-python.black-formatter",
-      // "editor.formatOnSave": true
+        "editor.defaultFormatter": "ms-python.autopep8"
+        // "editor.defaultFormatter": "ms-python.black-formatter",
+        // "editor.formatOnSave": true
     },
     "python.languageServer": "Default",
-    "multiFormatter.formatterList": [
-      "autopep8"
-    ],
+    "multiFormatter.formatterList": ["autopep8"],
     "python.analysis.autoFormatStrings": true,
     "python.analysis.completeFunctionParens": true,
     "python.analysis.fixAll": [],
     "python.autoComplete.extraPaths": [],
     "python.envFile": "${workspaceFolder}/venv/pyvenv.cfg",
     "python.terminal.activateEnvInCurrentTerminal": true,
-    "black-formatter.interpreter": [
-      "${workspaceFolder}/venv/Scripts/python"
-    ],
+    "black-formatter.interpreter": ["${workspaceFolder}/venv/Scripts/python"],
     "black-formatter.args": [
-      "--skip-string-normalization",
-      "--line-length=125",
-      "--target-version=py313",
-      "--skip-magic-trailing-comma",
-      // "--max-line-length=150",
+        "--skip-string-normalization",
+        "--line-length=125",
+        "--target-version=py313",
+        "--skip-magic-trailing-comma"
+        // "--max-line-length=150",
     ],
     "python.analysis.extraPaths": [
-      "./ui",
-      "venv/src/**/*",
-      "venv/src/telemetrix-aio/*.*",
-      "venv/src/telemetrix-aio/**",
-      "venv/src/telemetrix-aio/*",
-      "${workspaceFolder}/*.*",
+        "./ui",
+        "venv/src/**/*",
+        "venv/src/telemetrix-aio/*.*",
+        "venv/src/telemetrix-aio/**",
+        "venv/src/telemetrix-aio/*",
+        "${workspaceFolder}/*.*"
     ],
     "files.associations": {
-      "*.src": "pic-assembly",
-      "*.py": "python",
-      "*.v": "verilog",
-      "ostream": "c",
-      "*.yaml": "home-assistant",
-      "*.spec": "python",
-      "*.qrc": "xml",
-      "*.ui": "xml",
+        "*.src": "pic-assembly",
+        "*.py": "python",
+        "*.v": "verilog",
+        "ostream": "c",
+        "*.yaml": "home-assistant",
+        "*.spec": "python",
+        "*.qrc": "xml",
+        "*.ui": "xml"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "python.formatting.provider": "yapf",
     "qtForPython.uic.options": [
-      "-o",
-      "${resourceDirname}${pathSeparator}..${pathSeparator}ui${pathSeparator}ui_${resourceBasenameNoExtension}.py"
+        "-o",
+        "${resourceDirname}${pathSeparator}..${pathSeparator}ui${pathSeparator}ui_${resourceBasenameNoExtension}.py"
     ]
 }
