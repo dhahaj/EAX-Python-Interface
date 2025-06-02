@@ -110,7 +110,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__()
         self.setupUi(self)
         self.setWindowIcon(QIcon(constants.ICON_WINDOW))
-        # self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setWindowTitle(f"{constants.APP_NAME} v{constants.APP_VERSION}")
+
         self.show_movie()
 
         # Settings

@@ -12,7 +12,7 @@ from typing import List
 from os import PathLike
 
 APP_NAME: str = "EAX Interface"
-APP_VERSION: str = "1.1.0"
+APP_VERSION: str = "2.1.0"
 COMPANY_NAME: str = "Detex Corp"
 
 ICON_WINDOW = ':/images/icons/code.ico'
