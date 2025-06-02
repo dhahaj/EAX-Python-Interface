@@ -38,7 +38,7 @@
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_StatusBarWidget.py QtDesigner/StatusBarWidget.ui"
+                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_Settings.py QtDesigner/Settings.ui"
             },
             {
                 "name": "Open Designer",
