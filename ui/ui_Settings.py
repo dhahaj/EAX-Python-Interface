@@ -129,6 +129,7 @@ class Ui_Settings(object):
 
         self.checkBox_frameless = QCheckBox(self.groupBox_5)
         self.checkBox_frameless.setObjectName(u"checkBox_frameless")
+        self.checkBox_frameless.setEnabled(False)
         self.checkBox_frameless.setFont(font)
 
         self.gridLayout.addWidget(self.checkBox_frameless, 0, 0, 1, 1)
@@ -152,6 +153,7 @@ class Ui_Settings(object):
 
         self.counterCheckbox = QCheckBox(self.groupBox_5)
         self.counterCheckbox.setObjectName(u"counterCheckbox")
+        self.counterCheckbox.setEnabled(False)
         self.counterCheckbox.setFont(font)
         self.counterCheckbox.setChecked(True)
 
