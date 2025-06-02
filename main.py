@@ -9,44 +9,36 @@ if getattr(sys, "frozen", False) and sys.stdout is None:
     log_path = Path.cwd() / "stdout.log"
     sys.stdout = sys.stderr = open(log_path, "w", buffering=1, encoding="utf-8", errors="backslashreplace")
 
-
 from qtpy import (
-    QtCore,
     QtGui,
 )
 from qtpy.QtGui import (
-    QFont,
-    QFontInfo,
     QIcon,
     QMovie,
-    QCursor,
     QAction,
     QKeyEvent,
 )
 from qtpy.QtCore import (
     QTimer,
-    QEvent,
     Qt,
     QSize,
     QProcess,
     QSize,
     QByteArray,
     QObject,
-    Signal,
     Slot,
     QLockFile,
     QDir,
     QUrl,
+    Qt,
 )
 from qtpy.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QWidget,
     QInputDialog,
     QActionGroup,
 )
-
 # import util.config_resources_rc
 import icons_rc
 from ui import Ui_MainWindow, Ui_ManualControlDialog
@@ -85,9 +77,7 @@ import counter
 from menu_item import MenuItem
 from editor import Editor
 from pathlib import Path
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QPixmap
-from PySide6.QtWidgets import QTextEdit
+from firmware_update import FirmwareUpdateProcess
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -153,17 +143,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if (font_str := settings.get(constants.KEY_FONT, "")):
             self.text_edit.setFont(from_string(font_str))
 
+        self.text_edit.setStyleSheet(f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};" f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};")
         self.text_edit.anchorClicked.connect(self.check_for_link)
         self.text_edit.setOpenLinks(False)
 
-        # self.text_edit.setStyleSheet(
-        #     f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};" f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
-        # )
-
         # Connect the menu items
-        self.actionExplore_Directory.triggered.connect(
-            lambda: subprocess.Popen(f"explorer {os.getcwd()}")
-        )
+        self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
         self.actionConnect.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
         self.actionAbout.triggered.connect(lambda: QApplication.aboutQt())
@@ -184,13 +169,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Set the theme
         self.set_theme(get_theme(self.settings))
 
-        # Remove the default actions from the device menu
-        self.menuDevice.clear()
-
         # Load the devices from the config file and add each device to the menu
-        for device in load_devices():
-            # Create a menu item for each device
-            self.menuDevice.addAction(MenuItem(device, self))
+        self.menuDevice.clear()
+        [self.menuDevice.addAction(MenuItem(device, self)) for device in load_devices()]
+        # for device in load_devices():
+        #     self.menuDevice.addAction(MenuItem(device, self))
 
         self.actionGroup: QActionGroup = createActionGroup(self, self.menuDevice.actions())
         self.actionGroup.triggered.connect(self.deviceSelect)
@@ -207,7 +190,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # If auto connect is enabled, try to connect to the USB device
         if self.settings.get(constants.KEY_AUTO_CONNECT):
-            QTimer.singleShot(1200, lambda: asyncio.create_task(self.connect_task()))
+            QTimer.singleShot(500, lambda: asyncio.create_task(self.connect_task()))
 
     def set_status(self, message: str, timeout: int = 0) -> None:
         """Set the status message in the status bar."""
@@ -293,9 +276,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def set_theme(self, theme: str) -> None:
         """Set the theme."""
-        log.info(f"Setting theme to {theme}")
+        log.debug(f"Setting theme to {theme}")
         if theme == 'dark':
-            # style = qdarkstyle.load_stylesheet(qt_api='pyside2')
             style = qdarkstyle.load_stylesheet(palette=qdarkstyle.DarkPalette)
             self.actionDark_Theme.setChecked(True)
         else:
@@ -306,12 +288,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_icon(self.connect_menu, 'usb2')
         self.set_icon(self.test_button, 'test-button')
         self.set_icon(self.program_button, 'prog-button')
-
-        # for action in self.menuDevice.actions():
-        #     if action.text() == self.eax_device.name:
-        #         self.set_icon(action, 'radio-on-button')
-        #     else:
-        #         self.set_icon(action, 'radio-off-button')
 
         self.setStyleSheet(style)
         self.settings_dialog.setStyleSheet(style)
@@ -329,21 +305,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.set_icon(self.actionStatisitics, 'bar-chart')
 
     def toggle_theme(self) -> None:
-        log.info("Toggle theme")
-        if self.settings.get_bool(constants.KEY_DARK_THEME):
-            self.settings.app_settings.setValue(constants.KEY_DARK_THEME, False)
-            self.set_theme('light')
-            self.actionDark_Theme.setChecked(False)
-        else:
-            self.settings.app_settings.setValue(constants.KEY_DARK_THEME, True)
-            self.set_theme('dark')
-            self.actionDark_Theme.setChecked(True)
+        """Toggle the theme between light and dark."""
+        log.debug("Toggle theme")
+
+        dark = self.settings.get_bool(constants.KEY_DARK_THEME)
+
+        self.settings.app_settings.setValue(constants.KEY_DARK_THEME, not dark)
+        self.set_theme('dark' if not dark else 'light')
+        self.actionDark_Theme.setChecked(not dark)
 
     def set_icon(self, widget: QObject, icon_name: str, ext='png') -> None:
-        if get_theme(self.settings) == 'dark':
-            icon_path = f":/images/icons/light/{icon_name}.{ext}"
-        else:
-            icon_path = f":/images/icons/dark/{icon_name}.{ext}"
+        """Set the icon for a widget based on the current theme."""
+        dark = self.settings.get_bool(constants.KEY_DARK_THEME)
+        icon_path = f":/images/icons/{'light' if dark else 'dark'}/{icon_name}.{ext}"
         icon = QIcon()
         icon.addFile(icon_path, QSize(), QIcon.Normal, QIcon.On)
         widget.setIcon(icon)
@@ -452,6 +426,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.get_int(constants.KEY_INACTIVITY_TIMEOUT, constants.DEFAULT_SETTINGS[constants.KEY_INACTIVITY_TIMEOUT]) * 60 * 1000
         )
 
+    def handle_inactivity_timeout(self) -> None:
+        """Called when the inactivity timer times out."""
+        log.debug("Inactivity timeout.")
+        self.device_label.setText("Device not selected")  # clear the device label
+        self.actionGroup.checkedAction().setChecked(False) if self.actionGroup.checkedAction() else None  # reset the device
+
     # ----- Device Select Functions ----- #
 
     def get_selected_device(self) -> Device:
@@ -483,12 +463,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue(constants.KEY_CHIP_PART, item)
             log.debug(f"saved chip settings: {item}")
 
-    def handle_inactivity_timeout(self) -> None:
-        """Called when the inactivity timer times out."""
-        log.debug("Inactivity timeout.")
-        self.device_label.setText("Device not selected")  # clear the device label
-        self.actionGroup.checkedAction().setChecked(False) if self.actionGroup.checkedAction() else None  # reset the device
-
     def append_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
         self.text_edit.append(prepend + text)
@@ -509,11 +483,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     async def connect_task(self) -> None:
         if self.state == State.CONNECTED:
             await self.disconnect_device()
-        elif self.state is not State.IDLE:
-            return
-        else:
+        elif self.state is State.IDLE:
             from arduino import get_device
-
             self.arduino = get_device()
             self.arduino.connection_changed.connect(self.on_connection_changed)
             self.state = State.CONNECTING
@@ -550,7 +521,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             await self.arduino.async_disconnect()
             self.arduino = None  # clear the reference to the device
         self.state = State.IDLE
-        log.info("Device disconnected successfully.")
+        log.success("Device disconnected successfully.")
 
     def _connect_controller_signals(self) -> None:
         """Connect the signals from the test controller to the main window."""
@@ -577,9 +548,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.append_text(f"{fw} not found!")
             return
 
-        try:
+        previous_state = self.state
 
-            argv = cfg.get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
+        try:
+            argv = cfg.get_config().generate_program_arguments(device=self.get_selected_device())
 
             log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
 
@@ -587,18 +559,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.program_process = QProcess(self)
 
             # when it finishes, grab only the exit code
-            previous_state = self.state
             self.program_process.finished.connect(lambda code, _: self.handle_programming_result(code, previous_state))
             self.state = State.PROGRAMMING
 
-            # start it
             self.program_process.setProgram(argv[0])
             self.program_process.setArguments(argv[1:])
             self.program_process.start()
         except Exception as e:
-            self.append_text(f'<br><p>"Exception during programming: {e}</p>')
+            self.append_text(f'<br><p>Exception during programming: {e}</p>')
             log.exception(f"Exception during programming: {e}")
-            self.state = State.IDLE
+            self.state = previous_state  # restore the previous state
 
     @Slot(int, QProcess.ExitStatus)
     def handle_programming_result(self, returncode: int, previous_state: State) -> None:
@@ -853,51 +823,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             log.debug(f"{message.type}: {message.data}")
 
-
-class FirmwareUpdateProcess(QProcess):
-    """Process to update the firmware."""
-
-    # emit decoded stdout whenever new data arrives
-    outputReceived = Signal(str)
-    # emit exit code when finished
-    finishedWithCode = Signal(int, QProcess.ExitStatus, bool)
-
-    def __init__(self, parent: MainWindow = None):
-        super().__init__(parent)
-        self.parent: MainWindow = parent
-        self.setWorkingDirectory(os.getcwd())
-        self.errorOccurred.connect(self._on_error)
-        self.finished.connect(self._on_finished)
-        self.readyReadStandardOutput.connect(self._read_standard_output)
-        self.readyReadStandardError.connect(self._read_standard_error)
-        self.device_connected = False
-
-    @Slot()
-    def _read_standard_output(self):
-        """Read the standard output of the process."""
-        output = self.readAllStandardOutput().data().decode()
-        self.outputReceived.emit(output)
-
-    @Slot()
-    def _read_standard_error(self):
-        """Read the standard error of the process."""
-        error = self.readAllStandardError().data().decode()
-        self.outputReceived.emit(error)
-
-    @Slot(int, QProcess.ExitStatus)
-    def _on_finished(self, exit_code, exit_status):
-        self.finishedWithCode.emit(exit_code, exit_status, self.device_connected)
-
-    @Slot(QProcess.ProcessError)
-    def _on_error(self, error: QProcess.ProcessError):
-        self.parent.on_error(error)
-        self.finishedWithCode.emit(-1, QProcess.ExitStatus.NormalExit, self.device_connected)
-
-    def run(self, program: str, args: list[str] = None):
-        """Convenience method to start a process."""
-        self.setProgram(program)
-        self.setArguments(args or [])
-        self.start()
 
 
 if __name__ == "__main__":
