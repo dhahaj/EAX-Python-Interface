@@ -2,7 +2,7 @@
   <qresource prefix="/">
     <file>../settings.ini</file>
     <file>../config.yaml</file>
-    <file>../instructions.md</file>
+    <!-- <file>../instructions.md</file> -->
     <!-- <file>../tools/arduino-cli.zip</file> -->
     <file>../firmware/</file>
     <file>../Scripts/</file>
