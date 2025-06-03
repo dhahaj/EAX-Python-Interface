@@ -17,6 +17,8 @@ COMPANY_NAME: str = "Detex Corp"
 
 ICON_WINDOW = ':/images/icons/code.ico'
 
+MOVIE_ICON = ':/resources/images/icons/infinity-16570.gif'
+
 ICON_USB_IMAGE = '<html><head/><body><p><img width="50" height="050" src=":/resources/icons/images/icons/usb3.png"/></p></body></html>'
 
 ICON_USB_RED = '<html><head/><body><p><img width="52" height="52" src=":/images/icons/disconnected"/></p></body></html>'
