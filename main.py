@@ -95,6 +95,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     help_dialog: HelpDialog | None = None
     arduino: AIODevice | None = None
     testController: TestController | None = None
+    program_process: QProcess | None = None
 
     def __init__(self, app, settings=None) -> None:
         super(MainWindow, self).__init__()
@@ -112,8 +113,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.restoreGeometry(self.settings.app_settings.value("mainwindow/geometry", QByteArray()))
         self.restoreState(self.settings.app_settings.value("mainwindow/windowState", QByteArray()))
 
-        # log.debug(f"Settings: {self.settings.app_settings.allKeys()}")
-
         if self.settings.app_settings.value(constants.KEY_FULLSCREEN, type=bool):
             self.showFullScreen()
         else:
@@ -125,8 +124,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_process = FirmwareUpdateProcess(self)
         self.update_process.outputReceived.connect(lambda data: self.append_text(data, prepend=""))
         self.update_process.finishedWithCode.connect(self.on_finished)
-
-        self.program_process: QProcess | None = None
 
         # Quick Connection Menu
         self.connect_menu = QAction(self)
@@ -172,8 +169,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Load the devices from the config file and add each device to the menu
         self.menuDevice.clear()
         [self.menuDevice.addAction(MenuItem(device, self)) for device in load_devices()]
-        # for device in load_devices():
-        #     self.menuDevice.addAction(MenuItem(device, self))
 
         self.actionGroup: QActionGroup = createActionGroup(self, self.menuDevice.actions())
         self.actionGroup.triggered.connect(self.deviceSelect)
@@ -406,7 +401,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_movie(self, pause: bool = False) -> None:
         """Show or hide the GIF in the USB icon label."""
         if self.label_usb_icon.movie() is None:
-            movie = QMovie(":/resources/images/icons/infinity-16570.gif")
+            movie = QMovie(constants.MOVIE_ICON)
             size = QSize(120, 100)  # Set the size of the movie
             movie.setScaledSize(size)
             movie.setSpeed(200)
@@ -455,9 +450,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def get_chip_part(self) -> None:
         current_chip = self.settings.get(constants.KEY_CHIP_PART)
         current_selection = constants.CHIP_OPTIONS.index(current_chip)
-        item, okPressed = QInputDialog.getItem(
-            self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False
-        )
+        item, okPressed = QInputDialog.getItem(self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False)
         if okPressed and item:
             self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
             self.settings.setValue(constants.KEY_CHIP_PART, item)
@@ -551,7 +544,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         previous_state = self.state
 
         try:
-            argv = cfg.get_config().generate_program_arguments(device=self.get_selected_device())
+            argv = cfg.get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
 
             log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
 
@@ -578,12 +571,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.append_text("<br><p>Programming successful.</p>")
             log.info(f"Programming successful for {self.get_selected_device().name}.")
             self.program_counter.increment()
-            if self.settings.get(constants.KEY_AUTO_TEST) and self.arduino.device_connected:
-                self.test_button.click()
-                return
+            if self.settings.get(constants.KEY_AUTO_TEST):
+                if self.arduino and self.arduino.device_connected:
+                    self.test_button.click()
         else:
-            self.append_text(f"<br><p>Programming failed. Return code: {returncode}</p>")
             self.program_fail_counter.increment()
+            self.append_text(f"<br><p>Programming failed. Return code: {returncode}</p>")
             log.error(f"Programming failed for {self.get_selected_device().name}. Return code: {returncode}")
 
     def show_statistics(self) -> None:
@@ -861,17 +854,17 @@ if __name__ == "__main__":
             "firmware/EAX500_591.hex",
             "firmware/EAX505_591.hex",
             "firmware/EAX525_591.hex",
+            "tools/arduino-cli.exe",
+            "tools/libraries/Telemetrix4Arduino/Telemetrix4Arduino.cpp",
         ]
     ):
         print("Some files are missing. Extracting defaults from resources.")
         import util.config_resources_rc
-
         extract_zip_from_resources('.')
 
     loop = QEventLoop(app)
     asyncio.set_event_loop(loop)
     window = MainWindow(app, settings)
-    window.setWindowTitle(f"{constants.APP_NAME} v{constants.APP_VERSION}")
     window.show()
     log.info("Application started.")
     with loop:
