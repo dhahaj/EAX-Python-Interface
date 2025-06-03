@@ -155,10 +155,10 @@ class ConfigLoader:
         config = self.get_program_config()
         if not config:
             raise ValueError("No programmer configuration found in the config file.")
-        if not settings:
-            serial = self.find_programmer_serial_number(raise_error=True)
-        else:
-            serial = settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER])
+        # if not settings:
+        serial = self.find_programmer_serial_number(raise_error=True)
+        # else:
+            # serial = settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER])
         vars_ = dict(
             chip_part=settings.get(KEY_CHIP_PART, DEFAULT_SETTINGS[KEY_CHIP_PART]),
             firmware_name=device.firmware_path,
@@ -212,7 +212,12 @@ def get_config(**kwargs) -> "ConfigLoader":
 
 if __name__ == '__main__':
     config = get_config()
-    config.find_programmer_serial_number(raise_error=False)
+    from settings import get_instance
+    settings = get_instance()
+    from device import Device
+    device = Device("example_device", firmware="example_firmware.hex", label_color="blue")
+    print(config.generate_program_arguments(settings=settings, device=device))
+    print(config.find_programmer_serial_number(raise_error=False))
     # print(config.devices)
     # from pprint import pprint
     # pprint(config.get_test_sequence(), indent=4, width=120)
