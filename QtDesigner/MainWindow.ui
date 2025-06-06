@@ -304,8 +304,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
           <bool>false</bool>
          </property>
          <property name="styleSheet">
-          <string notr="true">background-color: rgba(5, 230, 255, 40);
-hover: rgb(0,0,0);</string>
+          <string notr="true">background-color: rgba(5, 230, 255, 40);</string>
          </property>
          <property name="text">
           <string/>
@@ -371,7 +370,6 @@ hover: rgb(0,0,0);</string>
  color: rgb(255, 0, 0);
 background-color: rgba(6, 6, 6, 230);
  font-weight: bold;
- hover: {color: red}
 }</string>
             </property>
             <property name="frameShape">
@@ -692,7 +690,6 @@ background-color: rgba(6, 6, 6, 230);
  color: rgb(255, 0, 0);
 background-color: rgba(6, 6, 6, 230);
  font-weight: bold;
- hover: {color: red}
 }</string>
             </property>
             <property name="text">

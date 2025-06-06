@@ -331,8 +331,7 @@ class Ui_MainWindow(object):
         font3.setPointSize(18)
         self.program_button.setFont(font3)
         self.program_button.setAutoFillBackground(False)
-        self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);\n"
-"hover: rgb(0,0,0);")
+        self.program_button.setStyleSheet(u"background-color: rgba(5, 230, 255, 40);")
         icon19 = QIcon()
         icon19.addFile(u":/resources/images/icons/light/prog-button.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
         self.program_button.setIcon(icon19)
@@ -360,7 +359,6 @@ class Ui_MainWindow(object):
 " color: rgb(255, 0, 0);\n"
 "background-color: rgba(6, 6, 6, 230);\n"
 " font-weight: bold;\n"
-" hover: {color: red}\n"
 "}")
         self.device_label.setFrameShape(QFrame.Shape.NoFrame)
         self.device_label.setFrameShadow(QFrame.Shadow.Sunken)
@@ -452,7 +450,6 @@ class Ui_MainWindow(object):
 " color: rgb(255, 0, 0);\n"
 "background-color: rgba(6, 6, 6, 230);\n"
 " font-weight: bold;\n"
-" hover: {color: red}\n"
 "}")
         self.usb_label.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
         self.usb_label.setMargin(9)
