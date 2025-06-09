@@ -60,6 +60,7 @@ import config_loader as cfg
 from constants import State
 from config_loader import get_config as get_config
 from arduino import AIODevice
+from chipSelectDialog import ChipSelectDialog
 from qasync import QEventLoop
 from pathlib import Path
 from typing import List, Dict
@@ -149,7 +150,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
         self.actionConnect.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
         self.actionAbout.triggered.connect(lambda: QApplication.aboutQt())
-        self.actionChip_Select.triggered.connect(self.get_chip_part)
+        # self.actionChip_Select.triggered.connect(self.get_chip_part)
+        self.actionChip_Select.triggered.connect(lambda: ChipSelectDialog.get_chip(self))
         self.actionShow_Logs.triggered.connect(self.show_log)
         self.actionChange_font.triggered.connect(self.choose_font)
         self.actionManual_Control.triggered.connect(self.control_manually)
@@ -447,14 +449,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.text_edit.setFont(font)
             settings.setValue('mainwindow/font', font.toString())
 
-    def get_chip_part(self) -> None:
-        current_chip = self.settings.get(constants.KEY_CHIP_PART)
-        current_selection = constants.CHIP_OPTIONS.index(current_chip)
-        item, okPressed = QInputDialog.getItem(self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False)
-        if okPressed and item:
-            self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
-            self.settings.setValue(constants.KEY_CHIP_PART, item)
-            log.debug(f"saved chip settings: {item}")
+    # def get_chip_part(self) -> None:
+    #     current_chip = self.settings.get(constants.KEY_CHIP_PART)
+    #     current_selection = constants.CHIP_OPTIONS.index(current_chip)
+    #     item, okPressed = QInputDialog.getItem(self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False)
+    #     if okPressed and item:
+    #         self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
+    #         self.settings.setValue(constants.KEY_CHIP_PART, item)
+    #         log.debug(f"saved chip settings: {item}")
 
     def append_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
@@ -828,7 +830,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     settings = settings.get_instance()
-
+ 
     def verify_files(files: List[str]) -> bool:
         """
         Verify if the files exist in the current directory.
@@ -843,21 +845,7 @@ if __name__ == "__main__":
                 found = False
         return found
 
-    if not verify_files(
-        [
-            "instructions.md",
-            "Scripts/Upload.ps1",
-            "Scripts/UpdateFirmware.ps1",
-            "sketches/Telemetrix4Arduino/build/arduino.avr.uno/Telemetrix4Arduino.ino.hex",
-            "sketches/StandardFirmata/build/arduino.avr.uno/StandardFirmata.ino.hex",
-            "firmware/EAX300_59.hex",
-            "firmware/EAX500_591.hex",
-            "firmware/EAX505_591.hex",
-            "firmware/EAX525_591.hex",
-            "tools/arduino-cli.exe",
-            "tools/libraries/Telemetrix4Arduino/Telemetrix4Arduino.cpp",
-        ]
-    ):
+    if not verify_files(constants.REQUIRED_FILES):
         print("Some files are missing. Extracting defaults from resources.")
         import util.config_resources_rc
         extract_zip_from_resources('.')
