@@ -12,7 +12,7 @@ from typing import List
 from os import PathLike
 
 APP_NAME: str = "EAX Interface"
-APP_VERSION: str = "2.1.0"
+APP_VERSION: str = "2.1.1"
 COMPANY_NAME: str = "Detex Corp"
 
 ICON_WINDOW = ':/images/icons/code.ico'
@@ -159,3 +159,25 @@ INSTRUCTIONS = """<p><img src=":/resources/detex" width="300" style="float:right
 
 ```
 """
+
+REQUIRED_FILES: List[PathLike] = [
+    "instructions.md",
+    "Scripts/Upload.ps1",
+    "Scripts/UpdateFirmware.ps1",
+    "firmware/EAX300_59.hex",
+    "firmware/EAX500_591.hex",
+    "firmware/EAX503_591.hex",
+    "firmware/EAX504_591.hex",
+    "firmware/EAX505_591.hex",
+    "firmware/EAX510_591.hex",
+    "firmware/EAX513_591.hex",
+    "firmware/EAX514_591.hex",
+    "firmware/EAX515_591.hex",
+    "firmware/EAX520_591.hex",
+    "firmware/EAX523_591.hex",
+    "firmware/EAX524_591.hex",
+    "firmware/EAX525_591.hex",
+    "tools/arduino-cli.exe",
+    "tools/libraries/Telemetrix4Arduino/Telemetrix4Arduino.cpp",
+    "sketches/Telemetrix4Arduino/Telemetrix4Arduino.ino",
+]
