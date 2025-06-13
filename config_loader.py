@@ -4,8 +4,7 @@ import os
 from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMER_SERIAL_NUMBER
 from util.resources import extract_file_from_resource
 import copy
-import wmi
-
+from usbinfo import find_device, list_hubs
 
 class Keys:
     """Keys used in the config file."""
@@ -181,15 +180,7 @@ class ConfigLoader:
 
     def get_usb_device(self, vid: str, pid: str) -> Dict[str, Any]:
         """Return the USB device with the given VID and PID."""
-        c = wmi.WMI()
-        for device in c.Win32_USBHub():
-            if device.DeviceID.startswith(f"USB\\VID_{vid.upper()}&PID_{pid.upper()}"):
-                return {
-                    "name": device.Name,
-                    "device_id": device.DeviceID,
-                    "status": device.Status,
-                }
-        return None  # No device found with the given VID and PID
+        return find_device(vid, pid) or {}
 
 
 
