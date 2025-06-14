@@ -11,28 +11,22 @@ if getattr(sys, "frozen", False) and sys.stdout is None:
 
 
 from qtpy import (
-    QtCore,
     QtGui,
 )
 from qtpy.QtGui import (
-    QFont,
-    QFontInfo,
     QIcon,
     QMovie,
-    QCursor,
     QAction,
     QKeyEvent,
 )
 from qtpy.QtCore import (
     QTimer,
-    QEvent,
     Qt,
     QSize,
     QProcess,
     QSize,
     QByteArray,
     QObject,
-    Signal,
     Slot,
     QLockFile,
     QDir,
@@ -42,7 +36,6 @@ from qtpy.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QWidget,
     QInputDialog,
     QActionGroup,
 )
@@ -81,13 +74,12 @@ from settings_dialog import SettingsDialog
 from imports import critical, from_string
 from status_widget import CustomStatusBar
 from manual_widget import ManualWidget
+from firmware_update import FirmwareUpdateProcess
 import counter
 from menu_item import MenuItem
 from editor import Editor
 from pathlib import Path
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QPixmap
-from PySide6.QtWidgets import QTextEdit
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -156,14 +148,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.text_edit.anchorClicked.connect(self.check_for_link)
         self.text_edit.setOpenLinks(False)
 
-        # self.text_edit.setStyleSheet(
-        #     f"color:{self.settings.get(constants.KEY_FOREGROUND_COLOR)};" f"background-color:{self.settings.get(constants.KEY_BACKGROUND_COLOR)};"
-        # )
-
         # Connect the menu items
-        self.actionExplore_Directory.triggered.connect(
-            lambda: subprocess.Popen(f"explorer {os.getcwd()}")
-        )
+        self.actionExplore_Directory.triggered.connect(lambda: subprocess.Popen(f"explorer {os.getcwd()}"))
         self.actionUpdate_Firmware.triggered.connect(self.update_firmware)
         self.actionConnect.triggered.connect(lambda: asyncio.create_task(self.connect_task()))
         self.actionAbout.triggered.connect(lambda: QApplication.aboutQt())
@@ -189,7 +175,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Load the devices from the config file and add each device to the menu
         for device in load_devices():
-            # Create a menu item for each device
             self.menuDevice.addAction(MenuItem(device, self))
 
         self.actionGroup: QActionGroup = createActionGroup(self, self.menuDevice.actions())
@@ -854,50 +839,50 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.debug(f"{message.type}: {message.data}")
 
 
-class FirmwareUpdateProcess(QProcess):
-    """Process to update the firmware."""
+# class FirmwareUpdateProcess(QProcess):
+#     """Process to update the firmware."""
 
-    # emit decoded stdout whenever new data arrives
-    outputReceived = Signal(str)
-    # emit exit code when finished
-    finishedWithCode = Signal(int, QProcess.ExitStatus, bool)
+#     # emit decoded stdout whenever new data arrives
+#     outputReceived = Signal(str)
+#     # emit exit code when finished
+#     finishedWithCode = Signal(int, QProcess.ExitStatus, bool)
 
-    def __init__(self, parent: MainWindow = None):
-        super().__init__(parent)
-        self.parent: MainWindow = parent
-        self.setWorkingDirectory(os.getcwd())
-        self.errorOccurred.connect(self._on_error)
-        self.finished.connect(self._on_finished)
-        self.readyReadStandardOutput.connect(self._read_standard_output)
-        self.readyReadStandardError.connect(self._read_standard_error)
-        self.device_connected = False
+#     def __init__(self, parent: MainWindow = None):
+#         super().__init__(parent)
+#         self.parent: MainWindow = parent
+#         self.setWorkingDirectory(os.getcwd())
+#         self.errorOccurred.connect(self._on_error)
+#         self.finished.connect(self._on_finished)
+#         self.readyReadStandardOutput.connect(self._read_standard_output)
+#         self.readyReadStandardError.connect(self._read_standard_error)
+#         self.device_connected = False
 
-    @Slot()
-    def _read_standard_output(self):
-        """Read the standard output of the process."""
-        output = self.readAllStandardOutput().data().decode()
-        self.outputReceived.emit(output)
+#     @Slot()
+#     def _read_standard_output(self):
+#         """Read the standard output of the process."""
+#         output = self.readAllStandardOutput().data().decode()
+#         self.outputReceived.emit(output)
 
-    @Slot()
-    def _read_standard_error(self):
-        """Read the standard error of the process."""
-        error = self.readAllStandardError().data().decode()
-        self.outputReceived.emit(error)
+#     @Slot()
+#     def _read_standard_error(self):
+#         """Read the standard error of the process."""
+#         error = self.readAllStandardError().data().decode()
+#         self.outputReceived.emit(error)
 
-    @Slot(int, QProcess.ExitStatus)
-    def _on_finished(self, exit_code, exit_status):
-        self.finishedWithCode.emit(exit_code, exit_status, self.device_connected)
+#     @Slot(int, QProcess.ExitStatus)
+#     def _on_finished(self, exit_code, exit_status):
+#         self.finishedWithCode.emit(exit_code, exit_status, self.device_connected)
 
-    @Slot(QProcess.ProcessError)
-    def _on_error(self, error: QProcess.ProcessError):
-        self.parent.on_error(error)
-        self.finishedWithCode.emit(-1, QProcess.ExitStatus.NormalExit, self.device_connected)
+#     @Slot(QProcess.ProcessError)
+#     def _on_error(self, error: QProcess.ProcessError):
+#         self.parent.on_error(error)
+#         self.finishedWithCode.emit(-1, QProcess.ExitStatus.NormalExit, self.device_connected)
 
-    def run(self, program: str, args: list[str] = None):
-        """Convenience method to start a process."""
-        self.setProgram(program)
-        self.setArguments(args or [])
-        self.start()
+#     def run(self, program: str, args: list[str] = None):
+#         """Convenience method to start a process."""
+#         self.setProgram(program)
+#         self.setArguments(args or [])
+#         self.start()
 
 
 if __name__ == "__main__":
