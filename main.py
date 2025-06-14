@@ -36,7 +36,6 @@ from qtpy.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QInputDialog,
     QActionGroup,
 )
 # import util.config_resources_rc
@@ -449,15 +448,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.debug(f"User selected font: {font.toString()}")
             self.text_edit.setFont(font)
             settings.setValue('mainwindow/font', font.toString())
-
-    # def get_chip_part(self) -> None:
-    #     current_chip = self.settings.get(constants.KEY_CHIP_PART)
-    #     current_selection = constants.CHIP_OPTIONS.index(current_chip)
-    #     item, okPressed = QInputDialog.getItem(self, "Select Chip", "Chip:", constants.CHIP_OPTIONS, current_selection, False)
-    #     if okPressed and item:
-    #         self.settings_dialog.comboBox_chip.setCurrentText(item)  # update the combo box
-    #         self.settings.setValue(constants.KEY_CHIP_PART, item)
-    #         log.debug(f"saved chip settings: {item}")
 
     def append_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
