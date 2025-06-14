@@ -6,6 +6,7 @@ from util.resources import extract_file_from_resource
 import copy
 from usbinfo import find_device, list_hubs
 
+
 class Keys:
     """Keys used in the config file."""
 
@@ -19,7 +20,6 @@ class Keys:
     KEY_DEVICE_NAME: str = "device_name"
     KEY_FIRMWARE_FILES: str = "firmware_files"
     KEY_PROGRAMMING_CONFIG: str = "programmer_config"
-
 
 
 class ConfigLoader:
@@ -149,7 +149,7 @@ class ConfigLoader:
             raise ValueError("No programmer configuration found in the config file.")
         return config.get("executable", None)
 
-    def generate_program_arguments(self, settings = None, device = None) -> List[str]:
+    def generate_program_arguments(self, settings=None, device=None) -> List[str]:
         """Generate the command line arguments for the programmer."""
         config = self.get_program_config()
         if not config:
@@ -157,7 +157,7 @@ class ConfigLoader:
         # if not settings:
         serial = self.find_programmer_serial_number(raise_error=True)
         # else:
-            # serial = settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER])
+        # serial = settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER])
         vars_ = dict(
             chip_part=settings.get(KEY_CHIP_PART, DEFAULT_SETTINGS[KEY_CHIP_PART]),
             firmware_name=device.firmware_path,
@@ -171,17 +171,12 @@ class ConfigLoader:
         vid = self.get_program_config().get("usb_vendor_id", "0x0403")
         pid = self.get_program_config().get("usb_product_id", "0xF1A0")
         if vid and pid:
-            device = self.get_usb_device(vid.split("0x")[-1].upper(), pid.split("0x")[-1].upper())
+            device = find_device(vid.split("0x")[-1].upper(), pid.split("0x")[-1].upper())
             if device:
                 return device.get("device_id", "")[-6:]
         if raise_error:
-            raise ValueError("Programmer vendor ID or product ID not found.")
+            raise ValueError("Programmer VID/PID not found.")
         return ""
-
-    def get_usb_device(self, vid: str, pid: str) -> Dict[str, Any]:
-        """Return the USB device with the given VID and PID."""
-        return find_device(vid, pid) or {}
-
 
 
 _config_singleton: "ConfigLoader|None" = None
