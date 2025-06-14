@@ -1,6 +1,5 @@
 # usbinfo.py
 import platform
-import sys
 
 if platform.system() == "Windows":
     import wmi            # unchanged
