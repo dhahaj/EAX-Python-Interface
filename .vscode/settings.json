@@ -10,49 +10,49 @@
                 "singleInstance": true,
                 "color": "#ffe65c",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\python main.py"
+                "command": "venv\\scripts\\python main.py"
             },
             {
                 "name": "Resource RC",
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
+                "command": "venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
             },
             {
                 "name": "Icons RC",
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\pyside6-rcc.exe -o icons_rc.py icons.qrc"
+                "command": "venv\\scripts\\pyside6-rcc.exe -o icons_rc.py icons.qrc"
             },
             {
                 "name": "MainWindow UIC",
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\pyside6-uic.exe -o ui/ui_MainWindow.py QtDesigner/MainWindow.ui"
+                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_MainWindow.py QtDesigner/MainWindow.ui"
             },
             {
                 "name": "Settings UIC",
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\pyside6-uic.exe -o ui/ui_Settings.py QtDesigner/Settings.ui"
+                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_Settings.py QtDesigner/Settings.ui"
             },
             {
                 "name": "Resources RC",
                 "singleInstance": true,
                 "color": "#00ffe1",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\pyside6-rcc.exe -o util/config_resources_rc.py util/config_resources.qrc"
+                "command": "venv\\scripts\\pyside6-rcc.exe -o util/config_resources_rc.py util/config_resources.qrc"
             },
             {
                 "name": "QtDesigner",
                 "singleInstance": true,
                 "color": "#ffe65c",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
+                "command": "venv\\scripts\\pyside6-designer QtDesigner\\MainWindow.ui"
             }
         ]
     },
