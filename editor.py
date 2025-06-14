@@ -29,14 +29,12 @@ class Editor(QMainWindow, Ui_EditorWindow):
         self.restoreState(self.settings.app_settings.value("editor/windowState", QByteArray()))
 
         # Set font if saved
-        font_str = self.settings.get("editor/font", "")
-        if font_str:
+        if (font_str := self.settings.get("editor/font", "")):
             self.plainTextEdit.setFont(from_string(font_str))
 
         # --- Recent Documents setup ---
         self.max_recent_files = 5
         self.recent_files = []
-        # Assumes UI has a QMenu named menuFile
         self.recentMenu = self.menuFile.addMenu("Recent Documents")
         self.recentMenu.setEnabled(False)
         self.load_recent_files()

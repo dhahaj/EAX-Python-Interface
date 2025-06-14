@@ -35,6 +35,8 @@ a = Analysis(
         ('menu_item.py', '.'),
         ('settings_dialog.py', '.'),
         ('status_widget.py', '.'),
+        ('firmware_update.py', '.'),
+        ('chipSelectDialog.py', '.'),
     ],
     hiddenimports=[
         'qdarkstyle', 

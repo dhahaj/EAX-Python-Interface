@@ -4,8 +4,7 @@ import os
 from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMER_SERIAL_NUMBER
 from util.resources import extract_file_from_resource
 import copy
-import wmi
-
+from usbinfo import find_device, list_hubs
 
 class Keys:
     """Keys used in the config file."""
@@ -150,16 +149,20 @@ class ConfigLoader:
             raise ValueError("No programmer configuration found in the config file.")
         return config.get("executable", None)
 
-    def generate_program_arguments(self, settings, device) -> List[str]:
+    def generate_program_arguments(self, settings = None, device = None) -> List[str]:
         """Generate the command line arguments for the programmer."""
         config = self.get_program_config()
         if not config:
             raise ValueError("No programmer configuration found in the config file.")
+        # if not settings:
+        serial = self.find_programmer_serial_number(raise_error=True)
+        # else:
+            # serial = settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER])
         vars_ = dict(
             chip_part=settings.get(KEY_CHIP_PART, DEFAULT_SETTINGS[KEY_CHIP_PART]),
             firmware_name=device.firmware_path,
-            serial_number=settings.get(KEY_PROGRAMMER_SERIAL_NUMBER, DEFAULT_SETTINGS[KEY_PROGRAMMER_SERIAL_NUMBER]),
-            programmer=config["programmer"],
+            serial_number=serial,
+            programmer=config.get("programmer"),
         )
         return [config.get("executable")] + [a.format(**vars_) for a in config["arguments"]]
 
@@ -172,20 +175,12 @@ class ConfigLoader:
             if device:
                 return device.get("device_id", "")[-6:]
         if raise_error:
-            raise ValueError("USB vendor ID or product ID not found in the configuration.")
+            raise ValueError("Programmer vendor ID or product ID not found.")
         return ""
 
     def get_usb_device(self, vid: str, pid: str) -> Dict[str, Any]:
         """Return the USB device with the given VID and PID."""
-        c = wmi.WMI()
-        for device in c.Win32_USBHub():
-            if device.DeviceID.startswith(f"USB\\VID_{vid.upper()}&PID_{pid.upper()}"):
-                return {
-                    "name": device.Name,
-                    "device_id": device.DeviceID,
-                    "status": device.Status,
-                }
-        return None  # No device found with the given VID and PID
+        return find_device(vid, pid) or {}
 
 
 
@@ -208,6 +203,12 @@ def get_config(**kwargs) -> "ConfigLoader":
 
 if __name__ == '__main__':
     config = get_config()
+    from settings import get_instance
+    settings = get_instance()
+    from device import Device
+    device = Device("example_device", firmware="example_firmware.hex", label_color="blue")
+    print(config.generate_program_arguments(settings=settings, device=device))
+    print(config.find_programmer_serial_number(raise_error=False))
     # print(config.devices)
     # from pprint import pprint
     # pprint(config.get_test_sequence(), indent=4, width=120)

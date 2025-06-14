@@ -14,4 +14,5 @@ QDarkStyle==3.1
 QtPy==2.4.3
 shiboken6==6.9.0
 -e git+https://github.com/dhahaj/telemetrix-aio.git@fb5435b2b4d38e7e48cbc8088c5f5e9ee531e52f#egg=telemetrix_aio
-WMI==1.5.1
+WMI>=1.5.1 ; sys_platform == "win32"          # Windows
+pyudev>=0.24 ; sys_platform != "win32"        # Linux / *nix

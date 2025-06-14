@@ -1,35 +1,19 @@
-import os
 from qtpy.QtCore import QProcess, Signal, Slot
+import os
+from qtpy.QtWidgets import QMainWindow
+
 
 class FirmwareUpdateProcess(QProcess):
-    """Process to update the firmware.
-
-    This class handles the firmware update process by managing the QProcess
-    and providing signals to communicate with the main application.
-
-    Signals:
-        outputReceived (str): Emitted when new output is received from the process.
-        finishedWithCode (int, QProcess.ExitStatus, bool): Emitted when the process finishes,
-            providing the exit code, exit status, and whether a device was connected.
-    Slots:
-        _read_standard_output(): Reads the standard output of the process.
-        _read_standard_error(): Reads the standard error of the process.
-        _on_finished(int, QProcess.ExitStatus): Handles the process finishing.
-        _on_error(QProcess.ProcessError): Handles errors that occur during the process.
-    Attributes:
-        parent (QObject): The parent object for this process.
-        device_connected (bool): Indicates whether a device is connected.
-        
-    """
+    """Process to update the test fixture firmware."""
 
     # emit decoded stdout whenever new data arrives
     outputReceived = Signal(str)
     # emit exit code when finished
     finishedWithCode = Signal(int, QProcess.ExitStatus, bool)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent: QMainWindow = None):
         super().__init__(parent)
-        self.parent = parent
+        self.parent: QMainWindow = parent
         self.setWorkingDirectory(os.getcwd())
         self.errorOccurred.connect(self._on_error)
         self.finished.connect(self._on_finished)
