@@ -44,7 +44,7 @@ a = Analysis( # type: ignore
         'qtpy.QtCore', 
         'qtpy', 
         'yaml',
-        'wmi',
+        f'{'wmi' if os.name == "nt" else "pyudev"}',
         'loguru', 
         'sqlite3', 
         'bcrypt', 
