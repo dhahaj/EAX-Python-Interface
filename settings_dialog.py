@@ -175,11 +175,13 @@ class SettingsDialog(QWidget, Ui_Settings):
         self.close()
 
     def apply_changes(self) -> None:
-        if self.settings.get(constants.KEY_FULLSCREEN):
-            self._parent.actionFullscreen.setChecked(True)
+        self._parent.actionFullscreen.setChecked(self.settings.get_bool(constants.KEY_FULLSCREEN, constants.DEFAULT_SETTINGS[constants.KEY_FULLSCREEN]))
+
+        if self.settings.get(constants.KEY_FULLSCREEN) and not self._parent.isFullScreen():
+            # If fullscreen is enabled and the parent is not in fullscreen mode, switch to fullscreen
             self._parent.showFullScreen()
-        else:
-            self._parent.actionFullscreen.setChecked(False)
+        elif not self.settings.get(constants.KEY_FULLSCREEN) and self._parent.isFullScreen():
+            # If fullscreen is disabled and the parent is in fullscreen mode, switch to normal mode
             self._parent.showNormal()
 
     def _parse_saved_color(self, s: str) -> QColor:
