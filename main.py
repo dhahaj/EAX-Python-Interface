@@ -9,14 +9,12 @@ if getattr(sys, "frozen", False) and sys.stdout is None:
     log_path = Path.cwd() / "stdout.log"
     sys.stdout = sys.stderr = open(log_path, "w", buffering=1, encoding="utf-8", errors="backslashreplace")
 
-from qtpy import (
-    QtGui,
-)
 from qtpy.QtGui import (
     QIcon,
     QMovie,
     QAction,
     QKeyEvent,
+    QTextCursor,
 )
 from qtpy.QtCore import (
     QTimer,
@@ -48,20 +46,16 @@ from imports import (
     take_screenshot,
     warning,
 )
-import os
-import sys
 import subprocess
 import qdarkstyle
 import asyncio
 import settings
 import constants
-import config_loader as cfg
 from constants import State
-from config_loader import get_config as get_config
+from config_loader import get_config
 from arduino import AIODevice
 from chipSelectDialog import ChipSelectDialog
 from qasync import QEventLoop
-from pathlib import Path
 from typing import List, Dict
 from device import Device, load_devices
 from globals import logger as log
@@ -77,7 +71,6 @@ from firmware_update import FirmwareUpdateProcess
 import counter
 from menu_item import MenuItem
 from editor import Editor
-from pathlib import Path
 from firmware_update import FirmwareUpdateProcess
 
 
@@ -162,7 +155,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.actionScreenshot.triggered.connect(take_screenshot)
         self.program_button.clicked.connect(self.program)
         self.test_button.clicked.connect(self.on_test_clicked)
-        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(cfg.get_config().get_programmer_path()))
+        self.actionOpen_UP_exe.triggered.connect(lambda: QProcess.startDetached(get_config().get_programmer_path()))
         self.actionEditConfig.triggered.connect(self.edit_config)
 
         # Set the theme
@@ -210,13 +203,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.set_status("Connecting to USB device...")
             self.usb_label.setText("USB connecting...")
             self.usb_label.setStyleSheet(
-                cfg.get_config().get('window').get('usb_label').get('connecting_style')
+                get_config().get('window').get('usb_label').get('connecting_style')
             )
             self.show_movie(pause=False)
         elif value == State.CONNECTED:
             self.controlBox.setEnabled(True)
             self.usb_label.setStyleSheet(
-                cfg.get_config().get('window').get('usb_label').get('connected_style')
+                get_config().get('window').get('usb_label').get('connected_style')
             )
             self.set_status(f"Connected to {self.arduino.device.com_port}.")
             self.show_movie(pause=False)
@@ -228,10 +221,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.show_movie(pause=True)
             if self._state == State.CONNECTED:  # only if we were connected
                 self.usb_label.setStyleSheet(
-                    cfg.get_config().get('window').get('usb_label').get('disconnected_style')
+                    get_config().get('window').get('usb_label').get('disconnected_style')
                 )
                 self.usb_label.setText(
-                    cfg.get_config()
+                    get_config()
                     .get('window')
                     .get('usb_label')
                     .get('disconnected_text')
@@ -452,14 +445,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def append_text(self, text: str, prepend: str = "\n") -> None:
         """Add text to the text console."""
         self.text_edit.append(prepend + text)
-        self.text_edit.moveCursor(QtGui.QTextCursor.End)
+        self.text_edit.moveCursor(QTextCursor.End)
         self.text_edit.ensureCursorVisible()
 
     def load_file_text(self, filename="instructions.md") -> None:
         """Load text from a file and add it to the text area"""
         try:
             self.text_edit.setMarkdown(Path(filename).read_text() + "\n")
-            self.text_edit.moveCursor(QtGui.QTextCursor.End)
+            self.text_edit.moveCursor(QTextCursor.End)
             self.text_edit.ensureCursorVisible()
         except FileNotFoundError:
             log.error(f"Instruction file not found: {filename}")
@@ -487,11 +480,28 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.settings.setValue(constants.KEY_COM_PORT, self.arduino.device.com_port)  # save the port
             self.testController = TestController(self.arduino, parent=self)
             self._connect_controller_signals()
-            self.usb_label.setText(cfg.get_config().get('window').get('usb_label').get('connected_text').format(msg=message))
+            self.usb_label.setText(
+                get_config()
+                .get('window')
+                .get('usb_label')
+                .get('connected_text')
+                .format(msg=message)
+            )
 
         else:
-            self.usb_label.setText(cfg.get_config().get('window').get('usb_label').get('disconnected_text').format(msg="disconnected"))
-            self.usb_label.setStyleSheet(cfg.get_config().get('window').get('usb_label').get('disconnected_style'))
+            self.usb_label.setText(
+                get_config()
+                .get('window')
+                .get('usb_label')
+                .get('disconnected_text')
+                .format(msg="disconnected")
+            )
+            self.usb_label.setStyleSheet(
+                get_config()
+                .get('window')
+                .get('usb_label')
+                .get('disconnected_style')
+            )
             log.error(f"USB: connection lost. Error: {message}")
             self.append_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
@@ -499,8 +509,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     async def disconnect_device(self):
         # Await the asynchronous disconnect on your device.
-        self.usb_label.setText(cfg.get_config().get('window').get('usb_label').get('text').format(msg="disconnected"))
-        self.usb_label.setStyleSheet(cfg.get_config().get('window').get('usb_label').get('disconnected_style'))
+        self.usb_label.setText(
+            get_config()
+            .get('window')
+            .get('usb_label')
+            .get('text')
+            .format(msg="disconnected")
+        )
+        self.usb_label.setStyleSheet(
+            get_config()
+            .get('window')
+            .get('usb_label')
+            .get('disconnected_style')
+        )
         self.actionConnect.setText("Connect")
         if self.arduino:
             self.arduino.connection_changed.disconnect(self.on_connection_changed)
@@ -537,7 +558,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         previous_state = self.state
 
         try:
-            argv = cfg.get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
+            argv = get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
 
             log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
 
