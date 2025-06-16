@@ -12,7 +12,7 @@ from typing import List
 from os import PathLike
 
 APP_NAME: str = "EAX Interface"
-APP_VERSION: str = "2.1.2"
+APP_VERSION: str = "2.1.3"
 COMPANY_NAME: str = "Detex Corp"
 
 ICON_WINDOW = ':/images/icons/code.ico'
@@ -50,7 +50,6 @@ class State(enum.Enum):
 
 CHIP_OPTIONS = ["PIC16F627", "PIC16F627A", "PIC16F628", "PIC16F628A"]
 
-KEY_TEST_COUNT = "testing/total_count"
 
 
 """
@@ -82,6 +81,8 @@ KEY_FRAMELESS: str = "frameless"
 KEY_DARK_THEME: str = "dark_mode"
 KEY_COUNTER_ENABLED: str = "counter_enabled"
 KEY_TEST_COUNT: str = "test_count"
+KEY_PROGRAM_COUNT: str = "program_count"
+KEY_PROGRAM_FAIL_COUNT: str = "program_fail_count"
 KEY_BUTTON_TIMEOUT: str = "button_timeout"
 KEY_VIRTUAL_COM_PORT: str = "virtual_com_port"
 KEY_PROGRAMMING_CONFIG: str = "programmer_config"
@@ -114,6 +115,8 @@ DEFAULT_SETTINGS = {
     KEY_FRAMELESS: False,
     KEY_COUNTER_ENABLED: True,
     KEY_TEST_COUNT: 0,
+    KEY_PROGRAM_COUNT: 0,
+    KEY_PROGRAM_FAIL_COUNT: 0,
     KEY_BUTTON_TIMEOUT: 15,
     KEY_VIRTUAL_COM_PORT: False,
 }
