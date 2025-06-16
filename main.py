@@ -51,7 +51,7 @@ import qdarkstyle
 import asyncio
 import settings
 import constants
-from constants import State
+from constants import KEY_TEST_COUNT, KEY_PROGRAM_COUNT, KEY_PROGRAM_FAIL_COUNT, State
 from config_loader import get_config
 from arduino import AIODevice
 from chipSelectDialog import ChipSelectDialog
@@ -171,9 +171,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.load_file_text()
 
         # Initialize the counters
-        self.test_counter = counter.Counter("test_count")
-        self.program_counter = counter.Counter("program_count")
-        self.program_fail_counter = counter.Counter("program_fail_count")
+        self.test_counter = counter.Counter(KEY_TEST_COUNT)
+        self.program_counter = counter.Counter(KEY_PROGRAM_COUNT)
+        self.program_fail_counter = counter.Counter(KEY_PROGRAM_FAIL_COUNT)
 
         self.setStatusBar(CustomStatusBar(self))
         self.set_status('Select a device to begin.')
