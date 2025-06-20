@@ -10,21 +10,21 @@
                 "singleInstance": true,
                 "color": "#ffe65c",
                 "cwd": "${workspaceFolder}",
-                "command": "venv\\scripts\\python main.py"
+                "command": ".venv\\scripts\\python main.py"
             },
             {
                 "name": "Resource RC",
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": "venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
+                "command": ".venv\\scripts\\pyside6-rcc.exe -o resource_rc.py resource.qrc"
             },
             {
                 "name": "Icons RC",
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": "venv\\scripts\\pyside6-rcc.exe -o icons_rc.py icons.qrc"
+                "command": ".venv\\scripts\\pyside6-rcc.exe -o icons_rc.py icons.qrc"
             },
             {
                 "name": "MainWindow UIC",
@@ -111,7 +111,8 @@
         "*.qrc": "xml",
         "*.ui": "xml",
         "windows.h": "c",
-        "shellapi.h": "c"
+        "shellapi.h": "c",
+        "*.ppr": "ini"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "python.formatting.provider": "yapf",
