@@ -4,7 +4,7 @@ Version=UP! PPR v.1.0
 [HexFile]
 CheckCfg=1
 CheckWordsAlignment=1
-FileName=EAX300_59.hex
+FileName=EAX525_591.hex
 Present=1
 LoadFromIni=1
 BinLittleEndian=1
@@ -25,7 +25,7 @@ Time.SwitchOn=10000
 Time.SwitchOff=10000
 
 [PPRCfg]
-LoadUnlocked=0
+LoadUnlocked=1
 
 [IHex]
 IHEX=0
@@ -117,7 +117,7 @@ FusesInIni=0
 
 [SpecSettings.FORTE]
 UVCCLevel=50
-ProgPower=0
+ProgPower=1
 PICAlg=0
 LVP=0
 UsePE=1
@@ -165,7 +165,7 @@ T_DuringProg=2
 T_AfterProg=2
 
 [WinMsg]
-Quiet=0
+Quiet=1
 
 [SpecWindow.PREST]
 Left=40
@@ -180,12 +180,12 @@ Closed=0
 Minimized=0
 Left=415
 Top=0
-Right=970
+Right=1464
 Bottom=1555
 
 [DataForm]
 Closed=0
-Minimized=0
+Minimized=1
 Left=1648
 Top=160
 Right=2305
@@ -196,7 +196,7 @@ Closed=1
 
 [CfgForm]
 Closed=0
-Minimized=0
+Minimized=1
 Left=78
 Top=412
 Right=382
@@ -207,3 +207,8 @@ Closed=1
 
 [ConsoleForm]
 Closed=1
+Minimized=0
+Left=641
+Top=418
+Right=1488
+Bottom=1089
