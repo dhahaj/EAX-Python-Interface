@@ -5,6 +5,8 @@ import shutil
 import os
 import sys
 import time
+from config_loader import get_config
+from settings import get_instance as get_settings
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal, Slot
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, \
     QProgressBar, QLabel
@@ -37,12 +39,43 @@ INT_SIZE = ctypes.sizeof(ctypes.c_int)
 
 
 class UPJob(QObject):
+    """
+    UPJob class for managing UNISOFT UP.exe programming processes with progress monitoring.
+    This class runs UP.exe as a QProcess and monitors its progress via shared memory.
+    It provides real-time progress updates and handles timeouts and process completion.
+    Attributes:
+        progressChanged (Signal): Emitted when programming progress changes (0-100%)
+        finished (Signal): Emitted when the UP.exe process finishes with its exit code
+    Args:
+        ppr (str): Path to the programming project file (.ppr)
+        window_id (str, optional): Window identifier used for shared memory naming. 
+            Defaults to "up1".
+        timeout_s (int, optional): Maximum time in seconds allowed for programming.
+            Defaults to 180 seconds.
+        parent (QObject, optional): Parent QObject. Defaults to None.
+    Raises:
+        FileNotFoundError: If up.exe is not found on the system PATH
+    Examples:
+        ```python
+        job = UPJob("my_project.ppr")
+        job.progressChanged.connect(update_progress_bar)
+        job.finished.connect(on_programming_done)
+        job.start()
+        ```
+    Note:
+        This class uses Windows API functions to access shared memory created by UP.exe
+        to monitor programming progress in real-time.
+    """
     progressChanged = Signal(int)          # 0-100 %
     finished = Signal(int)          # UP.exe exit code
 
-    def __init__(self, ppr: str, window_id: str = "up1", timeout_s: int = 180, parent: QObject | None = None) -> None:
+    def __init__(self, 
+                 firmware_path: str, 
+                 window_id: str = "up1", 
+                 timeout_s: int = 180, 
+                 parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self.ppr = os.path.abspath(ppr)
+        self.firmware = firmware_path
         self.win_id = window_id
         self.timeout_s = timeout_s
 
@@ -59,7 +92,7 @@ class UPJob(QObject):
         if not up_exe:
             raise FileNotFoundError("up.exe not found on PATH")
 
-        args = ["/p", self.ppr, "/q", "/w", self.win_id]
+        args = ["/p", "firmware\\template.ppr", "/df", self.firmware, "/q", "/w", self.win_id]
         self._proc.setProgram(up_exe)
         self._proc.setArguments(args)
 
