@@ -72,6 +72,7 @@ import counter
 from menu_item import MenuItem
 from editor import Editor
 from firmware_update import FirmwareUpdateProcess
+from up_progress import UPJob
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -558,20 +559,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         previous_state = self.state
 
         try:
-            argv = get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
 
-            log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
+            self.job = UPJob(firmware_path=fw)
+            self.job.progressChanged.connect(lambda v: self.append_text(f"Programming progress: {v}%"))
+            self.job.finished.connect(lambda code: self.handle_programming_result(code, previous_state))
+            self.job.start()
+            # argv = get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
+
+            # log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
 
             # create (or reuse) a QProcess
-            self.program_process = QProcess(self)
+            # self.program_process = QProcess(self)
 
-            # when it finishes, grab only the exit code
-            self.program_process.finished.connect(lambda code, _: self.handle_programming_result(code, previous_state))
-            self.state = State.PROGRAMMING
+            # # when it finishes, grab only the exit code
+            # self.program_process.finished.connect(lambda code, _: self.handle_programming_result(code, previous_state))
+            # self.state = State.PROGRAMMING
 
-            self.program_process.setProgram(argv[0])
-            self.program_process.setArguments(argv[1:])
-            self.program_process.start()
+            # self.program_process.setProgram(argv[0])
+            # self.program_process.setArguments(argv[1:])
+            # self.program_process.start()
         except Exception as e:
             self.append_text(f'<br><p>Exception during programming: {e}</p>')
             log.exception(f"Exception during programming: {e}")
