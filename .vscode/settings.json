@@ -109,7 +109,9 @@
         "*.yaml": "home-assistant",
         "*.spec": "python",
         "*.qrc": "xml",
-        "*.ui": "xml"
+        "*.ui": "xml",
+        "windows.h": "c",
+        "shellapi.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled",
     "python.formatting.provider": "yapf",
