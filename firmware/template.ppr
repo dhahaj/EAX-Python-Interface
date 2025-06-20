@@ -12,11 +12,11 @@ LoadData=0
 LastData=
 
 [Hardware]
-Part=PIC16F628A
+Part=PIC16F627
 Programmer=PREST
 BusSpeed=1
 PortIndex=0
-PortBase=124262
+PortBase=-1
 
 [ICSP]
 ICSP=1
@@ -33,15 +33,9 @@ IHEX=0
 [DataIHex]
 DataIHEX=0
 
-[HexFileNext]
-FileName=
-Offset=0
-OffsetPositive=1
-ReverseBits=0
-
 [Prog]
 SkipDevIDCheck=0
-SkipBlankCheckForCfg=1
+SkipBlankCheckForCfg=0
 SkipBlankCheck=0
 SkipErase=0
 SkipEraseData=1
@@ -114,51 +108,6 @@ NoDataProg=0
 
 [ConfigWord]
 FusesInIni=0
-
-[SpecSettings.FORTE]
-UVCCLevel=50
-ProgPower=1
-PICAlg=0
-LVP=0
-UsePE=1
-PIC32MZ_BootProg=0
-PSoCAlg=0
-PSoCRSTInit=-1
-MSP430osc=-1
-MSP430speed=-1
-MSP430EraseSegmentA=0
-MSP430Interface=-1
-ARMFreq=18432000
-ARMOscType=0
-ARMCommFreq=0
-ARMStartAddr=-1
-ARMEndAddr=-1
-ARMMassErase=0
-ARMInit=-1
-PartInterface=-1
-OscFreq=20000000
-C8051CommFreq=1
-C8051RSTInverse=0
-SPI_Flash_Freq=-1
-SPI_Flash_StartSector=-1
-SPI_Flash_EndSector=-1
-SPI_Flash_Interface=0
-XTALClk=2050
-AVRAutoClk=1
-AVRRSTInverse=0
-AVRHVP=0
-ATxmegaInterface=0
-ATxmegaFreq=0
-i2cSpeed=0
-Addr=0
-i2cPullUp=1
-UNIOSlow=0
-R5FBaudRate=3
-RX600CfgClearing=0
-RX600ProtectWithID=0
-Speed=2
-ProgCalibInFuses=0
-CH32VFastMode=0
 
 [Pins]
 T_DuringProg=2
