@@ -250,19 +250,21 @@ testing:
 # Programmer configuration
 programmer_config:
     executable: C:\Program Files (x86)\ASIX\UP\UP.exe
-    programmer: PRESTO
+    programmer: PREST
     usb_vendor_id: '0403' # USB Vendor ID for the programmer
     usb_product_id: 'F1A0' # USB Product ID for the programmer
     arguments:
-        - '/part' # Chip part number
-        - '{chip_part}' # Stored in settings.ini
+        # - '/part' # Chip part number
+        # - '{chip_part}' # Stored in settings.ini
         - '/p' # Firmware file
-        - '{firmware_name}'
-        - '/s' # Serial number of the programmer
-        - '{serial_number}' # dynamically set
-        - '/progname' # Name of the programmer
-        - '{programmer}'
-        - '/q1' # Quiet mode
+        - 'firmware/template.ppr'
+        # - '/s' # Serial number of the programmer
+        # - '{serial_number}' # dynamically set
+        # - '/progname' # Name of the programmer
+        # - '{programmer}'
+        - '/q' # Quiet mode
+        - '/w'
+        - 'up1' # Window ID, must be set to 'up1'
 
 chip_options:
     - PIC16F627
