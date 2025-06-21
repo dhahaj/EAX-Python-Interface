@@ -119,5 +119,6 @@
     "qtForPython.uic.options": [
         "-o",
         "${resourceDirname}${pathSeparator}..${pathSeparator}ui${pathSeparator}ui_${resourceBasenameNoExtension}.py"
-    ]
+    ],
+    "editor.mouseWheelZoom": true
 }
