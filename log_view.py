@@ -169,7 +169,7 @@ class ProgressBar(QWidget, Ui_ProgressBar):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowModality(Qt.WindowModal)
         self.settings = get_instance()
-        print("ProgressBar settings =", self.settings)
+        # print("ProgressBar settings =", self.settings)
 
         self.setStyleSheet(get_stylesheet(self.settings))
 
