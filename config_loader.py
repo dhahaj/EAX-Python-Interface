@@ -148,6 +148,13 @@ class ConfigLoader:
         if not config:
             raise ValueError("No programmer configuration found in the config file.")
         return config.get("executable", None)
+    
+    def get_programmer_arguments(self) -> List[str]:
+        """Return the programmer arguments."""
+        config = self.get_program_config()
+        if not config:
+            raise ValueError("No programmer configuration found in the config file.")
+        return config.get("arguments", [])
 
     def generate_program_arguments(self, settings=None, device=None) -> List[str]:
         """Generate the command line arguments for the programmer."""
