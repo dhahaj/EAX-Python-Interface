@@ -1,5 +1,6 @@
 bcrypt==4.0.1
 colorama==0.4.6
+-e git+https://github.com/dhahaj/inipy@6e50d4f7dcfa409c70c18d3eb4513763f16c501a#egg=ini.py
 loguru==0.7.0
 packaging==23.1
 psutil==5.9.5
