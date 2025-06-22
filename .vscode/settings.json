@@ -10,7 +10,7 @@
                 "singleInstance": true,
                 "color": "#ffe65c",
                 "cwd": "${workspaceFolder}",
-                "command": ".venv\\scripts\\python main.py"
+                "command": "venv\\scripts\\python main.py"
             },
             {
                 "name": "Resource RC",
@@ -38,7 +38,7 @@
                 "singleInstance": true,
                 "color": "lightpink",
                 "cwd": "${workspaceFolder}",
-                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_Settings.py QtDesigner/Settings.ui"
+                "command": "venv\\scripts\\pyside6-uic.exe -o ui/ui_ProgressBar.py QtDesigner/ProgressBar.ui"
             },
             {
                 "name": "Resources RC",
@@ -77,6 +77,9 @@
         // "editor.defaultFormatter": "ms-python.black-formatter",
         // "editor.formatOnSave": true
     },
+    "github.copilot.advanced": {
+        "debug.useElectronFetcher": false
+    },
     "python.languageServer": "Default",
     "multiFormatter.formatterList": ["autopep8"],
     "python.analysis.autoFormatStrings": true,
@@ -99,6 +102,7 @@
         ".venv/src/telemetrix-aio/*.*",
         ".venv/src/telemetrix-aio/**",
         ".venv/src/telemetrix-aio/*",
+        ".venv/src/ini-py/ini/*",
         "${workspaceFolder}/*.*"
     ],
     "files.associations": {
