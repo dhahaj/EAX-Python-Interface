@@ -560,10 +560,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
 
+            self.progress_bar = ProgressBar()
+            self.progress_bar.label.setText("Programming…")
+            self.progress_bar.progressBar.setValue(0)
+            
+            from busy_dialog import BusyDialog, ProgressDialog
+
+            self.dlg = ProgressDialog("Programming device...", self)
+            self.dlg.set_progress(0, 0)
+            self.dlg.show()
+
             self.job = UPJob(firmware_path=fw)
-            self.job.progressChanged.connect(lambda v: self.append_text(f"Programming progress: {v}%"))
+            self.job.progressChanged.connect(lambda v: self.set_status(f"Programming progress: {v}%"))
+            self.job.progressChanged.connect(lambda v: self.dlg.set_progress(v, 100))
             self.job.finished.connect(lambda code: self.handle_programming_result(code, previous_state))
+            
+            self.state = State.PROGRAMMING
+            # self.progress_bar.show()
             self.job.start()
+            
             # argv = get_config().generate_program_arguments(settings=self.settings, device=self.get_selected_device())
 
             # log.info(f"Programming {self.get_selected_device().name}, args: {argv}")
@@ -582,11 +597,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.append_text(f'<br><p>Exception during programming: {e}</p>')
             log.exception(f"Exception during programming: {e}")
             self.state = previous_state  # restore the previous state
+            self.progress_bar.close()  # close the progress bar
 
-    @Slot(int, QProcess.ExitStatus)
+    # @Slot(int, QProcess.ExitStatus)
+    @Slot(int, int)
     def handle_programming_result(self, returncode: int, previous_state: State) -> None:
         """Called when QProcess emits finished()."""
         self.state = previous_state  # restore the previous state
+        self.progress_bar.close()  # close the progress bar
+        self.dlg.close()  # close the busy dialog
         if returncode == 0:
             self.append_text("<br><p>Programming successful.</p>")
             log.info(f"Programming successful for {self.get_selected_device().name}.")
