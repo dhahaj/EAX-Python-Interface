@@ -1,8 +1,10 @@
 # -*- mode: python ; coding: utf-8 -*-
 import telemetrix_aio
+import ini
 import os
 
 telemetrix_aio_path = os.path.dirname(telemetrix_aio.__file__)
+ini_path = os.path.dirname(ini.__file__)
 
 a = Analysis( # type: ignore
     ['main.py'],
@@ -26,6 +28,7 @@ a = Analysis( # type: ignore
         ('main.py', '.'),
         ('globals.py', '.'),
         (telemetrix_aio_path, 'telemetrix_aio'),
+        (ini_path, 'ini'),
         ('editor.py', '.'),
         ('counter.py', '.'),
         ('status_widget.py', '.'),
@@ -38,6 +41,7 @@ a = Analysis( # type: ignore
         ('firmware_update.py', '.'),
         ('chipSelectDialog.py', '.'),
         ('usbinfo.py', '.'),
+        ('up_progress.py', '.'),
     ],
     hiddenimports=[
         'qdarkstyle', 
