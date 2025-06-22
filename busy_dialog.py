@@ -100,11 +100,11 @@ class ProgressDialog(QDialog):
         lay.addWidget(self.bar)
 
         self.setStyleSheet("""
-            QDialog      {background:#20252e; border-radius:12px;}
-            QLabel       {color:white; font-size:14pt;}
+            QDialog      {border-radius:12px;}
+            QLabel       {font-size:16pt;}
             QProgressBar {background:#31363f; border:1px solid #444;
                           border-radius:6px; text-align:center;
-                          height:12px; color:white;}
+                          height:14px; color:white; font-size:12pt;}
             QProgressBar::chunk {background-color:#2da1ff; border-radius:6px;}
         """)
 
