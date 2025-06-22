@@ -423,7 +423,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.device_label.setText("Device not selected")  # clear the device label
         self.actionGroup.checkedAction().setChecked(False) if self.actionGroup.checkedAction() else None  # reset the device
 
-    # ----- Device Select Functions ----- #
+    # ───────── Device Select Functions ─────────
 
     def get_selected_device(self) -> Device:
         """Get the currently selected device from the menu."""
@@ -458,7 +458,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except FileNotFoundError:
             log.error(f"Instruction file not found: {filename}")
 
-    # ----- Connection Functions ----- #
+    # ───────── Connection Functions ─────────
 
     async def connect_task(self) -> None:
         if self.state == State.CONNECTED:
@@ -531,15 +531,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.state = State.IDLE
         log.success("Device disconnected successfully.")
 
-    def _connect_controller_signals(self) -> None:
-        """Connect the signals from the test controller to the main window."""
-        self.testController.updateText.connect(self.append_text)
-        self.testController.sendMessage.connect(self._on_message_received)
-
-    def control_manually(self) -> None:
-        ManualWidget(self.arduino).show()
-
-    # ----- Programming Functions ----- #
+    # ───────── Programming Functions ─────────
 
     def program(self) -> None:
         """Program the selected device with the firmware."""
@@ -560,18 +552,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
 
-            self.progress_bar = ProgressBar()
-            self.progress_bar.label.setText("Programming…")
-            self.progress_bar.progressBar.setValue(0)
+            # self.progress_bar = ProgressBar()
+            # self.progress_bar.label.setText("Programming…")
+            # self.progress_bar.progressBar.setValue(0)
             
             from busy_dialog import BusyDialog, ProgressDialog
 
-            self.dlg = ProgressDialog("Programming device...", self)
-            self.dlg.set_progress(0, 0)
+            self.dlg = ProgressDialog(f"Programming {self.get_selected_device().name}...", self)
+            self.dlg.set_progress(0, 0) 
             self.dlg.show()
 
             self.job = UPJob(firmware_path=fw)
-            self.job.progressChanged.connect(lambda v: self.set_status(f"Programming progress: {v}%"))
+            self.job.progressChanged.connect(lambda v: self.set_status(f"Programming: progress = {v}%"))
             self.job.progressChanged.connect(lambda v: self.dlg.set_progress(v, 100))
             self.job.finished.connect(lambda code: self.handle_programming_result(code, previous_state))
             
@@ -597,14 +589,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.append_text(f'<br><p>Exception during programming: {e}</p>')
             log.exception(f"Exception during programming: {e}")
             self.state = previous_state  # restore the previous state
-            self.progress_bar.close()  # close the progress bar
+            # self.progress_bar.close()  # close the progress bar
 
-    # @Slot(int, QProcess.ExitStatus)
     @Slot(int, int)
     def handle_programming_result(self, returncode: int, previous_state: State) -> None:
         """Called when QProcess emits finished()."""
         self.state = previous_state  # restore the previous state
-        self.progress_bar.close()  # close the progress bar
+        # self.progress_bar.close()  # close the progress bar
         self.dlg.close()  # close the busy dialog
         if returncode == 0:
             self.append_text("<br><p>Programming successful.</p>")
@@ -626,7 +617,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log.info(f"Statistics - Failures: {failed}, Successes: {success}, Tests: {tests}")
         QMessageBox().information(self, "Statistics", f"Failures: {failed}\n" f"Successes: {success}\n" f"Tests: {tests}")
 
-    # ----- Log Functions ----- #
+    # ───────── Log Functions ─────────
 
     def show_log(self) -> None:
         """Display the log view widget."""
@@ -672,7 +663,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         else:
             event.ignore()
 
-    # ----- Firmware Update Functions ----- #
+    # ───────── Firmware Update Functions ─────────
 
     async def _prepare_for_firmware_update(self):
         """Disconnects device if connected, preparing for firmware update."""
@@ -815,7 +806,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Reload the instructions after a delay
         QTimer.singleShot(3000, self.load_file_text)
 
-    # ---------- Test Functions ----------#
+    # ───────── Test Functions ─────────
 
     def on_test_clicked(self) -> None:
         """Called when the test button is clicked."""
@@ -854,6 +845,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         else:
             log.debug(f"{message.type}: {message.data}")
+
+    def _connect_controller_signals(self) -> None:
+        """Connect the signals from the test controller to the main window."""
+        self.testController.updateText.connect(self.append_text)
+        self.testController.sendMessage.connect(self._on_message_received)
+
+    def control_manually(self) -> None:
+        ManualWidget(self.arduino).show()
 
 
 
