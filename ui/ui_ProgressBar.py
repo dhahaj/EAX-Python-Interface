@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'ProgressBar.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.5.2
+## Created by: Qt User Interface Compiler version 6.9.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -22,20 +22,20 @@ class Ui_ProgressBar(object):
     def setupUi(self, ProgressBar):
         if not ProgressBar.objectName():
             ProgressBar.setObjectName(u"ProgressBar")
-        ProgressBar.resize(300, 85)
-        ProgressBar.setMinimumSize(QSize(300, 50))
+        ProgressBar.resize(300, 96)
+        ProgressBar.setMinimumSize(QSize(300, 65))
         ProgressBar.setMaximumSize(QSize(16777215, 16777215))
         self.verticalLayout = QVBoxLayout(ProgressBar)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.label = QLabel(ProgressBar)
         self.label.setObjectName(u"label")
         font = QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
         self.label.setFont(font)
-        self.label.setAlignment(Qt.AlignHCenter|Qt.AlignTop)
+        self.label.setAlignment(Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignTop)
         self.label.setWordWrap(False)
         self.label.setMargin(-1)
-        self.label.setTextInteractionFlags(Qt.NoTextInteraction)
+        self.label.setTextInteractionFlags(Qt.TextInteractionFlag.NoTextInteraction)
 
         self.verticalLayout.addWidget(self.label)
 
