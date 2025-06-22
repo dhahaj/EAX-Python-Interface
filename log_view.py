@@ -175,5 +175,5 @@ class ProgressBar(QWidget, Ui_ProgressBar):
 
     def update_progress(self, value: int) -> None:
         self.progressBar.setValue(value)
-        if value >= 99:
+        if value >= 100:
             self.close()
