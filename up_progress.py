@@ -5,8 +5,10 @@ import shutil
 import os
 import sys
 import time
+import ini
 from config_loader import get_config
 from settings import get_instance as get_settings
+from constants import KEY_CHIP_PART
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal, Slot
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, \
     QProgressBar, QLabel
@@ -43,11 +45,20 @@ class UPJob(QObject):
     UPJob class for managing UNISOFT UP.exe programming processes with progress monitoring.
     This class runs UP.exe as a QProcess and monitors its progress via shared memory.
     It provides real-time progress updates and handles timeouts and process completion.
+
+    Methods:
+        start(): Launches the UP.exe process with appropriate arguments and begins
+                 monitoring progress via shared memory
+        firmware_path (str): Path to the firmware file to be programmed
+        job = UPJob("path/to/firmware.hex")
+        to monitor programming progress in real-time. The process will be automatically
+        terminated if it exceeds the specified timeout duration.
     Attributes:
         progressChanged (Signal): Emitted when programming progress changes (0-100%)
         finished (Signal): Emitted when the UP.exe process finishes with its exit code
     Args:
-        ppr (str): Path to the programming project file (.ppr)
+        firmware_path (str): Path to the firmware file to be programmed.
+            This should be a valid file path to the firmware binary.
         window_id (str, optional): Window identifier used for shared memory naming. 
             Defaults to "up1".
         timeout_s (int, optional): Maximum time in seconds allowed for programming.
@@ -66,45 +77,45 @@ class UPJob(QObject):
         This class uses Windows API functions to access shared memory created by UP.exe
         to monitor programming progress in real-time.
     """
-    progressChanged = Signal(int)          # 0-100 %
+    progressChanged = Signal(int)   # 0-100 %
     finished = Signal(int)          # UP.exe exit code
 
-    def __init__(self, 
-                 firmware_path: str, 
-                 window_id: str = "up1", 
-                 timeout_s: int = 180, 
+    def __init__(self,
+                 firmware_path: str,
+                 timeout_s: int = 180,
                  parent: QObject | None = None) -> None:
         super().__init__(parent)
-        self.firmware = firmware_path
-        self.win_id = window_id
+        self.firmware_path = firmware_path
+        self.win_id = "up1" 
         self.timeout_s = timeout_s
 
         self._proc = QProcess(self)
-        self._timer = QTimer(self, interval=100)      # 100 ms poll
+        self._timer = QTimer(self, interval=25) # 25 ms poll
         self._t0 = time.perf_counter()
         self._h_map = None
         self._view = None
         self._proc.finished.connect(self._on_process_finished)
         self._timer.timeout.connect(self._poll_progress)
 
-    def start(self) -> None:
-        up_exe = shutil.which("up.exe")
-        if not up_exe:
-            raise FileNotFoundError("up.exe not found on PATH")
+        ini_path = 'firmware/template.ppr'
+        ppr = ini.load(ini_path)  # load the template PPR file
+        settings = get_settings()
 
-        args = ["/p", "firmware\\template.ppr", "/df", self.firmware, "/q", "/w", self.win_id]
+        ppr["Hardware"]["Part"] = settings.get(KEY_CHIP_PART, "PIC16F628A") # set chip part
+        ppr["Hardware"]["PortBase"] = "-1"  # use first available programmer
+        ppr['HexFile']['FileName'] = os.path.basename(self.firmware_path) # set firmware file name
+        ppr['SpecSettings.PREST']['ProgPower'] = "1"  # enable power during programming
+
+        # write the PPR file to disk
+        ini.dump(ppr, ini_path)
+
+    def start(self) -> None:
+        if not (up_exe := shutil.which("up.exe")):
+            up_exe = get_config().get_programmer_path()
+        args = get_config().get_programmer_arguments()
         self._proc.setProgram(up_exe)
         self._proc.setArguments(args)
-
-        # Hide console window only if the Qt build supports it (Qt ≥ 6.5)
-        if hasattr(self._proc, "setCreateProcessArgumentsModifier"):
-            CREATE_NO_WINDOW = 0x08000000
-            self._proc.setCreateProcessArgumentsModifier(
-                lambda si: setattr(si, "dwFlags", si.dwFlags | CREATE_NO_WINDOW)
-            )
-
         self._proc.start()
-
         self._timer.start()     # begin polling for shared memory + progress
 
     @Slot()
@@ -135,8 +146,7 @@ class UPJob(QObject):
             self._abort("Programming timed out")
 
     @Slot(int, QProcess.ExitStatus)
-    def _on_process_finished(self, exit_code: int,
-                             status: QProcess.ExitStatus) -> None:
+    def _on_process_finished(self, exit_code: int, status: QProcess.ExitStatus) -> None:
         self._timer.stop()
         self._cleanup()
         self.finished.emit(exit_code)
@@ -156,9 +166,10 @@ class UPJob(QObject):
 # ---------------------------------------------------------------------------
 #  Tiny demo window
 # ---------------------------------------------------------------------------
+from log_view import ProgressBar
 
 class MainWnd(QWidget):
-    def __init__(self, ppr_path: str = 'firmware/template.ppr') -> None:
+    def __init__(self, ppr_path: str = 'firmware/EAX505_591.hex') -> None:
         super().__init__()
         self.setWindowTitle("UP programmer demo")
 
@@ -172,24 +183,38 @@ class MainWnd(QWidget):
         lay.addWidget(btn)
 
         btn.clicked.connect(lambda _=None: self.start_job(ppr_path))
+        
 
     def start_job(self, ppr: str) -> None:
+        self.progress_bar = ProgressBar()
+        self.progress_bar.label.setText("Programming…")
+        self.progress_bar.progressBar.setValue(0)
+        self.progress_bar.show()
+
         self.job = UPJob(ppr)                 # window id defaults to “up1”
         self.job.progressChanged.connect(self.pb.setValue)
-        self.job.progressChanged.connect(lambda v:
-                                         self.lbl.setText(f"{v}%"))
+        self.job.progressChanged.connect(lambda v: self.lbl.setText(f"{v}%"))
+        self.job.progressChanged.connect(lambda v: self.progress_bar.update_progress(v))
         self.job.finished.connect(self._job_done)
         self.job.start()
         self.lbl.setText("running…")
 
+
     @Slot(int)
     def _job_done(self, code: int) -> None:
         self.lbl.setText(f"done (rc={code})")
+        self.progress_bar.close()
+        self.close()
 
 
 if __name__ == "__main__":
+    # import ini
+
+    # with open("firmware/test.ppr", "w") as f:
+    #     f.write(ini.PROJECT_TEMPLATE)
+
     app = QApplication(sys.argv)
-    wnd = MainWnd(f"{'firmware/template.ppr'  if len(sys.argv) < 2 else sys.argv[1]}")
+    wnd = MainWnd()
     wnd.resize(300, 100)
     wnd.show()
     sys.exit(app.exec())
