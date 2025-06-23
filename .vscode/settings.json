@@ -86,9 +86,9 @@
     "python.analysis.completeFunctionParens": true,
     "python.analysis.fixAll": [],
     "python.autoComplete.extraPaths": [],
-    "python.envFile": "${workspaceFolder}/.venv/pyvenv.cfg",
+    "python.envFile": "${workspaceFolder}/venv/pyvenv.cfg",
     "python.terminal.activateEnvInCurrentTerminal": true,
-    "black-formatter.interpreter": ["${workspaceFolder}/.venv/Scripts/python"],
+    "black-formatter.interpreter": ["${workspaceFolder}/venv/Scripts/python"],
     "black-formatter.args": [
         "--skip-string-normalization",
         "--line-length=125",
@@ -98,11 +98,11 @@
     ],
     "python.analysis.extraPaths": [
         "./ui",
-        ".venv/src/**/*",
-        ".venv/src/telemetrix-aio/*.*",
-        ".venv/src/telemetrix-aio/**",
-        ".venv/src/telemetrix-aio/*",
-        ".venv/src/ini-py/ini/*",
+        "venv/src/**/*",
+        "venv/src/telemetrix-aio/*.*",
+        "venv/src/telemetrix-aio/**",
+        "venv/src/telemetrix-aio/*",
+        "venv/src/ini-py/ini/*",
         "${workspaceFolder}/*.*"
     ],
     "files.associations": {
