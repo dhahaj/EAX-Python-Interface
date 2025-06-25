@@ -523,6 +523,9 @@
      <layout class="QGridLayout" name="gridLayout_5">
       <item row="0" column="0">
        <widget class="QLineEdit" name="lineEdit_serial">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -631,6 +634,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QSpinBox" name="spinBox_arduino_id">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="minimumSize">
          <size>
           <width>60</width>
