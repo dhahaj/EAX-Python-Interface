@@ -42,6 +42,7 @@ a = Analysis( # type: ignore
         ('chipSelectDialog.py', '.'),
         ('usbinfo.py', '.'),
         ('up_progress.py', '.'),
+        ('busy_dialog.py', '.'),
     ],
     hiddenimports=[
         'qdarkstyle', 
