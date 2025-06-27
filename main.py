@@ -506,6 +506,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log.error(f"USB: connection lost. Error: {message}")
             self.append_text(f"\n<p>USB Error: {message}</p>")
             self.actionConnect.setText("Connect")
+            self.testController = None  # clear the test controller reference
             self.state = State.IDLE
 
     async def disconnect_device(self):
@@ -527,6 +528,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.arduino:
             self.arduino.connection_changed.disconnect(self.on_connection_changed)
             await self.arduino.async_disconnect()
+            self.testController = None  # clear the test controller reference
             self.arduino = None  # clear the reference to the device
         self.state = State.IDLE
         log.success("Device disconnected successfully.")
