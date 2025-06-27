@@ -58,16 +58,22 @@
     },
     "isort.interpreter": ["C:\\Python311\\python.exe"],
     "python.analysis.autoImportCompletions": true,
-    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.analysis.extraPaths": [
+        "C:\\Users\\dhaha\\Documents\\git\\EAX-Python-Interface-1\\.venv\\src\\telemetrix-aio",
+        "C:\\Users\\dhaha\\Documents\\git\\EAX-Python-Interface-1\\.venv\\src\\ini-py"
+    ],
+    "python.analysis.include": [
+        ".venv\\src\\telemetrix-aio\\telemetrix_aio\\**",
+        ".venv/src/telemetrix-aio/telemetrix_aio/telemetrix_aio.py"
+    ],
     "python.analysis.exclude": [
-        "**/dist",
-        ".git",
-        "**/build",
-        "**/venv",
-        "**/.venv",
-        ".venv/*",
-        "venv/*",
-        "util\\config_resources_rc.py"
+        // "**/dist",
+        // ".git",
+        // "**/build",
+        // "**/.venv",
+        // ".venv/*",
+        // "util\\config_resources_rc.py"
     ],
     "autoDocstring.logLevel": "Info",
     "autoDocstring.includeName": false,
@@ -86,24 +92,15 @@
     "python.analysis.completeFunctionParens": true,
     "python.analysis.fixAll": [],
     "python.autoComplete.extraPaths": [],
-    "python.envFile": "${workspaceFolder}/venv/pyvenv.cfg",
+    "python.envFile": "${workspaceFolder}/.venv/pyvenv.cfg",
     "python.terminal.activateEnvInCurrentTerminal": true,
-    "black-formatter.interpreter": ["${workspaceFolder}/venv/Scripts/python"],
+    "black-formatter.interpreter": ["${workspaceFolder}/.venv/Scripts/python"],
     "black-formatter.args": [
         "--skip-string-normalization",
         "--line-length=125",
         "--target-version=py313",
         "--skip-magic-trailing-comma"
         // "--max-line-length=150",`
-    ],
-    "python.analysis.extraPaths": [
-        "./ui",
-        "venv/src/**/*",
-        "venv/src/telemetrix-aio/*.*",
-        "venv/src/telemetrix-aio/**",
-        "venv/src/telemetrix-aio/*",
-        "venv/src/ini-py/ini/*",
-        "${workspaceFolder}/*.*"
     ],
     "files.associations": {
         "*.src": "pic-assembly",
@@ -124,5 +121,11 @@
         "-o",
         "${resourceDirname}${pathSeparator}..${pathSeparator}ui${pathSeparator}ui_${resourceBasenameNoExtension}.py"
     ],
-    "editor.mouseWheelZoom": true
+    "editor.mouseWheelZoom": true,
+    "python.analysis.addHoverSummaries": true,
+    "python.analysis.aiCodeActions": {
+        "convertFormatString": true,
+        "implementAbstractClasses": true
+    },
+    "python.analysis.enableTroubleshootMissingImports": true
 }
