@@ -1,5 +1,4 @@
-from qtpy.QtCore import QEvent, QByteArray, QSize
-from qtpy.QtCore import Qt, QDateTime
+from qtpy.QtCore import Qt, QEvent
 from qtpy.QtGui import QColor, QFont
 from qtpy.QtWidgets import QWidget, QColorDialog, QMainWindow
 from ui.ui_Settings import Ui_Settings
@@ -10,6 +9,7 @@ from config_loader import get_config as get_config
 from arduino import AIODevice
 import re
 import asyncio
+
 
 class SettingsDialog(QWidget, Ui_Settings):
     """
