@@ -60,8 +60,8 @@
     "python.analysis.autoImportCompletions": true,
     "python.analysis.diagnosticMode": "openFilesOnly",
     "python.analysis.extraPaths": [
-        "C:\\Users\\dhaha\\Documents\\git\\EAX-Python-Interface-1\\.venv\\src\\telemetrix-aio",
-        "C:\\Users\\dhaha\\Documents\\git\\EAX-Python-Interface-1\\.venv\\src\\ini-py"
+        ".venv\\src\\telemetrix-aio",
+        ".venv\\src\\ini-py"
     ],
     "python.analysis.include": [
         ".venv\\src\\telemetrix-aio\\telemetrix_aio\\**",
@@ -127,5 +127,10 @@
         "convertFormatString": true,
         "implementAbstractClasses": true
     },
-    "python.analysis.enableTroubleshootMissingImports": true
+    "python.analysis.enableTroubleshootMissingImports": true,
+    "python.analysis.inlayHints.callArgumentNames": "all",
+    "python.analysis.inlayHints.functionReturnTypes": true,
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.typeEvaluation.strictSetInference": true,
+    "python.analysis.typeEvaluation.analyzeUnannotatedFunctions": false
 }
