@@ -75,6 +75,7 @@ from firmware_update import FirmwareUpdateProcess
 from up_progress import UPJob
 from busy_dialog import BusyDialog, ProgressDialog
 
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
     This is the main application window. It contains the primary logic for controlling the application.
@@ -509,7 +510,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.testController = None  # clear the test controller reference
             self.state = State.IDLE
 
-    async def disconnect_device(self):
+    async def disconnect_device(self) -> None:
         # Await the asynchronous disconnect on your device.
         self.usb_label.setText(
             get_config()
@@ -562,10 +563,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.job.progressChanged.connect(lambda v: self.set_status(f"Programming: progress = {v}%"))
             self.job.progressChanged.connect(lambda v: self.dlg.set_progress(v, maximum=100))
             self.job.finished.connect(lambda code: self.handle_programming_result(code, previous_state))
-            
+
             self.state = State.PROGRAMMING
             self.job.start()
-            
+
         except Exception as e:
             self.append_text(f'<br><p>Exception during programming: {e}</p>')
             log.exception(f"Exception during programming: {e}")
@@ -645,7 +646,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # ───────── Firmware Update Functions ─────────
 
-    async def _prepare_for_firmware_update(self):
+    async def _prepare_for_firmware_update(self) -> None:
         """Disconnects device if connected, preparing for firmware update."""
         if self.arduino and self.arduino.device_connected:
             try:
@@ -835,7 +836,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ManualWidget(self.arduino).show()
 
 
-
 if __name__ == "__main__":
 
     app = QApplication(sys.argv)
@@ -846,7 +846,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     settings = settings.get_instance()
- 
+
     def verify_files(files: List[str]) -> bool:
         """
         Verify if the files exist in the current directory.
