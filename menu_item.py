@@ -1,7 +1,7 @@
 from qtpy.QtWidgets import QAction
 from qtpy.QtGui import QIcon, QFont
 from qtpy.QtCore import QSize
-from imports import get_font, get_stylesheet
+from imports import get_stylesheet
 from settings import get_instance
 import device
 
