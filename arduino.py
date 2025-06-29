@@ -120,7 +120,7 @@ class AIODevice(QObject):
             if callback:
                 callback(self.device_connected, str(e))
 
-    async def async_disconnect(self):
+    async def async_disconnect(self) -> None:
         """Asynchronously disconnect from the Arduino device."""
         if self.device:
             await self.device.shutdown()
