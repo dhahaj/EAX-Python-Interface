@@ -5,7 +5,6 @@ from qtpy.QtCore import QTimer, Slot
 from ui.ui_StatusBarWidget import Ui_StatusBarWidget
 import settings
 import constants
-from globals import logger as log
 import counter
 
 
