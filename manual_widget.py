@@ -1,7 +1,6 @@
 from qtpy.QtWidgets import QWidget
 from qtpy import QtCore
 from qtpy.QtCore import Qt
-
 from ui.ui_ManualControlDialog import Ui_ManualControlDialog
 import qdarkstyle
 import asyncio
