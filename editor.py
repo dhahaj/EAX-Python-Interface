@@ -7,7 +7,7 @@ from qtpy.QtWidgets import (
     QAction,
 )
 from ui.ui_Editor import Ui_EditorWindow
-from qtpy.QtGui import QKeySequence, QTextCursor, QFont
+from qtpy.QtGui import QKeySequence, QTextCursor
 from qtpy.QtCore import QEvent, Qt, QByteArray
 from settings import get_instance as get_settings
 from imports import from_string
