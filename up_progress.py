@@ -1,5 +1,6 @@
 # up_qt.py  –  drive UP.exe quietly and stream its progress into a QProgressBar
 # PySide6-only, Windows-only, works with 32- or 64-bit UP package.
+from settings import get_instance
 import ctypes
 import shutil
 import os
@@ -9,9 +10,12 @@ import ini
 from config_loader import get_config
 from settings import get_instance as get_settings
 from constants import KEY_CHIP_PART
+from qtpy.QtCore import Qt
 from PySide6.QtCore import QObject, QProcess, QTimer, Signal, Slot
 from PySide6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, \
     QProgressBar, QLabel
+from ui.ui_ProgressBar import Ui_ProgressBar
+from imports import get_stylesheet
 
 # ---------------------------------------------------------------------------
 #  Win32 helpers (same as before, but prototypes included)
@@ -163,10 +167,10 @@ class UPJob(QObject):
         if self._h_map:
             CloseHandle(self._h_map)
 
+
 # ---------------------------------------------------------------------------
 #  Tiny demo window
 # ---------------------------------------------------------------------------
-from log_view import ProgressBar
 
 class MainWnd(QWidget):
     def __init__(self, ppr_path: str = 'firmware/EAX505_591.hex') -> None:
@@ -188,10 +192,10 @@ class MainWnd(QWidget):
     def start_job(self, ppr: str) -> None:
         self.progress_bar = ProgressBar()
         self.progress_bar.label.setText("Programming…")
-        self.progress_bar.progressBar.setValue(0)
+        self.progress_bar.progressBar.setValue(50)
         self.progress_bar.show()
 
-        self.job = UPJob(ppr)                 # window id defaults to “up1”
+        self.job = UPJob(ppr) # window id defaults to “up1”
         self.job.progressChanged.connect(self.pb.setValue)
         self.job.progressChanged.connect(lambda v: self.lbl.setText(f"{v}%"))
         self.job.progressChanged.connect(lambda v: self.progress_bar.update_progress(v))
@@ -207,12 +211,26 @@ class MainWnd(QWidget):
         self.close()
 
 
+class ProgressBar(QWidget, Ui_ProgressBar):
+    """
+    A progress bar dialog window.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowModality(Qt.WindowModal)
+        self.setStyleSheet(get_stylesheet(get_instance()))
+
+    def update_progress(self, value: int) -> None:
+        self.progressBar.setValue(value)
+        if value >= 100:
+            self.close()
+
+
+
 if __name__ == "__main__":
-    # import ini
-
-    # with open("firmware/test.ppr", "w") as f:
-    #     f.write(ini.PROJECT_TEMPLATE)
-
     app = QApplication(sys.argv)
     wnd = MainWnd()
     wnd.resize(300, 100)
