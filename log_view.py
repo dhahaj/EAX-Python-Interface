@@ -1,7 +1,8 @@
 from qtpy.QtCore import QByteArray
-from qtpy.QtCore import Qt, QDateTime
+from PySide6.QtCore import Qt, QDateTime
 from qtpy.QtWidgets import QWidget, QTableWidgetItem
-from qtpy.QtCore import QThread, Signal
+# from qtpy.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal
 from typing import List, Dict
 from ui.ui_LogView import Ui_LogView
 from ui.ui_ProgressBar import Ui_ProgressBar
@@ -94,11 +95,11 @@ class LogView(QWidget, Ui_LogView):
 
     def keyPressEvent(self, event) -> None:
         key = event.key()
-        if key == Qt.Key_Escape:
+        if key == Qt.Key.Key_Escape:
             self.close()
-        elif key == Qt.Key_F2:
+        elif key == Qt.Key.Key_F2:
             take_screenshot()
-        elif key == Qt.Key_Delete:
+        elif key == Qt.Key.Key_Delete:
             self.delete_selected_rows()
         super().keyPressEvent(event)
 
@@ -137,7 +138,7 @@ class SaveWorker(QThread):
 
     def run(self):
         log.clear_logs()
-        self.setPriority(QThread.HighestPriority)
+        self.setPriority(QThread.Priority.HighestPriority)
         rows = [
             (e['timestamp'], e['level'], e['message'], e['function'])
             for e in self.data
@@ -166,8 +167,8 @@ class ProgressBar(QWidget, Ui_ProgressBar):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
-        self.setWindowModality(Qt.WindowModal)
+        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+        self.setWindowModality(Qt.WindowModality.WindowModal)
         self.settings = get_instance()
         # print("ProgressBar settings =", self.settings)
 
