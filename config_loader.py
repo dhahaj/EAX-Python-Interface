@@ -1,10 +1,10 @@
 import yaml
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 import os
-from constants import KEY_CHIP_PART, DEFAULT_SETTINGS, KEY_PROGRAMMER_SERIAL_NUMBER
+from constants import KEY_CHIP_PART, DEFAULT_SETTINGS
 from util.resources import extract_file_from_resource
 import copy
-from usbinfo import find_device, list_hubs
+from usbinfo import find_device
 
 
 class Keys:
