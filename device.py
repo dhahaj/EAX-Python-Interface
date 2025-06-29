@@ -1,6 +1,6 @@
 import config_loader
 from constants import KEY_DEVICE_NAME, KEY_FIRMWARE_FILENAME, KEY_DEVICE_COLOR
-from typing import List, Dict, Any
+from typing import List
 
 
 class Device:
